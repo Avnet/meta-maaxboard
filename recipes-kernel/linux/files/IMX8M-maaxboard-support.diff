@@ -1,0 +1,6307 @@
+diff --git a/Documentation/devicetree/bindings/mfd/rohm,bd71837-pmic.txt b/Documentation/devicetree/bindings/mfd/rohm,bd71837-pmic.txt
+new file mode 100755
+index 000000000000..7ebfab2fee08
+--- /dev/null
++++ b/Documentation/devicetree/bindings/mfd/rohm,bd71837-pmic.txt
+@@ -0,0 +1,79 @@
++* ROHM BD71837 and BD71847 Power Management Integrated Circuit bindings
++
++BD71837MWV and BD71847MWV are programmable Power Management ICs for powering
++single-core, dual-core, and quad-core SoCs such as NXP-i.MX 8M. They are
++optimized for low BOM cost and compact solution footprint. BD71837MWV
++integrates 8 Buck regulators and 7 LDOs. BD71847MWV contains 6 Buck regulators
++and 6 LDOs.
++
++Datasheet for BD71837 is available at:
++https://www.rohm.com/datasheet/BD71837MWV/bd71837mwv-e
++
++Required properties:
++ - compatible		: Should be "rohm,bd71837" for bd71837
++				    "rohm,bd71847" for bd71847.
++ - reg			: I2C slave address.
++ - interrupt-parent	: Phandle to the parent interrupt controller.
++ - interrupts		: The interrupt line the device is connected to.
++ - clocks		: The parent clock connected to PMIC. If this is missing
++			  32768 KHz clock is assumed.
++ - #clock-cells		: Should be 0.
++ - regulators:		: List of child nodes that specify the regulators.
++			  Please see ../regulator/rohm,bd71837-regulator.txt
++
++Optional properties:
++ - clock-output-names		: Should contain name for output clock.
++ - rohm,pmic-buck1-dvs-voltage	: Should contain list of voltage levels matching
++				  HW states. First voltage is for RUN, second
++				  for IDLE and third for SUSPEND. Voltages
++				  should be given in uV.
++ - rohm,pmic-buck2-dvs-voltage	: Like rohm,pmic-buck1-dvs-voltage but SUSPEND
++				  state is not used. Only give voltages for RUN
++				  and IDLE
++ - rohm,pmic-buck3-dvs-voltage	: Like rohm,pmic-buck2-dvs-voltage but only for
++				  RUN state. Not on BD71847.
++ - rohm,pmic-buck4-dvs-voltage	: Like rohm,pmic-buck3-dvs-voltage.
++				  Not on BD71847.
++
++
++Example:
++
++	/* external oscillator node */
++	osc: oscillator {
++		compatible = "fixed-clock";
++		#clock-cells = <1>;
++		clock-frequency  = <32768>;
++		clock-output-names = "osc";
++	};
++
++	pmic: pmic@4b {
++		compatible = "rohm,bd71837";
++		reg = <0x4b>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <29 GPIO_ACTIVE_LOW>;
++		interrupt-names = "irq";
++		#clock-cells = <0>;
++		clocks = <&osc 0>;
++		clock-output-names = "bd71837-32k-out";
++
++		rohm,pmic-buck1-dvs-voltage = <900000>, <850000>, <800000>;
++		rohm,pmic-buck2-dvs-voltage = <1000000>, <900000>;
++		rohm,pmic-buck3-dvs-voltage = <900000>;
++		rohm,pmic-buck4-dvs-voltage = <900000>;
++		regulators {
++			buck1: BUCK1 {
++				regulator-name = "buck1";
++				regulator-min-microvolt = <700000>;
++				regulator-max-microvolt = <1300000>;
++				regulator-boot-on;
++				regulator-ramp-delay = <1250>;
++			};
++		};
++	};
++
++	/* Clock consumer node */
++	rtc@0 {
++		compatible = "company,my-rtc";
++		clock-names = "my-clock";
++		clocks = <&pmic>;
++	};
+diff --git a/Documentation/devicetree/bindings/regulator/rohm,bd71837-regulator.txt b/Documentation/devicetree/bindings/regulator/rohm,bd71837-regulator.txt
+new file mode 100755
+index 000000000000..4b98ca26e61a
+--- /dev/null
++++ b/Documentation/devicetree/bindings/regulator/rohm,bd71837-regulator.txt
+@@ -0,0 +1,124 @@
++ROHM BD71837 and BD71847 Power Management Integrated Circuit regulator bindings
++
++Required properties:
++ - regulator-name: should be "buck1", ..., "buck8" and "ldo1", ..., "ldo7" for
++                   BD71837. For BD71847 names should be "buck1", ..., "buck6"
++		   and "ldo1", ..., "ldo6"
++
++List of regulators provided by this controller. BD71837 regulators node
++should be sub node of the BD71837 MFD node. See BD71837 MFD bindings at
++Documentation/devicetree/bindings/mfd/rohm,bd71837-pmic.txt
++Regulator nodes should be named to BUCK_<number> and LDO_<number>. The
++definition for each of these nodes is defined using the standard
++binding for regulators at
++Documentation/devicetree/bindings/regulator/regulator.txt.
++Note that if BD71837 starts at RUN state you probably want to use
++regulator-boot-on at least for BUCK6 and BUCK7 so that those are not
++disabled by driver at startup. LDO5 and LDO6 are supplied by those and
++if they are disabled at startup the voltage monitoring for LDO5/LDO6 will
++cause PMIC to reset.
++
++The valid names for BD71837 regulator nodes are:
++BUCK1, BUCK2, BUCK3, BUCK4, BUCK5, BUCK6, BUCK7, BUCK8
++LDO1, LDO2, LDO3, LDO4, LDO5, LDO6, LDO7
++
++The valid names for BD71847 regulator nodes are:
++BUCK1, BUCK2, BUCK3, BUCK4, BUCK5, BUCK6
++LDO1, LDO2, LDO3, LDO4, LDO5, LDO6
++
++Optional properties:
++- Any optional property defined in bindings/regulator/regulator.txt
++
++Example:
++regulators {
++	buck1: BUCK1 {
++		regulator-name = "buck1";
++		regulator-min-microvolt = <700000>;
++		regulator-max-microvolt = <1300000>;
++		regulator-boot-on;
++		regulator-ramp-delay = <1250>;
++	};
++	buck2: BUCK2 {
++		regulator-name = "buck2";
++		regulator-min-microvolt = <700000>;
++		regulator-max-microvolt = <1300000>;
++		regulator-boot-on;
++		regulator-always-on;
++		regulator-ramp-delay = <1250>;
++	};
++	buck3: BUCK3 {
++		regulator-name = "buck3";
++		regulator-min-microvolt = <700000>;
++		regulator-max-microvolt = <1300000>;
++		regulator-boot-on;
++	};
++	buck4: BUCK4 {
++		regulator-name = "buck4";
++		regulator-min-microvolt = <700000>;
++		regulator-max-microvolt = <1300000>;
++		regulator-boot-on;
++	};
++	buck5: BUCK5 {
++		regulator-name = "buck5";
++		regulator-min-microvolt = <700000>;
++		regulator-max-microvolt = <1350000>;
++		regulator-boot-on;
++	};
++	buck6: BUCK6 {
++		regulator-name = "buck6";
++		regulator-min-microvolt = <3000000>;
++		regulator-max-microvolt = <3300000>;
++		regulator-boot-on;
++	};
++	buck7: BUCK7 {
++		regulator-name = "buck7";
++		regulator-min-microvolt = <1605000>;
++		regulator-max-microvolt = <1995000>;
++		regulator-boot-on;
++	};
++	buck8: BUCK8 {
++		regulator-name = "buck8";
++		regulator-min-microvolt = <800000>;
++		regulator-max-microvolt = <1400000>;
++	};
++
++	ldo1: LDO1 {
++		regulator-name = "ldo1";
++		regulator-min-microvolt = <3000000>;
++		regulator-max-microvolt = <3300000>;
++		regulator-boot-on;
++	};
++	ldo2: LDO2 {
++		regulator-name = "ldo2";
++		regulator-min-microvolt = <900000>;
++		regulator-max-microvolt = <900000>;
++		regulator-boot-on;
++	};
++	ldo3: LDO3 {
++		regulator-name = "ldo3";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <3300000>;
++	};
++	ldo4: LDO4 {
++		regulator-name = "ldo4";
++		regulator-min-microvolt = <900000>;
++		regulator-max-microvolt = <1800000>;
++	};
++	ldo5: LDO5 {
++		regulator-name = "ldo5";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <3300000>;
++	};
++	ldo6: LDO6 {
++		regulator-name = "ldo6";
++		regulator-min-microvolt = <900000>;
++		regulator-max-microvolt = <1800000>;
++	};
++	ldo7_reg: LDO7 {
++		regulator-name = "ldo7";
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <3300000>;
++	};
++};
++
++
+diff --git a/arch/arm64/boot/dts/freescale/Makefile b/arch/arm64/boot/dts/freescale/Makefile
+old mode 100644
+new mode 100755
+index fcbca40bc8fa..cd0778db33ea
+--- a/arch/arm64/boot/dts/freescale/Makefile
++++ b/arch/arm64/boot/dts/freescale/Makefile
+@@ -94,6 +94,10 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MQ) += fsl-imx8mq-ddr3l-arm2.dtb \
+ 				 fsl-imx8mq-ddr4-arm2.dtb \
+ 				 fsl-imx8mq-ddr4-arm2-gpmi-nand.dtb \
+ 				 fsl-imx8mq-evk.dtb \
++				 em-sbc-imx8m.dtb \
++				 em-sbc-imx8m-dcss-dsi.dtb \
++				 em-sbc-imx8m-dcss-lvds.dtb \
++				 em-sbc-imx8m-usb0-device.dtb \
+ 				 fsl-imx8mq-evk-b3.dtb \
+ 				 fsl-imx8mq-evk-m4.dtb \
+ 				 fsl-imx8mq-evk-pcie1-m2.dtb \
+diff --git a/arch/arm64/boot/dts/freescale/em-sbc-imx8m-dcss-dsi.dts b/arch/arm64/boot/dts/freescale/em-sbc-imx8m-dcss-dsi.dts
+new file mode 100755
+index 000000000000..370ea4d7eac7
+--- /dev/null
++++ b/arch/arm64/boot/dts/freescale/em-sbc-imx8m-dcss-dsi.dts
+@@ -0,0 +1,172 @@
++/*
++ * Copyright 2018 NXP
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include "em-sbc-imx8m.dts"
++
++/ {
++	sound-hdmi {
++		status = "disabled";
++	};
++};
++
++&hdmi {
++	status = "disabled";
++};
++
++&dcss {
++	status = "okay";
++	disp-dev = "mipi_disp";
++
++	clocks = <&clk IMX8MQ_CLK_DISP_APB_ROOT>,
++		 <&clk IMX8MQ_CLK_DISP_AXI_ROOT>,
++		 <&clk IMX8MQ_CLK_DISP_RTRM_ROOT>,
++		 <&clk IMX8MQ_CLK_DC_PIXEL>,
++		 <&clk IMX8MQ_CLK_DUMMY>,
++		 <&clk IMX8MQ_CLK_DISP_DTRC>;
++	clock-names = "apb", "axi", "rtrm", "pix_div", "pix_out", "dtrc";
++
++	assigned-clocks = <&clk IMX8MQ_CLK_DC_PIXEL>,
++			  <&clk IMX8MQ_CLK_DISP_AXI>,
++			  <&clk IMX8MQ_CLK_DISP_RTRM>,
++			  <&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
++			  <&clk IMX8MQ_VIDEO_PLL1>;
++	assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
++				 <&clk IMX8MQ_SYS1_PLL_800M>,
++				 <&clk IMX8MQ_SYS1_PLL_800M>,
++				 <&clk IMX8MQ_CLK_25M>;
++	assigned-clock-rates = <600000000>,
++			       <800000000>,
++			       <0>,
++			       <400000000>,
++			       <599999999>;
++
++	dcss_disp0: port@0 {
++		reg = <0>;
++
++		dcss_disp0_mipi_dsi: mipi_dsi {
++			remote-endpoint = <&mipi_dsi_in>;
++		};
++	};
++};
++
++&mipi_dsi_phy {
++	status = "okay";
++};
++
++&mipi_dsi {
++	status = "okay";
++	assigned-clocks = <&clk IMX8MQ_CLK_DSI_PHY_REF>,
++			  <&clk IMX8MQ_CLK_DSI_CORE>,
++			  <&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
++			  <&clk IMX8MQ_VIDEO_PLL1>;
++	assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
++				 <&clk IMX8MQ_SYS1_PLL_266M>,
++				 <&clk IMX8MQ_CLK_25M>;
++	assigned-clock-rates = <24000000>,
++			       <266000000>,
++			       <0>,
++			       <599999999>;
++
++	port@1 {
++		mipi_dsi_in: endpoint {
++			remote-endpoint = <&dcss_disp0_mipi_dsi>;
++		};
++	};
++
++};
++
++&mipi_dsi_bridge {
++	status = "okay";
++
++	panel@0 {
++		compatible = "ilitek,ili9881c";
++		reg = <0>;
++		pinctrl-0 = <&pinctrl_mipi_dsi_en>;
++		enable-gpio = <&gpio3 12 GPIO_ACTIVE_HIGH>;
++		dsi-lanes = <2>;
++
++		port {
++			panel1_in: endpoint {
++				remote-endpoint = <&mipi_dsi_bridge_out>;
++			};
++		};
++	};
++
++	port@2 {
++		mipi_dsi_bridge_out: endpoint {
++			remote-endpoint = <&panel1_in>;
++		};
++	};
++};
++
++&iomuxc {
++	imx8mq-evk {
++		pinctrl_mipi_dsi_en: mipi_dsi_en {
++			fsl,pins = <
++				MX8MQ_IOMUXC_NAND_DATA06_GPIO3_IO12	0x16 /*DSI_EN*/
++			>;
++		};
++
++		pinctrl_pwm1: pwm1_grp {
++			fsl,pins = <
++					MX8MQ_IOMUXC_GPIO1_IO01_PWM1_OUT  0x06
++			>;
++		};
++
++		pinctrl_ts_ft5426: ft5426_pinsgrp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_NAND_DATA07_GPIO3_IO13  0x19 /* DSI_TS_nINT */
++				MX8MQ_IOMUXC_GPIO1_IO04_GPIO1_IO4   0x19 /* DSI_TS_RST */
++			>;
++		};
++	};
++};
++
++/ {
++	backlight {
++			compatible = "pwm-backlight";
++			pwms = <&pwm1 0 40000 0>;
++			brightness-levels = <0 8 32 64 96 128 160 192 224 255>;
++			default-brightness-level = <8>;
++			status = "okay";
++	};
++};
++
++&pwm1 {
++        pinctrl-names = "default";
++        pinctrl-0 = <&pinctrl_pwm1>;
++        status = "okay";
++};
++
++
++&i2c4 {
++	ft5426_ts@38 {
++			compatible = "focaltech,fts";
++			reg = <0x38>;
++			pinctrl-0 = <&pinctrl_ts_ft5426>;
++
++			interrupt-parent = <&gpio3>;
++			interrupts = <13 2>;
++			focaltech,reset-gpio = <&gpio1 4 0x01>;
++			focaltech,irq-gpio = <&gpio3 13 0x02>;
++			focaltech,max-touch-number = <10>;
++			focaltech,panel-type = <0x54260002>;/* _FT5426 */
++			focaltech,display-coords =  <0 0 720 1280>;
++			focaltech,have-key;
++			focaltech,key-number = <3>;
++			focaltech,keys = <139 102 158>;
++			focaltech,key-y-coord = <2000>;
++			focaltech,key-x-coords = <200 600 800>;
++	};
++};
+diff --git a/arch/arm64/boot/dts/freescale/em-sbc-imx8m-dcss-lvds.dts b/arch/arm64/boot/dts/freescale/em-sbc-imx8m-dcss-lvds.dts
+new file mode 100755
+index 000000000000..56bf1eed8783
+--- /dev/null
++++ b/arch/arm64/boot/dts/freescale/em-sbc-imx8m-dcss-lvds.dts
+@@ -0,0 +1,181 @@
++/*
++ * Copyright 2019 EMBEST
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include "em-sbc-imx8m.dts"
++
++/ {
++	sound-hdmi {
++		status = "disabled";
++	};
++};
++
++&hdmi {
++	status = "disabled";
++};
++
++&dcss {
++	status = "okay";
++	disp-dev = "mipi_disp";
++
++	clocks = <&clk IMX8MQ_CLK_DISP_APB_ROOT>,
++		 <&clk IMX8MQ_CLK_DISP_AXI_ROOT>,
++		 <&clk IMX8MQ_CLK_DISP_RTRM_ROOT>,
++		 <&clk IMX8MQ_CLK_DC_PIXEL>,
++		 <&clk IMX8MQ_CLK_DUMMY>,
++		 <&clk IMX8MQ_CLK_DISP_DTRC>;
++	clock-names = "apb", "axi", "rtrm", "pix_div", "pix_out", "dtrc";
++
++	assigned-clocks = <&clk IMX8MQ_CLK_DC_PIXEL>,
++			  <&clk IMX8MQ_CLK_DISP_AXI>,
++			  <&clk IMX8MQ_CLK_DISP_RTRM>,
++			  <&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
++			  <&clk IMX8MQ_VIDEO_PLL1>;
++	assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
++				 <&clk IMX8MQ_SYS1_PLL_800M>,
++				 <&clk IMX8MQ_SYS1_PLL_800M>,
++				 <&clk IMX8MQ_CLK_25M>;
++	assigned-clock-rates = <600000000>,
++			       <800000000>,
++			       <0>,
++			       <400000000>,
++			       <599999999>;
++
++	dcss_disp0: port@0 {
++		reg = <0>;
++
++		dcss_disp0_mipi_dsi: mipi_dsi {
++			remote-endpoint = <&mipi_dsi_in>;
++		};
++	};
++};
++
++&mipi_dsi_phy {
++	status = "okay";
++};
++
++&mipi_dsi {
++	status = "okay";
++
++	port@1 {
++		mipi_dsi_in: endpoint {
++			remote-endpoint = <&dcss_disp0_mipi_dsi>;
++		};
++	};
++
++};
++
++&mipi_dsi_bridge {
++	status = "okay";
++
++    port@1 {
++		mipi_dsi_bridge_lvds: endpoint {
++			remote-endpoint = <&lt2911_in>;
++		};
++	};
++};
++
++&i2c4 {
++    lt2911@29 {
++		compatible = "lontium,lt2911";
++		reg = <0x29>;
++        pinctrl-0 = <&pinctrl_mipi_dsi_en>;
++        enable-gpio = <&gpio3 12 GPIO_ACTIVE_HIGH>;
++
++		port {
++			lt2911_in: endpoint {
++				remote-endpoint = <&mipi_dsi_bridge_lvds>;
++			};
++		};
++
++		display-timings {
++			native-mode = <&timing1>;
++			timing1: timing1 {
++				clock-frequency = <34000000>;
++				hactive = <1024>;
++				vactive = <600>;
++				hfront-porch = <60>;
++				hsync-len = <60>;
++				hback-porch = <100>;
++				vfront-porch = <2>;
++				vsync-len = <5>;
++				vback-porch = <10>;
++				hsync-active = <0>;
++				vsync-active = <0>;
++				de-active = <0>;
++				pixelclk-active = <0>;
++			};
++		};
++	};
++
++    ft5426_ts@38 {
++            compatible = "focaltech,fts";
++            reg = <0x38>;
++            pinctrl-0 = <&pinctrl_ts_ft5426>;
++
++            interrupt-parent = <&gpio3>;
++            interrupts = <13 2>;
++            focaltech,reset-gpio = <&gpio1 4 0x01>;
++            focaltech,irq-gpio = <&gpio3 13 0x02>;
++            focaltech,max-touch-number = <5>;
++            focaltech,panel-type = <0x54260002>; /* _FT5426 */
++            focaltech,display-coords =  <0 0 1024 600>;
++            focaltech,have-key;
++            focaltech,key-number = <3>;
++            focaltech,keys = <139 102 158>;
++            focaltech,key-y-coord = <2000>;
++            focaltech,key-x-coords = <200 600 800>;
++    };
++
++};
++
++&iomuxc {
++	imx8mq-evk {
++		pinctrl_mipi_dsi_en: mipi_dsi_en {
++			fsl,pins = <
++				MX8MQ_IOMUXC_NAND_DATA06_GPIO3_IO12	0x16 /*DSI_EN*/
++			>;
++		};
++
++		pinctrl_ts_ft5426: ft5426_pinsgrp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_NAND_DATA07_GPIO3_IO13  0x19 /* DSI_TS_nINT */
++				MX8MQ_IOMUXC_GPIO1_IO04_GPIO1_IO4   0x19 /* DSI_TS_RST */
++			>;
++		};
++
++		pinctrl_pwm1: pwm1_grp {
++			fsl,pins = <
++					MX8MQ_IOMUXC_GPIO1_IO01_PWM1_OUT  0x06
++			>;
++		};
++	};
++};
++
++
++/ {
++
++	lvds_backlight {
++			compatible = "pwm-backlight";
++			pwms = <&pwm1 0 40000 0>;
++			brightness-levels = <0 8 32 64 96 128 160 192 224 255>;
++			default-brightness-level = <8>;
++			status = "okay";
++	};
++};
++
++&pwm1 {
++        pinctrl-names = "default";
++        pinctrl-0 = <&pinctrl_pwm1>;
++        status = "okay";
++};
+\ No newline at end of file
+diff --git a/arch/arm64/boot/dts/freescale/em-sbc-imx8m-usb0-device.dts b/arch/arm64/boot/dts/freescale/em-sbc-imx8m-usb0-device.dts
+new file mode 100755
+index 000000000000..45a183d59fdf
+--- /dev/null
++++ b/arch/arm64/boot/dts/freescale/em-sbc-imx8m-usb0-device.dts
+@@ -0,0 +1,21 @@
++/*
++ * Copyright 2019 EMBEST
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include "em-sbc-imx8m.dts"
++
++&usb_dwc3_0 {
++	status = "okay";
++	dr_mode = "peripheral";
++};
++
+diff --git a/arch/arm64/boot/dts/freescale/em-sbc-imx8m.dts b/arch/arm64/boot/dts/freescale/em-sbc-imx8m.dts
+new file mode 100755
+index 000000000000..a387436dfd80
+--- /dev/null
++++ b/arch/arm64/boot/dts/freescale/em-sbc-imx8m.dts
+@@ -0,0 +1,679 @@
++/*
++ * Copyright 2019 EMBEST
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++/dts-v1/;
++
++#include "fsl-imx8mq.dtsi"
++
++/ {
++	model = "Freescale i.MX8MQ EVK";
++	compatible = "fsl,imx8mq-evk", "fsl,imx8mq";
++
++	chosen {
++		bootargs = "console=ttymxc0,115200 earlycon=ec_imx6q,0x30860000,115200";
++		stdout-path = &uart1;
++	};
++
++	leds {
++		compatible = "gpio-leds";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_gpio_leds>;
++		status = "okay";
++
++		sys_led {
++				label = "sys_led";
++				gpios = <&gpio1 5 0>;
++				default-state = "on";
++				linux,default-trigger = "heartbeat";
++		};
++
++		usr_led {
++				label = "usr_led";
++				gpios = <&gpio1 8 0>;
++				default-state = "on";
++		};
++
++	};
++
++	gpio_keys {
++			compatible = "gpio-keys";
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_gpio_keys>;
++
++			home {
++					label = "home Button";
++					gpios = <&gpio3 7 GPIO_ACTIVE_LOW>;
++					linux,code = <102>;
++					gpio-key,wakeup;
++			};
++
++			back {
++					label = "back Button";
++					gpios = <&gpio3 6 GPIO_ACTIVE_LOW>;
++					linux,code = <412>;
++			};
++	};
++
++	sound-hdmi {
++		compatible = "fsl,imx8mq-evk-cdnhdmi",
++				"fsl,imx-audio-cdnhdmi";
++		model = "imx-audio-hdmi";
++		audio-cpu = <&sai4>;
++		protocol = <1>;
++		hdmi-out;
++		constraint-rate = <44100>,
++				<88200>,
++				<176400>,
++				<32000>,
++				<48000>,
++				<96000>,
++				<192000>;
++	};
++
++	regulators {
++		compatible = "simple-bus";
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		reg_3V3WF: regulator@1 {
++			compatible = "regulator-fixed";
++			reg = <1>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_reg3V3wf>;
++			regulator-name = "WF_3V3";
++			regulator-min-microvolt = <3300000>;
++			regulator-max-microvolt = <3300000>;
++			gpio = <&gpio2 20 0>;  /* WB_PWR_EN */
++			regulator-always-on;
++			enable-active-high;
++		};
++	};
++
++	wlan_pwrseq: sdio-pwrseq {
++		compatible = "mmc-pwrseq-simple";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_wlan>;
++		reset-gpios = <&gpio2 19 GPIO_ACTIVE_LOW>;      /* WL_REG_ON */
++	};
++
++	bt_reset: bt_reset{
++		compatible = "gpio-reset";
++		reset-gpios = <&gpio5 11 GPIO_ACTIVE_LOW>;    /* BT_REG_ON */
++		reset-delay-us = <1000>;
++		reset-post-delay-ms = <40>;
++		#reset-cells = <0>;
++	};
++
++	osc: oscillator {
++			compatible = "fixed-clock";
++			#clock-cells = <1>;
++			clock-frequency  = <32768>;
++			clock-output-names = "osc-pmic";
++	};
++};
++
++&clk {
++	assigned-clocks = <&clk IMX8MQ_AUDIO_PLL1>, <&clk IMX8MQ_AUDIO_PLL2>;
++	assigned-clock-rates = <786432000>, <722534400>;
++};
++
++&iomuxc {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_hog>;
++
++	imx8mq-evk {
++		pinctrl_hog: hoggrp {
++			fsl,pins = <
++				/*default GPIOs*/
++				MX8MQ_IOMUXC_NAND_READY_B_GPIO3_IO16	0x19	/*pin7*/
++				MX8MQ_IOMUXC_NAND_WE_B_GPIO3_IO17	0x19	/*pin11*/
++				MX8MQ_IOMUXC_NAND_RE_B_GPIO3_IO15	0x19	/*pin22*/
++				MX8MQ_IOMUXC_NAND_CLE_GPIO3_IO5		0x19	/*pin29*/
++				MX8MQ_IOMUXC_NAND_DATA04_GPIO3_IO10	0x19	/*pin31*/
++				/*MX8MQ_IOMUXC_GPIO1_IO15_GPIO1_IO15 0x19*/ 	/*pin32*/
++				MX8MQ_IOMUXC_GPIO1_IO13_GPIO1_IO13	0x19	/*pin33*/
++				MX8MQ_IOMUXC_GPIO1_IO03_GPIO1_IO3	0x19	/*pin36*/
++				MX8MQ_IOMUXC_NAND_DATA05_GPIO3_IO11	0x19	/*pin37*/
++				MX8MQ_IOMUXC_GPIO1_IO00_ANAMIX_REF_CLK_32K  0x05
++			>;
++		};
++
++		pinctrl_gpio_leds: gpio_ledsgrp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_GPIO1_IO05_GPIO1_IO5                0x19
++				MX8MQ_IOMUXC_GPIO1_IO08_GPIO1_IO8                0x19
++			>;
++		};
++
++		pinctrl_gpio_keys: gpio_keysgrp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_NAND_DATA01_GPIO3_IO7          0x56
++				MX8MQ_IOMUXC_NAND_DATA00_GPIO3_IO6          0x56
++			>;
++		};
++
++		pinctrl_uart1: uart1grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_UART1_RXD_UART1_DCE_RX		0x49
++				MX8MQ_IOMUXC_UART1_TXD_UART1_DCE_TX		0x49
++			>;
++		};
++
++		pinctrl_wlan: wlangrp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_SD2_RESET_B_GPIO2_IO19		0x19 /* WL_REG_ON */
++				MX8MQ_IOMUXC_SD2_CD_B_GPIO2_IO12		0x19 /* WL_HOST_WAKE irq */
++			>;
++		};
++		pinctrl_reg3V3wf: reg3V3wfgrp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_SD2_WP_GPIO2_IO20          0x19     /* WB_PWR_EN */
++			>;
++		};
++
++		pinctrl_usdhc1: usdhc1grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_SD1_CLK_USDHC1_CLK			0x83
++				MX8MQ_IOMUXC_SD1_CMD_USDHC1_CMD			0xc3
++				MX8MQ_IOMUXC_SD1_DATA0_USDHC1_DATA0		0xc3
++				MX8MQ_IOMUXC_SD1_DATA1_USDHC1_DATA1		0xc3
++				MX8MQ_IOMUXC_SD1_DATA2_USDHC1_DATA2		0xc3
++				MX8MQ_IOMUXC_SD1_DATA3_USDHC1_DATA3		0xc3
++				MX8MQ_IOMUXC_GPIO1_IO06_GPIO1_IO6		0x19
++			>;
++		};
++
++		pinctrl_usdhc1_100mhz: usdhc1grp100mhz {
++			fsl,pins = <
++				MX8MQ_IOMUXC_SD1_CLK_USDHC1_CLK			0x85
++				MX8MQ_IOMUXC_SD1_CMD_USDHC1_CMD			0xc5
++				MX8MQ_IOMUXC_SD1_DATA0_USDHC1_DATA0		0xc5
++				MX8MQ_IOMUXC_SD1_DATA1_USDHC1_DATA1		0xc5
++				MX8MQ_IOMUXC_SD1_DATA2_USDHC1_DATA2		0xc5
++				MX8MQ_IOMUXC_SD1_DATA3_USDHC1_DATA3		0xc5
++			>;
++		};
++
++		pinctrl_usdhc1_200mhz: usdhc1grp200mhz {
++			fsl,pins = <
++				MX8MQ_IOMUXC_SD1_CLK_USDHC1_CLK			0x87
++				MX8MQ_IOMUXC_SD1_CMD_USDHC1_CMD			0xc7
++				MX8MQ_IOMUXC_SD1_DATA0_USDHC1_DATA0		0xc7
++				MX8MQ_IOMUXC_SD1_DATA1_USDHC1_DATA1		0xc7
++				MX8MQ_IOMUXC_SD1_DATA2_USDHC1_DATA2		0xc7
++				MX8MQ_IOMUXC_SD1_DATA3_USDHC1_DATA3		0xc7
++			>;
++		};
++
++        pinctrl_usdhc2: usdhc2grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_SD2_CLK_USDHC2_CLK                 0x83
++				MX8MQ_IOMUXC_SD2_CMD_USDHC2_CMD                 0xc3
++				MX8MQ_IOMUXC_SD2_DATA0_USDHC2_DATA0             0xc3
++				MX8MQ_IOMUXC_SD2_DATA1_USDHC2_DATA1             0xc3
++				MX8MQ_IOMUXC_SD2_DATA2_USDHC2_DATA2             0xc3
++				MX8MQ_IOMUXC_SD2_DATA3_USDHC2_DATA3             0xc3
++			>;
++		};
++
++		pinctrl_i2c1: i2c1grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_I2C1_SCL_I2C1_SCL			0x4000007f
++				MX8MQ_IOMUXC_I2C1_SDA_I2C1_SDA			0x4000007f
++			>;
++		};
++
++		pinctrl_i2c2: i2c2grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_I2C2_SCL_I2C2_SCL			0x4000007f
++				MX8MQ_IOMUXC_I2C2_SDA_I2C2_SDA			0x4000007f
++			>;
++		};
++
++		pinctrl_i2c3: i2c3grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_I2C3_SCL_I2C3_SCL			0x4000007f
++				MX8MQ_IOMUXC_I2C3_SDA_I2C3_SDA			0x4000007f
++			>;
++		};
++
++		pinctrl_i2c4: i2c4grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_I2C4_SCL_I2C4_SCL			0x4000007f
++				MX8MQ_IOMUXC_I2C4_SDA_I2C4_SDA			0x4000007f
++			>;
++		};
++
++		pinctrl_csi1: csi1grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_NAND_WP_B_GPIO3_IO18		0x19
++				MX8MQ_IOMUXC_NAND_DQS_GPIO3_IO14		0x19
++			>;
++		};
++
++		pinctrl_pmic: pmicirq {
++			fsl,pins = <
++				MX8MQ_IOMUXC_GPIO1_IO07_GPIO1_IO7		0x19
++			>;
++		};
++
++		pinctrl_wdog: wdoggrp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_GPIO1_IO02_WDOG1_WDOG_B 0xc6
++			>;
++		};
++
++		pinctrl_fec1: fec1grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_ENET_MDC_ENET1_MDC		0x3
++				MX8MQ_IOMUXC_ENET_MDIO_ENET1_MDIO	0x23
++				MX8MQ_IOMUXC_ENET_TD3_ENET1_RGMII_TD3	0x1f
++				MX8MQ_IOMUXC_ENET_TD2_ENET1_RGMII_TD2	0x1f
++				MX8MQ_IOMUXC_ENET_TD1_ENET1_RGMII_TD1	0x1f
++				MX8MQ_IOMUXC_ENET_TD0_ENET1_RGMII_TD0	0x1f
++				MX8MQ_IOMUXC_ENET_RD3_ENET1_RGMII_RD3	0x91
++				MX8MQ_IOMUXC_ENET_RD2_ENET1_RGMII_RD2	0x91
++				MX8MQ_IOMUXC_ENET_RD1_ENET1_RGMII_RD1	0x91
++				MX8MQ_IOMUXC_ENET_RD0_ENET1_RGMII_RD0	0x91
++				MX8MQ_IOMUXC_ENET_TXC_ENET1_RGMII_TXC	0x1f
++				MX8MQ_IOMUXC_ENET_RXC_ENET1_RGMII_RXC	0x91
++				MX8MQ_IOMUXC_ENET_RX_CTL_ENET1_RGMII_RX_CTL	0x91
++				MX8MQ_IOMUXC_ENET_TX_CTL_ENET1_RGMII_TX_CTL	0x1f
++				MX8MQ_IOMUXC_GPIO1_IO09_GPIO1_IO9	0x19
++			>;
++		};
++
++		pinctrl_uart2: uart2grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_UART2_RXD_UART2_DCE_RX		0x49
++				MX8MQ_IOMUXC_UART2_TXD_UART2_DCE_TX		0x49
++			>;
++		};
++
++		pinctrl_uart3: uart3grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_UART3_TXD_UART3_DCE_TX		0x49
++				MX8MQ_IOMUXC_UART3_RXD_UART3_DCE_RX		0x49
++			>;
++		};
++
++		pinctrl_uart4: uart4grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_UART4_RXD_UART4_DCE_RX		0x49
++				MX8MQ_IOMUXC_UART4_TXD_UART4_DCE_TX		0x49
++				MX8MQ_IOMUXC_ECSPI2_SS0_UART4_DCE_RTS_B		0x49
++				MX8MQ_IOMUXC_ECSPI2_MISO_UART4_DCE_CTS_B	0x49
++
++				MX8MQ_IOMUXC_ECSPI2_MOSI_GPIO5_IO11		0x19
++			>;
++		};
++
++	};
++};
++
++/* console */
++&uart1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_uart1>;
++	assigned-clocks = <&clk IMX8MQ_CLK_UART1>;
++	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
++	status = "okay";
++};
++
++&usdhc1 {
++	pinctrl-names = "default", "state_100mhz", "state_200mhz";
++	pinctrl-0 = <&pinctrl_usdhc1>;
++	non-removable;
++	bus-width = <4>;
++	status = "okay";
++};
++
++&usdhc2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_usdhc2>;
++	bus-width = <4>;
++	vmmc-supply = <&reg_3V3WF>;
++	mmc-pwrseq = <&wlan_pwrseq>;
++	no-1-8-v;
++	non-removable;
++	pm-ignore-notify;
++	keep-power-in-suspend;
++	status = "okay";
++
++	#address-cells = <1>;
++	#size-cells = <0>;
++	brcmf: bcrmf@1 {
++			reg = <1>;
++			compatible = "brcm,bcm4329-fmac";
++			interrupt-parent = <&gpio2>;
++			interrupts = <12 IRQ_TYPE_LEVEL_LOW>;
++			interrupt-names = "host-wake";
++        };
++};
++
++&A53_0 {
++	operating-points = <
++		/* kHz    uV */
++		1500000 1000000
++		1300000 1000000
++		1000000 900000
++		800000  900000
++	>;
++	/* arm-supply = <&buck2>; */
++};
++
++&wdog1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_wdog>;
++	fsl,ext-reset-output;
++	status = "okay";
++};
++
++&gpu_pd {
++	power-supply = <&buck3>;
++};
++
++&vpu_pd {
++	power-supply = <&buck4>;
++};
++
++&gpu {
++       status = "okay";
++	   gpu-noc-priority = <0x80000600>;
++};
++
++&vpu {
++	   /delete-property/ regulator-supply;
++       status = "okay";
++};
++
++&dcss {
++	status = "okay";
++	disp-dev = "hdmi_disp";
++};
++
++&hdmi {
++	status = "okay";
++};
++
++&i2c1 {
++	clock-frequency = <400000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c1>;
++	status = "okay";
++
++	pmic: pmic@4b {
++			compatible = "rohm,bd71837";
++			reg = <0x4b>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_pmic>;
++			interrupt-parent = <&gpio1>;
++			interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
++			interrupt-names = "irq-pmic";
++			#clock-cells = <0>;
++			clocks = <&osc 0>;
++			clock-output-names = "bd71837-32k-out";
++
++			rohm,pmic-buck1-dvs-voltage = <900000>, <850000>, <800000>;
++			rohm,pmic-buck2-dvs-voltage = <1000000>, <900000>;
++			rohm,pmic-buck3-dvs-voltage = <1000000>;
++			rohm,pmic-buck4-dvs-voltage = <1000000>;
++			regulators {
++					buck1: BUCK1 {
++							regulator-name = "buck1";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <990000>;
++							regulator-boot-on;
++							regulator-always-on;
++							regulator-ramp-delay = <1250>;
++					};
++					buck2: BUCK2 {
++							regulator-name = "buck2";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <1100000>;
++							regulator-boot-on;
++							regulator-always-on;
++							regulator-ramp-delay = <1250>;
++					};
++					buck3: BUCK3 {
++							regulator-name = "buck3";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <1100000>;
++							regulator-boot-on;
++							regulator-enable-ramp-delay= <180>;
++					};
++					buck4: BUCK4 {
++							regulator-name = "buck4";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <1100000>;
++							regulator-boot-on;
++							regulator-enable-ramp-delay= <180>;
++					};
++					buck5: BUCK5 {
++							regulator-name = "buck5";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <1050000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++					buck6: BUCK6 {
++							regulator-name = "buck6";
++							regulator-min-microvolt = <3000000>;
++							regulator-max-microvolt = <3300000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++					buck8: BUCK8 {
++							regulator-name = "buck8";
++							regulator-min-microvolt = <1100000>;
++							regulator-max-microvolt = <1300000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++
++					ldo1: LDO1 {
++							regulator-name = "ldo1";
++							regulator-min-microvolt = <3000000>;
++							regulator-max-microvolt = <3300000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++					ldo2: LDO2 {
++							regulator-name = "ldo2";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <990000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++					ldo3: LDO3 {
++							regulator-name = "ldo3";
++							regulator-min-microvolt = <1700000>;
++							regulator-max-microvolt = <1900000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++					ldo4: LDO4 {
++							regulator-name = "ldo4";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <990000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++					ldo7_reg: LDO7 {
++							regulator-name = "ldo7";
++							regulator-min-microvolt = <3000000>;
++							regulator-max-microvolt = <3300000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++			};
++	};
++
++	ov5640_mipi: ov5640_mipi@3c {
++		compatible = "ovti,ov5640_mipi";
++		reg = <0x3c>;
++		status = "okay";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_csi1>;
++		clocks = <&clk IMX8MQ_CLK_CLKO2>;
++		clock-names = "csi_mclk";
++		csi_id = <0>;
++		pwn-gpios = <&gpio3 14 GPIO_ACTIVE_HIGH>;
++		rst-gpios = <&gpio3 18 GPIO_ACTIVE_HIGH>;
++
++		mclk = <24000000>;
++		mclk_source = <0>;
++		port {
++			ov5640_mipi1_ep: endpoint {
++				remote-endpoint = <&mipi1_sensor_ep>;
++			};
++		};
++	};
++
++};
++
++&i2c2 {
++	clock-frequency = <100000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c2>;
++	status = "okay";
++};
++
++&i2c3 {
++	clock-frequency = <100000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c3>;
++	status = "okay";
++};
++
++&i2c4 {
++	clock-frequency = <400000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c4>;
++	status = "okay";
++};
++
++&fec1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_fec1>;
++	phy-mode = "rgmii-id";
++	phy-handle = <&ethphy0>;
++	fsl,magic-packet;
++	phy-reset-gpios = <&gpio1 9 GPIO_ACTIVE_LOW>;
++	status = "okay";
++
++	mdio {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		ethphy0: ethernet-phy@4 {
++			compatible = "ethernet-phy-ieee802.3-c22";
++			reg = <4>;
++			at803x,led-act-blind-workaround;
++			at803x,eee-disabled;
++		};
++	};
++};
++
++&uart2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_uart2>;
++	assigned-clocks = <&clk IMX8MQ_CLK_UART2>;
++	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
++	status = "okay";
++};
++
++&uart3 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_uart3>;
++	assigned-clocks = <&clk IMX8MQ_CLK_UART3>;
++	assigned-clock-parents = <&clk IMX8MQ_SYS1_PLL_80M>;
++	status = "disabled";
++};
++
++/* BT */
++&uart4 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_uart4>;
++	assigned-clocks = <&clk IMX8MQ_CLK_UART4>;
++	assigned-clock-parents = <&clk IMX8MQ_SYS1_PLL_80M>;
++	fsl,uart-has-rtscts;
++	resets = <&bt_reset>;
++	status = "okay";
++};
++
++&usb3_phy0 {
++       status = "okay";
++};
++
++&usb3_0 {
++       status = "okay";
++};
++
++&usb_dwc3_0 {
++       /delete-property/ power-domains;
++	status = "okay";
++	dr_mode = "host";
++};
++
++&usb3_phy1 {
++	status = "okay";
++};
++
++&usb3_1 {
++	status = "okay";
++};
++
++&usb_dwc3_1 {
++	status = "okay";
++	dr_mode = "host";
++};
++
++&sai4 {
++	assigned-clocks = <&clk IMX8MQ_CLK_SAI4>;
++	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
++	assigned-clock-rates = <24576000>;
++	clocks = <&clk IMX8MQ_CLK_SAI4_IPG>, <&clk IMX8MQ_CLK_DUMMY>,
++		<&clk IMX8MQ_CLK_SAI4_ROOT>, <&clk IMX8MQ_CLK_DUMMY>,
++		<&clk IMX8MQ_CLK_DUMMY>, <&clk IMX8MQ_AUDIO_PLL1_OUT>,
++		<&clk IMX8MQ_AUDIO_PLL2_OUT>;
++	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k", "pll11k";
++	status = "okay";
++};
++&csi1_bridge {
++	fsl,mipi-mode;
++	fsl,two-8bit-sensor-mode;
++	status = "okay";
++
++	port {
++		csi1_ep: endpoint {
++			remote-endpoint = <&csi1_mipi_ep>;
++		};
++	};
++};
++&mipi_csi_1 {
++	#address-cells = <1>;
++	#size-cells = <0>;
++	status = "okay";
++	port {
++		mipi1_sensor_ep: endpoint1 {
++			remote-endpoint = <&ov5640_mipi1_ep>;
++			data-lanes = <1 2>;
++		};
++
++		csi1_mipi_ep: endpoint2 {
++			remote-endpoint = <&csi1_ep>;
++		};
++	};
++};
+diff --git a/arch/arm64/boot/dts/freescale/em-sbc-imx8m_v0.dts b/arch/arm64/boot/dts/freescale/em-sbc-imx8m_v0.dts
+new file mode 100755
+index 000000000000..11005f0c6e69
+--- /dev/null
++++ b/arch/arm64/boot/dts/freescale/em-sbc-imx8m_v0.dts
+@@ -0,0 +1,690 @@
++/*
++ * Copyright 2019 EMBEST
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++/dts-v1/;
++
++#include "fsl-imx8mq.dtsi"
++
++/ {
++	model = "Freescale i.MX8MQ EVK";
++	compatible = "fsl,imx8mq-evk", "fsl,imx8mq";
++
++	chosen {
++		bootargs = "console=ttymxc0,115200 earlycon=ec_imx6q,0x30860000,115200";
++		stdout-path = &uart1;
++	};
++
++	leds {
++		compatible = "gpio-leds";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_gpio_leds>;
++		status = "okay";
++
++		sys_led {
++				label = "sys_led";
++				gpios = <&gpio1 5 0>;
++				default-state = "on";
++				linux,default-trigger = "heartbeat";
++		};
++
++		usr_led {
++				label = "usr_led";
++				gpios = <&gpio1 8 0>;
++				default-state = "on";
++		};
++
++	};
++
++	gpio_keys {
++			compatible = "gpio-keys";
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_gpio_keys>;
++
++			home {
++					label = "home Button";
++					gpios = <&gpio5 10 GPIO_ACTIVE_LOW>;
++					linux,code = <102>;
++					gpio-key,wakeup;
++			};
++
++			back {
++					label = "back Button";
++					gpios = <&gpio5 12 GPIO_ACTIVE_LOW>;
++					linux,code = <412>;
++			};
++	};
++
++	sound-hdmi {
++		compatible = "fsl,imx8mq-evk-cdnhdmi",
++				"fsl,imx-audio-cdnhdmi";
++		model = "imx-audio-hdmi";
++		audio-cpu = <&sai4>;
++		protocol = <1>;
++		hdmi-out;
++		constraint-rate = <44100>,
++				<88200>,
++				<176400>,
++				<32000>,
++				<48000>,
++				<96000>,
++				<192000>;
++	};
++
++	regulators {
++		compatible = "simple-bus";
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		reg_3V3WF: regulator@1 {
++			compatible = "regulator-fixed";
++			reg = <1>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_reg3V3wf>;
++			regulator-name = "WF_3V3";
++			regulator-min-microvolt = <3300000>;
++			regulator-max-microvolt = <3300000>;
++			gpio = <&gpio2 20 0>;  /* WB_PWR_EN */
++			regulator-always-on;
++			enable-active-high;
++		};
++	};
++
++	wlan_pwrseq: sdio-pwrseq {
++		compatible = "mmc-pwrseq-simple";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_wlan>;
++		reset-gpios = <&gpio2 19 GPIO_ACTIVE_LOW>;      /* WL_REG_ON */
++	};
++
++	bt_reset: bt_reset{
++		compatible = "gpio-reset";
++		reset-gpios = <&gpio5 11 GPIO_ACTIVE_LOW>;    /* BT_REG_ON */
++		reset-delay-us = <1000>;
++		reset-post-delay-ms = <40>;
++		#reset-cells = <0>;
++	};
++
++	osc: oscillator {
++			compatible = "fixed-clock";
++			#clock-cells = <1>;
++			clock-frequency  = <32768>;
++			clock-output-names = "osc-pmic";
++	};
++};
++
++&clk {
++	assigned-clocks = <&clk IMX8MQ_AUDIO_PLL1>, <&clk IMX8MQ_AUDIO_PLL2>;
++	assigned-clock-rates = <786432000>, <722534400>;
++};
++
++&iomuxc {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_hog>;
++
++	imx8mq-evk {
++		pinctrl_hog: hoggrp {
++			fsl,pins = <
++				/*default GPIOs*/
++				MX8MQ_IOMUXC_NAND_READY_B_GPIO3_IO16	0x19	/*pin7*/
++				MX8MQ_IOMUXC_NAND_WE_B_GPIO3_IO17	0x19	/*pin11*/
++				MX8MQ_IOMUXC_NAND_RE_B_GPIO3_IO15	0x19	/*pin22*/
++				MX8MQ_IOMUXC_NAND_CLE_GPIO3_IO5		0x19	/*pin29*/
++				MX8MQ_IOMUXC_NAND_DATA04_GPIO3_IO10	0x19	/*pin31*/
++				/*MX8MQ_IOMUXC_GPIO1_IO15_GPIO1_IO15 0x19*/ 	/*pin32*/
++				MX8MQ_IOMUXC_GPIO1_IO13_GPIO1_IO13	0x19	/*pin33*/
++				MX8MQ_IOMUXC_GPIO1_IO03_GPIO1_IO3	0x19	/*pin36*/
++				MX8MQ_IOMUXC_NAND_DATA05_GPIO3_IO11	0x19	/*pin37*/
++			>;
++		};
++
++		pinctrl_gpio_leds: gpio_ledsgrp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_GPIO1_IO05_GPIO1_IO5                0x19
++				MX8MQ_IOMUXC_GPIO1_IO08_GPIO1_IO8                0x19
++			>;
++		};
++
++		pinctrl_gpio_keys: gpio_keysgrp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_ECSPI2_SCLK_GPIO5_IO10          0x1856
++				MX8MQ_IOMUXC_ECSPI2_MISO_GPIO5_IO12          0x56
++			>;
++		};
++
++		pinctrl_uart1: uart1grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_UART1_RXD_UART1_DCE_RX		0x49
++				MX8MQ_IOMUXC_UART1_TXD_UART1_DCE_TX		0x49
++			>;
++		};
++
++		pinctrl_wlan: wlangrp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_SD2_RESET_B_GPIO2_IO19		0x19 /* WL_REG_ON */
++				MX8MQ_IOMUXC_SD2_CD_B_GPIO2_IO12		0x19 /* WL_HOST_WAKE irq */
++			>;
++		};
++		pinctrl_reg3V3wf: reg3V3wfgrp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_SD2_WP_GPIO2_IO20          0x19     /* WB_PWR_EN */
++			>;
++		};
++
++		pinctrl_usdhc1: usdhc1grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_SD1_CLK_USDHC1_CLK			0x83
++				MX8MQ_IOMUXC_SD1_CMD_USDHC1_CMD			0xc3
++				MX8MQ_IOMUXC_SD1_DATA0_USDHC1_DATA0		0xc3
++				MX8MQ_IOMUXC_SD1_DATA1_USDHC1_DATA1		0xc3
++				MX8MQ_IOMUXC_SD1_DATA2_USDHC1_DATA2		0xc3
++				MX8MQ_IOMUXC_SD1_DATA3_USDHC1_DATA3		0xc3
++				MX8MQ_IOMUXC_GPIO1_IO06_GPIO1_IO6		0x19
++			>;
++		};
++
++		pinctrl_usdhc1_100mhz: usdhc1grp100mhz {
++			fsl,pins = <
++				MX8MQ_IOMUXC_SD1_CLK_USDHC1_CLK			0x85
++				MX8MQ_IOMUXC_SD1_CMD_USDHC1_CMD			0xc5
++				MX8MQ_IOMUXC_SD1_DATA0_USDHC1_DATA0		0xc5
++				MX8MQ_IOMUXC_SD1_DATA1_USDHC1_DATA1		0xc5
++				MX8MQ_IOMUXC_SD1_DATA2_USDHC1_DATA2		0xc5
++				MX8MQ_IOMUXC_SD1_DATA3_USDHC1_DATA3		0xc5
++			>;
++		};
++
++		pinctrl_usdhc1_200mhz: usdhc1grp200mhz {
++			fsl,pins = <
++				MX8MQ_IOMUXC_SD1_CLK_USDHC1_CLK			0x87
++				MX8MQ_IOMUXC_SD1_CMD_USDHC1_CMD			0xc7
++				MX8MQ_IOMUXC_SD1_DATA0_USDHC1_DATA0		0xc7
++				MX8MQ_IOMUXC_SD1_DATA1_USDHC1_DATA1		0xc7
++				MX8MQ_IOMUXC_SD1_DATA2_USDHC1_DATA2		0xc7
++				MX8MQ_IOMUXC_SD1_DATA3_USDHC1_DATA3		0xc7
++			>;
++		};
++
++        pinctrl_usdhc2: usdhc2grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_SD2_CLK_USDHC2_CLK                 0x83
++				MX8MQ_IOMUXC_SD2_CMD_USDHC2_CMD                 0xc3
++				MX8MQ_IOMUXC_SD2_DATA0_USDHC2_DATA0             0xc3
++				MX8MQ_IOMUXC_SD2_DATA1_USDHC2_DATA1             0xc3
++				MX8MQ_IOMUXC_SD2_DATA2_USDHC2_DATA2             0xc3
++				MX8MQ_IOMUXC_SD2_DATA3_USDHC2_DATA3             0xc3
++			>;
++		};
++
++		pinctrl_i2c1: i2c1grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_I2C1_SCL_I2C1_SCL			0x4000007f
++				MX8MQ_IOMUXC_I2C1_SDA_I2C1_SDA			0x4000007f
++			>;
++		};
++
++		pinctrl_i2c2: i2c2grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_I2C2_SCL_I2C2_SCL			0x4000007f
++				MX8MQ_IOMUXC_I2C2_SDA_I2C2_SDA			0x4000007f
++			>;
++		};
++
++		pinctrl_i2c3: i2c3grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_I2C3_SCL_I2C3_SCL			0x4000007f
++				MX8MQ_IOMUXC_I2C3_SDA_I2C3_SDA			0x4000007f
++			>;
++		};
++
++		pinctrl_i2c4: i2c4grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_I2C4_SCL_I2C4_SCL			0x4000007f
++				MX8MQ_IOMUXC_I2C4_SDA_I2C4_SDA			0x4000007f
++			>;
++		};
++		
++		pinctrl_csi1: csi1grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_NAND_WP_B_GPIO3_IO18		0x19
++				MX8MQ_IOMUXC_NAND_DQS_GPIO3_IO14		0x19
++				MX8MQ_IOMUXC_GPIO1_IO15_CCMSRCGPCMIX_CLKO2	0x59
++			>;
++		};
++		
++		pinctrl_pmic: pmicirq {
++			fsl,pins = <
++				MX8MQ_IOMUXC_GPIO1_IO07_GPIO1_IO7		0x41
++			>;
++		};
++
++		pinctrl_wdog: wdoggrp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_GPIO1_IO02_WDOG1_WDOG_B 0xc6
++			>;
++		};
++
++		pinctrl_fec1: fec1grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_ENET_MDC_ENET1_MDC		0x3
++				MX8MQ_IOMUXC_ENET_MDIO_ENET1_MDIO	0x23
++				MX8MQ_IOMUXC_ENET_TD3_ENET1_RGMII_TD3	0x1f
++				MX8MQ_IOMUXC_ENET_TD2_ENET1_RGMII_TD2	0x1f
++				MX8MQ_IOMUXC_ENET_TD1_ENET1_RGMII_TD1	0x1f
++				MX8MQ_IOMUXC_ENET_TD0_ENET1_RGMII_TD0	0x1f
++				MX8MQ_IOMUXC_ENET_RD3_ENET1_RGMII_RD3	0x91
++				MX8MQ_IOMUXC_ENET_RD2_ENET1_RGMII_RD2	0x91
++				MX8MQ_IOMUXC_ENET_RD1_ENET1_RGMII_RD1	0x91
++				MX8MQ_IOMUXC_ENET_RD0_ENET1_RGMII_RD0	0x91
++				MX8MQ_IOMUXC_ENET_TXC_ENET1_RGMII_TXC	0x1f
++				MX8MQ_IOMUXC_ENET_RXC_ENET1_RGMII_RXC	0x91
++				MX8MQ_IOMUXC_ENET_RX_CTL_ENET1_RGMII_RX_CTL	0x91
++				MX8MQ_IOMUXC_ENET_TX_CTL_ENET1_RGMII_TX_CTL	0x1f
++				MX8MQ_IOMUXC_GPIO1_IO09_GPIO1_IO9	0x19
++			>;
++		};
++
++		pinctrl_uart2: uart2grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_UART2_RXD_UART2_DCE_RX		0x49
++				MX8MQ_IOMUXC_UART2_TXD_UART2_DCE_TX		0x49
++			>;
++		};
++
++		pinctrl_uart3: uart3grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_UART3_TXD_UART3_DCE_TX		0x49
++				MX8MQ_IOMUXC_UART3_RXD_UART3_DCE_RX		0x49
++				MX8MQ_IOMUXC_ECSPI1_MISO_UART3_DCE_CTS_B	0x49
++				MX8MQ_IOMUXC_ECSPI1_SS0_UART3_DCE_RTS_B		0x49
++				MX8MQ_IOMUXC_ECSPI2_MOSI_GPIO5_IO11			0x19
++			>;
++		};
++
++		pinctrl_uart4: uart4grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_UART4_RXD_UART4_DCE_RX		0x49
++				MX8MQ_IOMUXC_UART4_TXD_UART4_DCE_TX		0x49
++			>;
++		};
++
++	};
++};
++
++/* console */
++&uart1 { 
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_uart1>;
++	assigned-clocks = <&clk IMX8MQ_CLK_UART1>;
++	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
++	status = "okay";
++};
++ 
++&usdhc1 {
++	pinctrl-names = "default", "state_100mhz", "state_200mhz";
++	pinctrl-0 = <&pinctrl_usdhc1>;
++	non-removable;
++	bus-width = <4>;
++	status = "okay";
++};
++
++&usdhc2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_usdhc2>;
++	bus-width = <4>;
++	vmmc-supply = <&reg_3V3WF>;
++	mmc-pwrseq = <&wlan_pwrseq>;
++	no-1-8-v;
++	non-removable;
++	pm-ignore-notify;
++	cap-power-off-card;
++	status = "okay";
++
++	#address-cells = <1>;
++	#size-cells = <0>;
++	brcmf: bcrmf@1 {
++			reg = <1>;
++			compatible = "brcm,bcm4329-fmac";
++			interrupt-parent = <&gpio2>;
++			interrupts = <12 IRQ_TYPE_LEVEL_LOW>;
++			interrupt-names = "host-wake";
++        };
++};
++
++&A53_0 {
++	operating-points = <
++		/* kHz    uV */
++		1500000 1000000
++		1300000 1000000
++		1000000 900000
++		800000  900000
++	>;
++	/* arm-supply = <&buck2>; */
++};
++
++&wdog1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_wdog>;
++	fsl,ext-reset-output;
++	status = "okay";
++};
++
++&gpu_pd {
++	power-supply = <&buck3>;
++};
++
++&vpu_pd {
++	power-supply = <&buck4>;
++};
++
++&gpu {
++       status = "okay";
++	   gpu-noc-priority = <0x80000600>;
++};
++
++&vpu {
++	   /delete-property/ regulator-supply;
++       status = "okay";
++};
++
++&dcss {
++	status = "okay";
++	disp-dev = "hdmi_disp";
++};
++
++&hdmi {
++	status = "okay";
++};
++
++&dcss {
++	status = "okay";
++	disp-dev = "hdmi_disp";
++};
++
++&hdmi {
++	status = "okay";
++};
++
++&i2c1 {
++	clock-frequency = <400000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c1>;
++	status = "okay";
++
++	pmic: pmic@4b {
++			compatible = "rohm,bd71837";
++			reg = <0x4b>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_pmic>;
++			interrupt-parent = <&gpio1>;
++			interrupts = <7 GPIO_ACTIVE_LOW>;
++			interrupt-names = "irq-pmic";
++			#clock-cells = <0>;
++			clocks = <&osc 0>;
++			clock-output-names = "bd71837-32k-out";
++
++			rohm,pmic-buck1-dvs-voltage = <900000>, <850000>, <800000>;
++			rohm,pmic-buck2-dvs-voltage = <1000000>, <900000>;
++			rohm,pmic-buck3-dvs-voltage = <1000000>;
++			rohm,pmic-buck4-dvs-voltage = <1000000>;
++			regulators {
++					buck1: BUCK1 {
++							regulator-name = "buck1";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <990000>;
++							regulator-boot-on;
++							regulator-always-on;
++							regulator-ramp-delay = <1250>;
++					};
++					buck2: BUCK2 {
++							regulator-name = "buck2";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <1100000>;
++							regulator-boot-on;
++							regulator-always-on;
++							regulator-ramp-delay = <1250>;
++					};
++					buck3: BUCK3 {
++							regulator-name = "buck3";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <1100000>;
++							regulator-boot-on;
++							regulator-enable-ramp-delay= <180>;
++					};
++					buck4: BUCK4 {
++							regulator-name = "buck4";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <1100000>;
++							regulator-boot-on;
++							regulator-enable-ramp-delay= <180>;
++					};
++					buck5: BUCK5 {
++							regulator-name = "buck5";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <1050000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++					buck6: BUCK6 {
++							regulator-name = "buck6";
++							regulator-min-microvolt = <3000000>;
++							regulator-max-microvolt = <3300000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++					buck8: BUCK8 {
++							regulator-name = "buck8";
++							regulator-min-microvolt = <1100000>;
++							regulator-max-microvolt = <1300000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++
++					ldo1: LDO1 {
++							regulator-name = "ldo1";
++							regulator-min-microvolt = <3000000>;
++							regulator-max-microvolt = <3300000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++					ldo2: LDO2 {
++							regulator-name = "ldo2";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <990000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++					ldo3: LDO3 {
++							regulator-name = "ldo3";
++							regulator-min-microvolt = <1700000>;
++							regulator-max-microvolt = <1900000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++					ldo4: LDO4 {
++							regulator-name = "ldo4";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <990000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++					ldo7_reg: LDO7 {
++							regulator-name = "ldo7";
++							regulator-min-microvolt = <3000000>;
++							regulator-max-microvolt = <3300000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++			};
++	};
++	
++	ov5640_mipi: ov5640_mipi@3c {
++		compatible = "ovti,ov5640_mipi";
++		reg = <0x3c>;
++		status = "okay";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_csi1>;
++		clocks = <&clk IMX8MQ_CLK_CLKO2>;
++		clock-names = "csi_mclk";
++		assigned-clocks = <&clk IMX8MQ_CLK_CLKO2>;
++		assigned-clock-parents = <&clk IMX8MQ_SYS2_PLL_200M>;
++		assigned-clock-rates = <20000000>;
++		csi_id = <0>;
++		pwn-gpios = <&gpio3 14 GPIO_ACTIVE_HIGH>;
++		rst-gpios = <&gpio3 18 GPIO_ACTIVE_HIGH>;
++	
++		mclk = <20000000>;
++		mclk_source = <0>;
++		port {
++			ov5640_mipi1_ep: endpoint {
++				remote-endpoint = <&mipi1_sensor_ep>;
++			};
++		};
++	};
++
++};
++
++&i2c2 {
++	clock-frequency = <100000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c2>;
++	status = "okay";
++};
++
++&i2c3 {
++	clock-frequency = <100000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c3>;
++	status = "okay";
++};
++
++&i2c4 {
++	clock-frequency = <400000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c4>;
++	status = "okay";
++};
++
++&fec1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_fec1>;
++	phy-mode = "rgmii-id";
++	phy-handle = <&ethphy0>;
++	fsl,magic-packet;
++	phy-reset-gpios = <&gpio1 9 GPIO_ACTIVE_LOW>;
++	status = "okay";
++
++	mdio {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		ethphy0: ethernet-phy@4 {
++			compatible = "ethernet-phy-ieee802.3-c22";
++			reg = <4>;
++			at803x,led-act-blind-workaround;
++			at803x,eee-disabled;
++		};
++	};
++};
++
++&uart2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_uart2>;
++	assigned-clocks = <&clk IMX8MQ_CLK_UART2>;
++	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
++	status = "okay";
++};
++
++/* BT */
++&uart3 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_uart3>;
++	assigned-clocks = <&clk IMX8MQ_CLK_UART3>;
++	assigned-clock-parents = <&clk IMX8MQ_SYS1_PLL_80M>;
++	fsl,uart-has-rtscts;
++	resets = <&bt_reset>;
++	status = "okay";
++};
++
++&uart4 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_uart4>;
++	assigned-clocks = <&clk IMX8MQ_CLK_UART4>;
++	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
++	status = "okay";
++};
++
++&usb3_phy0 {
++       status = "okay";
++};
++
++&usb3_0 {
++       status = "okay";
++};
++
++&usb_dwc3_0 {
++       /delete-property/ power-domains;
++	status = "okay";
++	dr_mode = "host";
++};
++
++&usb3_phy1 {
++	status = "okay";
++};
++
++&usb3_1 {
++	status = "okay";
++};
++
++&usb_dwc3_1 {
++	status = "okay";
++	dr_mode = "host";
++};
++
++&sai4 {
++	assigned-clocks = <&clk IMX8MQ_CLK_SAI4>;
++	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
++	assigned-clock-rates = <24576000>;
++	clocks = <&clk IMX8MQ_CLK_SAI4_IPG>, <&clk IMX8MQ_CLK_DUMMY>,
++		<&clk IMX8MQ_CLK_SAI4_ROOT>, <&clk IMX8MQ_CLK_DUMMY>,
++		<&clk IMX8MQ_CLK_DUMMY>, <&clk IMX8MQ_AUDIO_PLL1_OUT>,
++		<&clk IMX8MQ_AUDIO_PLL2_OUT>;
++	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k", "pll11k";
++	status = "okay";
++};
++&csi1_bridge {
++	fsl,mipi-mode;
++	fsl,two-8bit-sensor-mode;
++	status = "okay";
++
++	port {
++		csi1_ep: endpoint {
++			remote-endpoint = <&csi1_mipi_ep>;
++		};
++	};
++};
++&mipi_csi_1 {
++	#address-cells = <1>;
++	#size-cells = <0>;
++	status = "okay";
++	port {
++		mipi1_sensor_ep: endpoint1 {
++			remote-endpoint = <&ov5640_mipi1_ep>;
++			data-lanes = <1 2>;
++		};
++
++		csi1_mipi_ep: endpoint2 {
++			remote-endpoint = <&csi1_ep>;
++		};
++	};
++};
+diff --git a/arch/arm64/configs/em-sbc-imx8m_defconfig b/arch/arm64/configs/em-sbc-imx8m_defconfig
+new file mode 100755
+index 000000000000..f22247c1b457
+--- /dev/null
++++ b/arch/arm64/configs/em-sbc-imx8m_defconfig
+@@ -0,0 +1,836 @@
++CONFIG_SYSVIPC=y
++CONFIG_POSIX_MQUEUE=y
++CONFIG_AUDIT=y
++CONFIG_NO_HZ_IDLE=y
++CONFIG_HIGH_RES_TIMERS=y
++CONFIG_IRQ_TIME_ACCOUNTING=y
++CONFIG_BSD_PROCESS_ACCT=y
++CONFIG_BSD_PROCESS_ACCT_V3=y
++CONFIG_TASKSTATS=y
++CONFIG_TASK_DELAY_ACCT=y
++CONFIG_TASK_XACCT=y
++CONFIG_TASK_IO_ACCOUNTING=y
++CONFIG_IKCONFIG=y
++CONFIG_IKCONFIG_PROC=y
++CONFIG_NUMA_BALANCING=y
++CONFIG_MEMCG=y
++CONFIG_MEMCG_SWAP=y
++CONFIG_BLK_CGROUP=y
++CONFIG_CGROUP_PIDS=y
++CONFIG_CGROUP_HUGETLB=y
++CONFIG_CPUSETS=y
++CONFIG_CGROUP_DEVICE=y
++CONFIG_CGROUP_CPUACCT=y
++CONFIG_CGROUP_PERF=y
++CONFIG_NAMESPACES=y
++CONFIG_USER_NS=y
++CONFIG_SCHED_AUTOGROUP=y
++CONFIG_RELAY=y
++CONFIG_BLK_DEV_INITRD=y
++CONFIG_EXPERT=y
++CONFIG_KALLSYMS_ALL=y
++# CONFIG_COMPAT_BRK is not set
++CONFIG_PROFILING=y
++CONFIG_JUMP_LABEL=y
++CONFIG_MODULES=y
++CONFIG_MODULE_UNLOAD=y
++# CONFIG_IOSCHED_DEADLINE is not set
++CONFIG_ARCH_SUNXI=y
++CONFIG_ARCH_ALPINE=y
++CONFIG_ARCH_BCM2835=y
++CONFIG_ARCH_BCM_IPROC=y
++CONFIG_ARCH_BERLIN=y
++CONFIG_ARCH_BRCMSTB=y
++CONFIG_ARCH_EXYNOS=y
++CONFIG_ARCH_LAYERSCAPE=y
++CONFIG_ARCH_LG1K=y
++CONFIG_ARCH_HISI=y
++CONFIG_ARCH_MEDIATEK=y
++CONFIG_ARCH_MESON=y
++CONFIG_ARCH_MVEBU=y
++CONFIG_ARCH_QCOM=y
++CONFIG_ARCH_ROCKCHIP=y
++CONFIG_ARCH_SEATTLE=y
++CONFIG_ARCH_RENESAS=y
++CONFIG_ARCH_R8A7795=y
++CONFIG_ARCH_R8A7796=y
++CONFIG_ARCH_STRATIX10=y
++CONFIG_ARCH_TEGRA=y
++CONFIG_ARCH_SPRD=y
++CONFIG_ARCH_THUNDER=y
++CONFIG_ARCH_THUNDER2=y
++CONFIG_ARCH_UNIPHIER=y
++CONFIG_ARCH_VEXPRESS=y
++CONFIG_ARCH_XGENE=y
++CONFIG_ARCH_ZX=y
++CONFIG_ARCH_ZYNQMP=y
++CONFIG_ARCH_FSL_IMX8QM=y
++CONFIG_ARCH_FSL_IMX8QP=y
++CONFIG_ARCH_FSL_IMX8QXP=y
++CONFIG_ARCH_FSL_IMX8MQ=y
++CONFIG_ARCH_FSL_IMX8MM=y
++CONFIG_PCI=y
++CONFIG_HOTPLUG_PCI_PCIE=y
++CONFIG_PCI_IOV=y
++CONFIG_HOTPLUG_PCI=y
++CONFIG_HOTPLUG_PCI_ACPI=y
++CONFIG_PCI_IMX6=y
++CONFIG_PCI_HISI=y
++CONFIG_PCIE_KIRIN=y
++CONFIG_PCI_AARDVARK=y
++CONFIG_PCIE_RCAR=y
++CONFIG_PCI_HOST_GENERIC=y
++CONFIG_PCI_XGENE=y
++CONFIG_PCIE_ROCKCHIP=m
++CONFIG_ARM64_VA_BITS_48=y
++CONFIG_SCHED_MC=y
++CONFIG_NUMA=y
++CONFIG_PREEMPT=y
++CONFIG_KSM=y
++CONFIG_TRANSPARENT_HUGEPAGE=y
++CONFIG_CMA=y
++CONFIG_SECCOMP=y
++CONFIG_KEXEC=y
++CONFIG_CRASH_DUMP=y
++CONFIG_XEN=y
++# CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
++CONFIG_COMPAT=y
++CONFIG_PM_DEBUG=y
++CONFIG_PM_TEST_SUSPEND=y
++CONFIG_WQ_POWER_EFFICIENT_DEFAULT=y
++CONFIG_ARM_CPUIDLE=y
++CONFIG_CPU_FREQ=y
++CONFIG_CPU_FREQ_STAT=y
++CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND=y
++CONFIG_CPU_FREQ_GOV_POWERSAVE=y
++CONFIG_CPU_FREQ_GOV_USERSPACE=y
++CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
++CONFIG_CPU_FREQ_GOV_SCHEDUTIL=y
++CONFIG_CPU_FREQ_GOV_INTERACTIVE=y
++CONFIG_CPUFREQ_DT=y
++CONFIG_ARM_BIG_LITTLE_CPUFREQ=y
++CONFIG_ARM_IMX8_CPUFREQ=y
++CONFIG_ARM_IMX8MQ_CPUFREQ=y
++CONFIG_ARM_SCPI_CPUFREQ=y
++CONFIG_ACPI_CPPC_CPUFREQ=m
++CONFIG_NET=y
++CONFIG_PACKET=y
++CONFIG_UNIX=y
++CONFIG_INET=y
++CONFIG_IP_MULTICAST=y
++CONFIG_IP_PNP=y
++CONFIG_IP_PNP_DHCP=y
++CONFIG_IP_PNP_BOOTP=y
++CONFIG_INET6_XFRM_MODE_TRANSPORT=m
++CONFIG_INET6_XFRM_MODE_TUNNEL=m
++CONFIG_INET6_XFRM_MODE_BEET=m
++CONFIG_IPV6_SIT=m
++CONFIG_NETFILTER=y
++CONFIG_NF_CONNTRACK=m
++CONFIG_NF_CONNTRACK_EVENTS=y
++CONFIG_NETFILTER_XT_TARGET_CHECKSUM=m
++CONFIG_NETFILTER_XT_TARGET_LOG=m
++CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=m
++CONFIG_NETFILTER_XT_MATCH_CONNTRACK=m
++CONFIG_NF_CONNTRACK_IPV4=m
++CONFIG_IP_NF_IPTABLES=m
++CONFIG_IP_NF_FILTER=m
++CONFIG_IP_NF_TARGET_REJECT=m
++CONFIG_IP_NF_NAT=m
++CONFIG_IP_NF_TARGET_MASQUERADE=m
++CONFIG_IP_NF_MANGLE=m
++CONFIG_NF_CONNTRACK_IPV6=m
++CONFIG_IP6_NF_IPTABLES=m
++CONFIG_IP6_NF_FILTER=m
++CONFIG_IP6_NF_TARGET_REJECT=m
++CONFIG_IP6_NF_MANGLE=m
++CONFIG_IP6_NF_NAT=m
++CONFIG_IP6_NF_TARGET_MASQUERADE=m
++CONFIG_BRIDGE=m
++CONFIG_BRIDGE_VLAN_FILTERING=y
++CONFIG_VLAN_8021Q=m
++CONFIG_VLAN_8021Q_GVRP=y
++CONFIG_VLAN_8021Q_MVRP=y
++CONFIG_LLC2=y
++CONFIG_BPF_JIT=y
++CONFIG_CAN=y
++CONFIG_CAN_FLEXCAN=y
++CONFIG_CAN_GS_USB=y
++CONFIG_BT=y
++CONFIG_BT_RFCOMM=y
++CONFIG_BT_RFCOMM_TTY=y
++CONFIG_BT_BNEP=y
++CONFIG_BT_BNEP_MC_FILTER=y
++CONFIG_BT_BNEP_PROTO_FILTER=y
++CONFIG_BT_HIDP=y
++# CONFIG_BT_HS is not set
++# CONFIG_BT_LE is not set
++CONFIG_BT_LEDS=y
++CONFIG_BT_HCIUART=y
++CONFIG_BT_HCIUART_BCSP=y
++CONFIG_BT_HCIUART_ATH3K=y
++CONFIG_BT_HCIUART_3WIRE=y
++CONFIG_BT_HCIUART_BCM=y
++CONFIG_BT_HCIUART_QCA=y
++CONFIG_BT_HCIVHCI=y
++CONFIG_CFG80211=y
++CONFIG_NL80211_TESTMODE=y
++CONFIG_CFG80211_INTERNAL_REGDB=y
++CONFIG_CFG80211_WEXT=y
++CONFIG_MAC80211=y
++CONFIG_MAC80211_LEDS=y
++CONFIG_NET_9P=y
++CONFIG_NET_9P_VIRTIO=y
++CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
++CONFIG_DEVTMPFS=y
++CONFIG_DEVTMPFS_MOUNT=y
++CONFIG_DMA_CMA=y
++CONFIG_CMA_SIZE_MBYTES=320
++CONFIG_ARM_CCI400_PMU=y
++CONFIG_ARM_CCI5xx_PMU=y
++CONFIG_MTD=y
++CONFIG_MTD_CMDLINE_PARTS=y
++CONFIG_MTD_BLOCK=y
++CONFIG_MTD_RAM=y
++CONFIG_MTD_DATAFLASH=y
++CONFIG_MTD_M25P80=y
++CONFIG_MTD_SLRAM=y
++CONFIG_MTD_NAND=y
++CONFIG_MTD_NAND_DENALI_DT=y
++CONFIG_MTD_NAND_GPMI_NAND=y
++CONFIG_MTD_SPI_NOR=y
++# CONFIG_MTD_SPI_NOR_USE_4K_SECTORS is not set
++CONFIG_SPI_FSL_QUADSPI=y
++CONFIG_SPI_FSL_FLEXSPI=y
++CONFIG_MTD_UBI=y
++CONFIG_OF_OVERLAY=y
++CONFIG_BLK_DEV_LOOP=y
++CONFIG_BLK_DEV_NBD=m
++CONFIG_XEN_BLKDEV_BACKEND=y
++CONFIG_VIRTIO_BLK=y
++CONFIG_BLK_DEV_NVME=m
++CONFIG_SENSORS_FXOS8700=y
++CONFIG_SENSORS_FXAS2100X=y
++CONFIG_SRAM=y
++CONFIG_EEPROM_AT25=m
++# CONFIG_SCSI_PROC_FS is not set
++CONFIG_BLK_DEV_SD=y
++CONFIG_SCSI_SAS_ATA=y
++CONFIG_SCSI_HISI_SAS=y
++CONFIG_SCSI_HISI_SAS_PCI=y
++CONFIG_ATA=y
++CONFIG_SATA_AHCI=y
++CONFIG_SATA_AHCI_PLATFORM=y
++CONFIG_AHCI_IMX=y
++CONFIG_AHCI_CEVA=y
++CONFIG_AHCI_MVEBU=y
++CONFIG_AHCI_XGENE=y
++CONFIG_AHCI_QORIQ=y
++CONFIG_SATA_SIL24=y
++CONFIG_SATA_RCAR=y
++CONFIG_PATA_PLATFORM=y
++CONFIG_PATA_OF_PLATFORM=y
++CONFIG_NETDEVICES=y
++CONFIG_MACVLAN=m
++CONFIG_MACVTAP=m
++CONFIG_TUN=y
++CONFIG_VETH=m
++CONFIG_VIRTIO_NET=y
++CONFIG_AMD_XGBE=y
++CONFIG_NET_XGENE=y
++CONFIG_MACB=y
++CONFIG_HNS_DSAF=y
++CONFIG_HNS_ENET=y
++CONFIG_E1000E=y
++CONFIG_IGB=y
++CONFIG_IGBVF=y
++CONFIG_MVNETA=y
++CONFIG_MVPP2=y
++CONFIG_SKY2=y
++CONFIG_QCOM_EMAC=m
++CONFIG_RAVB=y
++CONFIG_SMC91X=y
++CONFIG_SMSC911X=y
++CONFIG_STMMAC_ETH=m
++CONFIG_MDIO_BUS_MUX_MMIOREG=y
++CONFIG_AT803X_PHY=y
++CONFIG_MARVELL_PHY=m
++CONFIG_MESON_GXL_PHY=m
++CONFIG_MICREL_PHY=y
++CONFIG_NXP_TJA110X_PHY=y
++CONFIG_REALTEK_PHY=m
++CONFIG_ROCKCHIP_PHY=y
++CONFIG_USB_PEGASUS=m
++CONFIG_USB_RTL8150=m
++CONFIG_USB_RTL8152=m
++CONFIG_USB_USBNET=m
++CONFIG_USB_NET_DM9601=m
++CONFIG_USB_NET_SR9800=m
++CONFIG_USB_NET_SMSC75XX=m
++CONFIG_USB_NET_SMSC95XX=m
++CONFIG_USB_NET_PLUSB=m
++CONFIG_USB_NET_MCS7830=m
++# CONFIG_WLAN_VENDOR_ATH is not set
++CONFIG_BRCMFMAC=m
++CONFIG_HOSTAP=y
++CONFIG_RTL_CARDS=m
++# CONFIG_WLAN_VENDOR_TI is not set
++CONFIG_XEN_NETDEV_BACKEND=m
++CONFIG_IVSHMEM_NET=y
++CONFIG_INPUT_POLLDEV=y
++CONFIG_INPUT_EVDEV=y
++CONFIG_KEYBOARD_ADC=m
++CONFIG_KEYBOARD_GPIO=y
++CONFIG_KEYBOARD_IMX_SC_PWRKEY=y
++CONFIG_KEYBOARD_CROS_EC=y
++CONFIG_INPUT_TOUCHSCREEN=y
++CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_I2C=y
++CONFIG_TOUCHSCREEN_FTS=y
++CONFIG_INPUT_MISC=y
++CONFIG_INPUT_PM8941_PWRKEY=y
++CONFIG_INPUT_HISI_POWERKEY=y
++CONFIG_INPUT_MPL3115=y
++CONFIG_INPUT_ISL29023=y
++# CONFIG_SERIO_SERPORT is not set
++CONFIG_SERIO_AMBAKMI=y
++CONFIG_LEGACY_PTY_COUNT=16
++CONFIG_SERIAL_8250=y
++CONFIG_SERIAL_8250_CONSOLE=y
++CONFIG_SERIAL_8250_EXTENDED=y
++CONFIG_SERIAL_8250_SHARE_IRQ=y
++CONFIG_SERIAL_8250_BCM2835AUX=y
++CONFIG_SERIAL_8250_DW=y
++CONFIG_SERIAL_8250_MT6577=y
++CONFIG_SERIAL_8250_UNIPHIER=y
++CONFIG_SERIAL_OF_PLATFORM=y
++CONFIG_SERIAL_AMBA_PL011=y
++CONFIG_SERIAL_AMBA_PL011_CONSOLE=y
++CONFIG_SERIAL_MESON=y
++CONFIG_SERIAL_MESON_CONSOLE=y
++CONFIG_SERIAL_SAMSUNG=y
++CONFIG_SERIAL_SAMSUNG_CONSOLE=y
++CONFIG_SERIAL_TEGRA=y
++CONFIG_SERIAL_IMX_CONSOLE=y
++CONFIG_SERIAL_SH_SCI=y
++CONFIG_SERIAL_SH_SCI_NR_UARTS=11
++CONFIG_SERIAL_SH_SCI_CONSOLE=y
++CONFIG_SERIAL_MSM=y
++CONFIG_SERIAL_MSM_CONSOLE=y
++CONFIG_SERIAL_XILINX_PS_UART=y
++CONFIG_SERIAL_XILINX_PS_UART_CONSOLE=y
++CONFIG_SERIAL_FSL_LPUART=y
++CONFIG_SERIAL_FSL_LPUART_CONSOLE=y
++CONFIG_SERIAL_MVEBU_UART=y
++CONFIG_SERIAL_DEV_BUS=y
++CONFIG_SERIAL_DEV_CTRL_TTYPORT=y
++CONFIG_VIRTIO_CONSOLE=y
++CONFIG_HW_RANDOM=y
++CONFIG_I2C_CHARDEV=y
++CONFIG_I2C_MUX_PCA954x=y
++CONFIG_I2C_BCM2835=m
++CONFIG_I2C_DESIGNWARE_PLATFORM=y
++CONFIG_I2C_IMX=y
++CONFIG_I2C_IMX_LPI2C=y
++CONFIG_I2C_MESON=y
++CONFIG_I2C_MV64XXX=y
++CONFIG_I2C_PXA=y
++CONFIG_I2C_QUP=y
++CONFIG_I2C_RK3X=y
++CONFIG_I2C_SH_MOBILE=y
++CONFIG_I2C_TEGRA=y
++CONFIG_I2C_UNIPHIER_F=y
++CONFIG_I2C_RCAR=y
++CONFIG_I2C_CROS_EC_TUNNEL=y
++CONFIG_XEN_I2C_BACKEND=y
++CONFIG_SPI=y
++CONFIG_SPI_BCM2835=m
++CONFIG_SPI_BCM2835AUX=m
++CONFIG_SPI_FSL_LPSPI=y
++CONFIG_SPI_IMX=y
++CONFIG_SPI_MESON_SPICC=m
++CONFIG_SPI_MESON_SPIFC=m
++CONFIG_SPI_ORION=y
++CONFIG_SPI_PL022=y
++CONFIG_SPI_ROCKCHIP=y
++CONFIG_SPI_QUP=y
++CONFIG_SPI_S3C64XX=y
++CONFIG_SPI_SPIDEV=m
++CONFIG_SPMI=y
++CONFIG_PINCTRL_SINGLE=y
++CONFIG_PINCTRL_MAX77620=y
++CONFIG_PINCTRL_IPQ8074=y
++CONFIG_PINCTRL_MSM8916=y
++CONFIG_PINCTRL_MSM8994=y
++CONFIG_PINCTRL_MSM8996=y
++CONFIG_PINCTRL_QDF2XXX=y
++CONFIG_PINCTRL_QCOM_SPMI_PMIC=y
++CONFIG_GPIO_SYSFS=y
++CONFIG_GPIO_DWAPB=y
++CONFIG_GPIO_PL061=y
++CONFIG_GPIO_RCAR=y
++CONFIG_GPIO_XGENE=y
++CONFIG_GPIO_XGENE_SB=y
++CONFIG_GPIO_MAX732X=y
++CONFIG_GPIO_PCA953X=y
++CONFIG_GPIO_PCA953X_IRQ=y
++CONFIG_GPIO_MAX77620=y
++CONFIG_POWER_AVS=y
++CONFIG_ROCKCHIP_IODOMAIN=y
++CONFIG_POWER_RESET_MSM=y
++CONFIG_POWER_RESET_XGENE=y
++CONFIG_POWER_RESET_SYSCON=y
++CONFIG_SYSCON_REBOOT_MODE=y
++CONFIG_BATTERY_BQ27XXX=y
++CONFIG_SENSORS_ARM_SCPI=y
++CONFIG_SENSORS_LM90=m
++CONFIG_SENSORS_INA2XX=m
++# CONFIG_MXC_MMA8451 is not set
++CONFIG_THERMAL_WRITABLE_TRIPS=y
++CONFIG_THERMAL_GOV_POWER_ALLOCATOR=y
++CONFIG_CPU_THERMAL=y
++CONFIG_THERMAL_EMULATION=y
++CONFIG_IMX8M_THERMAL=y
++CONFIG_IMX8MM_THERMAL=y
++CONFIG_IMX_SC_THERMAL=y
++CONFIG_DEVICE_THERMAL=y
++CONFIG_ROCKCHIP_THERMAL=m
++CONFIG_EXYNOS_THERMAL=y
++CONFIG_WATCHDOG=y
++CONFIG_S3C2410_WATCHDOG=y
++CONFIG_IMX2_WDT=y
++CONFIG_IMX8_WDT=y
++CONFIG_MESON_GXBB_WATCHDOG=m
++CONFIG_MESON_WATCHDOG=m
++CONFIG_RENESAS_WDT=y
++CONFIG_UNIPHIER_WATCHDOG=y
++CONFIG_BCM2835_WDT=y
++CONFIG_MFD_AXP20X_RSB=y
++CONFIG_MFD_CROS_EC=y
++CONFIG_MFD_CROS_EC_I2C=y
++CONFIG_MFD_CROS_EC_SPI=y
++CONFIG_MFD_EXYNOS_LPASS=m
++CONFIG_MFD_HI6421_PMIC=y
++CONFIG_MFD_HI655X_PMIC=y
++CONFIG_MFD_MAX77620=y
++CONFIG_MFD_SPMI_PMIC=y
++CONFIG_MFD_RK808=y
++CONFIG_MFD_SEC_CORE=y
++CONFIG_MFD_ROHM_BD718XX=y
++CONFIG_REGULATOR_FIXED_VOLTAGE=y
++CONFIG_REGULATOR_AXP20X=y
++CONFIG_REGULATOR_FAN53555=y
++CONFIG_REGULATOR_GPIO=y
++CONFIG_REGULATOR_HI6421V530=y
++CONFIG_REGULATOR_HI655X=y
++CONFIG_REGULATOR_MAX77620=y
++CONFIG_REGULATOR_PFUZE100=y
++CONFIG_REGULATOR_PWM=y
++CONFIG_REGULATOR_QCOM_SMD_RPM=y
++CONFIG_REGULATOR_QCOM_SPMI=y
++CONFIG_REGULATOR_RK808=y
++CONFIG_REGULATOR_S2MPS11=y
++CONFIG_REGULATOR_BD718XX=y
++CONFIG_RC_CORE=m
++CONFIG_RC_DEVICES=y
++CONFIG_IR_MESON=m
++CONFIG_MEDIA_SUPPORT=y
++CONFIG_MEDIA_CAMERA_SUPPORT=y
++CONFIG_MEDIA_ANALOG_TV_SUPPORT=y
++CONFIG_MEDIA_DIGITAL_TV_SUPPORT=y
++CONFIG_MEDIA_CEC_SUPPORT=y
++CONFIG_MEDIA_CONTROLLER=y
++CONFIG_VIDEO_V4L2_SUBDEV_API=y
++# CONFIG_DVB_NET is not set
++CONFIG_MEDIA_USB_SUPPORT=y
++CONFIG_USB_VIDEO_CLASS=y
++CONFIG_VIDEOBUF2_VMALLOC=y
++CONFIG_V4L_PLATFORM_DRIVERS=y
++CONFIG_VIDEO_MXC_CAPTURE=y
++CONFIG_VIDEO_MX8_CAPTURE=y
++CONFIG_GMSL_MAX9286=y
++CONFIG_VIDEO_MXC_CSI_CAMERA=y
++CONFIG_MXC_MIPI_CSI=y
++CONFIG_MXC_CAMERA_OV5640_MIPI_V2=y
++CONFIG_V4L_MEM2MEM_DRIVERS=y
++CONFIG_VIDEO_SAMSUNG_S5P_JPEG=m
++CONFIG_VIDEO_SAMSUNG_S5P_MFC=m
++CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC=m
++CONFIG_VIDEO_RENESAS_FCP=m
++CONFIG_VIDEO_RENESAS_VSP1=m
++CONFIG_IMX_DPU_CORE=y
++CONFIG_IMX_DCSS_CORE=y
++CONFIG_IMX_LCDIF_CORE=y
++CONFIG_DRM=y
++CONFIG_DRM_NOUVEAU=m
++CONFIG_DRM_EXYNOS=m
++CONFIG_DRM_EXYNOS5433_DECON=y
++CONFIG_DRM_EXYNOS7_DECON=y
++CONFIG_DRM_EXYNOS_DSI=y
++# CONFIG_DRM_EXYNOS_DP is not set
++CONFIG_DRM_EXYNOS_HDMI=y
++CONFIG_DRM_EXYNOS_MIC=y
++CONFIG_DRM_ROCKCHIP=m
++CONFIG_ROCKCHIP_ANALOGIX_DP=y
++CONFIG_ROCKCHIP_CDN_DP=y
++CONFIG_ROCKCHIP_DW_HDMI=y
++CONFIG_ROCKCHIP_DW_MIPI_DSI=y
++CONFIG_ROCKCHIP_INNO_HDMI=y
++CONFIG_DRM_RCAR_DU=m
++CONFIG_DRM_RCAR_LVDS=y
++CONFIG_DRM_RCAR_VSP=y
++CONFIG_DRM_MSM=m
++CONFIG_DRM_TEGRA=m
++CONFIG_DRM_PANEL_SIMPLE=y
++CONFIG_DRM_PANEL_SEIKO_43WVF1G=y
++CONFIG_DRM_PANEL_RAYDIUM_RM67191=y
++CONFIG_DRM_PANEL_ILITEK_ILI9881C=y
++CONFIG_DRM_NXP_SEIKO_43WVFIG=y
++CONFIG_DRM_I2C_ADV7511=y
++CONFIG_DRM_ITE_IT6263=y
++CONFIG_DRM_LONTIUM_LT2911=y
++CONFIG_DRM_IMX_PARALLEL_DISPLAY=y
++CONFIG_DRM_IMX_TVE=y
++CONFIG_DRM_IMX_LDB=y
++CONFIG_DRM_IMX_HDMI=y
++CONFIG_DRM_IMX_NWL_DSI=y
++CONFIG_DRM_IMX_SEC_DSIM=y
++CONFIG_DRM_IMX_HDP=y
++CONFIG_IMX_HDP_CEC=y
++CONFIG_DRM_VC4=m
++CONFIG_DRM_HISI_KIRIN=m
++CONFIG_DRM_MXSFB=y
++CONFIG_DRM_MESON=m
++CONFIG_FB_IMX64=y
++CONFIG_FB_IMX64_DEBUG=y
++CONFIG_FB_ARMCLCD=y
++CONFIG_FB_MXC_DISP_FRAMEWORK=y
++CONFIG_BACKLIGHT_GENERIC=m
++CONFIG_BACKLIGHT_PWM=y
++CONFIG_BACKLIGHT_LP855X=m
++CONFIG_FRAMEBUFFER_CONSOLE=y
++CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
++CONFIG_LOGO=y
++# CONFIG_LOGO_LINUX_MONO is not set
++# CONFIG_LOGO_LINUX_VGA16 is not set
++CONFIG_SOUND=y
++CONFIG_SND=y
++CONFIG_SND_USB_AUDIO=m
++CONFIG_SND_SOC=y
++CONFIG_SND_BCM2835_SOC_I2S=m
++CONFIG_SND_SOC_FSL_ACM=y
++CONFIG_SND_IMX_SOC=y
++CONFIG_SND_SOC_IMX_AK4458=y
++CONFIG_SND_SOC_IMX_AK5558=y
++CONFIG_SND_SOC_IMX_AK4497=y
++CONFIG_SND_SOC_IMX_WM8960=y
++CONFIG_SND_SOC_IMX_WM8524=y
++CONFIG_SND_SOC_IMX_CS42888=y
++CONFIG_SND_SOC_IMX_WM8962=y
++CONFIG_SND_SOC_IMX_MICFIL=y
++CONFIG_SND_SOC_IMX_RPMSG=y
++CONFIG_SND_SOC_IMX_MQS=y
++CONFIG_SND_SOC_IMX_SPDIF=y
++CONFIG_SND_SOC_IMX_AMIX=y
++CONFIG_SND_SOC_IMX_CDNHDMI=y
++CONFIG_SND_SOC_IMX_DSP=y
++CONFIG_SND_SOC_SAMSUNG=y
++CONFIG_SND_SOC_RCAR=y
++CONFIG_SND_SOC_AK4613=y
++CONFIG_SND_SIMPLE_CARD=y
++CONFIG_HID_A4TECH=y
++CONFIG_HID_APPLE=y
++CONFIG_HID_BELKIN=y
++CONFIG_HID_CHERRY=y
++CONFIG_HID_CHICONY=y
++CONFIG_HID_CYPRESS=y
++CONFIG_HID_EZKEY=y
++CONFIG_HID_KENSINGTON=y
++CONFIG_HID_LOGITECH=y
++CONFIG_HID_MICROSOFT=y
++CONFIG_HID_MONTEREY=y
++CONFIG_HID_MULTITOUCH=y
++CONFIG_USB=y
++CONFIG_USB_OTG=y
++CONFIG_USB_OTG_WHITELIST=y
++CONFIG_USB_XHCI_HCD=y
++CONFIG_USB_XHCI_MTK=y
++CONFIG_USB_XHCI_MVEBU=y
++CONFIG_USB_XHCI_TEGRA=y
++CONFIG_USB_EHCI_HCD=y
++CONFIG_USB_EHCI_MSM=y
++CONFIG_USB_EHCI_EXYNOS=y
++CONFIG_USB_EHCI_HCD_PLATFORM=y
++CONFIG_USB_OHCI_HCD=y
++CONFIG_USB_OHCI_EXYNOS=y
++CONFIG_USB_OHCI_HCD_PLATFORM=y
++CONFIG_USB_HCD_TEST_MODE=y
++CONFIG_USB_RENESAS_USBHS=m
++CONFIG_USB_ACM=m
++CONFIG_USB_STORAGE=y
++CONFIG_USB_DWC3=y
++CONFIG_USB_DWC2=y
++CONFIG_USB_CHIPIDEA=y
++CONFIG_USB_CHIPIDEA_UDC=y
++CONFIG_USB_CHIPIDEA_HOST=y
++CONFIG_USB_ISP1760=y
++CONFIG_USB_ISP1760_HOST_ROLE=y
++CONFIG_USB_CDNS3=y
++CONFIG_USB_CDNS3_GADGET=y
++CONFIG_USB_CDNS3_HOST=y
++CONFIG_USB_TEST=m
++CONFIG_USB_EHSET_TEST_FIXTURE=y
++CONFIG_USB_HSIC_USB3503=y
++CONFIG_NOP_USB_XCEIV=y
++CONFIG_USB_GPIO_VBUS=y
++CONFIG_USB_QCOM_8X16_PHY=y
++CONFIG_USB_MXS_PHY=y
++CONFIG_USB_ULPI=y
++CONFIG_USB_GADGET=y
++CONFIG_USB_GADGET_DEBUG=y
++CONFIG_USB_GADGET_VERBOSE=y
++CONFIG_USB_RENESAS_USBHS_UDC=m
++CONFIG_USB_RENESAS_USB3=m
++CONFIG_USB_MV_U3D=y
++CONFIG_USB_CONFIGFS=y
++CONFIG_USB_CONFIGFS_SERIAL=y
++CONFIG_USB_CONFIGFS_ACM=y
++CONFIG_USB_CONFIGFS_OBEX=y
++CONFIG_USB_CONFIGFS_NCM=y
++CONFIG_USB_CONFIGFS_ECM=y
++CONFIG_USB_CONFIGFS_ECM_SUBSET=y
++CONFIG_USB_CONFIGFS_RNDIS=y
++CONFIG_USB_CONFIGFS_EEM=y
++CONFIG_USB_CONFIGFS_MASS_STORAGE=y
++CONFIG_FSL_UTP=y
++CONFIG_USB_CONFIGFS_F_LB_SS=y
++CONFIG_USB_CONFIGFS_F_FS=y
++CONFIG_USB_CONFIGFS_F_UAC1=y
++CONFIG_USB_CONFIGFS_F_UAC2=y
++CONFIG_USB_CONFIGFS_F_MIDI=y
++CONFIG_USB_CONFIGFS_F_HID=y
++CONFIG_USB_ZERO=m
++CONFIG_USB_AUDIO=m
++CONFIG_GADGET_UAC1=y
++CONFIG_USB_ETH=y
++CONFIG_USB_ETH_EEM=y
++CONFIG_USB_G_NCM=m
++CONFIG_USB_MASS_STORAGE=m
++CONFIG_USB_G_SERIAL=m
++CONFIG_USB_CDC_COMPOSITE=m
++CONFIG_MMC=y
++CONFIG_MMC_BLOCK_MINORS=32
++CONFIG_MMC_ARMMMCI=y
++CONFIG_MMC_SDHCI=y
++CONFIG_MMC_SDHCI_ACPI=y
++CONFIG_MMC_SDHCI_PLTFM=y
++CONFIG_MMC_SDHCI_OF_ARASAN=y
++CONFIG_MMC_SDHCI_OF_ESDHC=y
++CONFIG_MMC_SDHCI_CADENCE=y
++CONFIG_MMC_SDHCI_ESDHC_IMX=y
++CONFIG_MMC_SDHCI_TEGRA=y
++CONFIG_MMC_MESON_GX=y
++CONFIG_MMC_SDHCI_MSM=y
++CONFIG_MMC_SPI=y
++CONFIG_MMC_SDHI=y
++CONFIG_MMC_DW=y
++CONFIG_MMC_DW_EXYNOS=y
++CONFIG_MMC_DW_K3=y
++CONFIG_MMC_DW_ROCKCHIP=y
++CONFIG_MMC_SUNXI=y
++CONFIG_MMC_BCM2835=y
++CONFIG_MMC_SDHCI_XENON=y
++CONFIG_MXC_MLB150=y
++CONFIG_MXC_SIM=y
++CONFIG_MXC_EMVSIM=y
++CONFIG_NEW_LEDS=y
++CONFIG_LEDS_CLASS=y
++CONFIG_LEDS_GPIO=y
++CONFIG_LEDS_PWM=y
++CONFIG_LEDS_SYSCON=y
++CONFIG_LEDS_TRIGGER_HEARTBEAT=y
++CONFIG_LEDS_TRIGGER_CPU=y
++CONFIG_LEDS_TRIGGER_DEFAULT_ON=y
++CONFIG_EDAC=y
++CONFIG_RTC_CLASS=y
++CONFIG_RTC_DRV_MAX77686=y
++CONFIG_RTC_DRV_RK808=m
++CONFIG_RTC_DRV_S5M=y
++CONFIG_RTC_DRV_DS3232=y
++CONFIG_RTC_DRV_EFI=y
++CONFIG_RTC_DRV_S3C=y
++CONFIG_RTC_DRV_PL031=y
++CONFIG_RTC_DRV_TEGRA=y
++CONFIG_RTC_DRV_SNVS=y
++CONFIG_RTC_DRV_IMX_SC=y
++CONFIG_RTC_DRV_XGENE=y
++CONFIG_DMADEVICES=y
++CONFIG_DMA_BCM2835=m
++CONFIG_FSL_EDMA_V3=y
++CONFIG_IMX_SDMA=m
++CONFIG_K3_DMA=y
++CONFIG_MV_XOR_V2=y
++CONFIG_MXS_DMA=y
++CONFIG_PL330_DMA=y
++CONFIG_TEGRA20_APB_DMA=y
++CONFIG_QCOM_BAM_DMA=y
++CONFIG_QCOM_HIDMA_MGMT=y
++CONFIG_QCOM_HIDMA=y
++CONFIG_RCAR_DMAC=y
++CONFIG_UIO=y
++CONFIG_UIO_PCI_GENERIC=y
++CONFIG_VIRTIO_PCI=y
++CONFIG_VIRTIO_BALLOON=y
++CONFIG_VIRTIO_MMIO=y
++CONFIG_XEN_GNTDEV=y
++CONFIG_XEN_GRANT_DEV_ALLOC=y
++CONFIG_STAGING=y
++CONFIG_ION=y
++CONFIG_ION_SYSTEM_HEAP=y
++CONFIG_ION_CMA_HEAP=y
++CONFIG_TYPEC_TCPM=y
++CONFIG_TYPEC_TCPCI=y
++CONFIG_COMMON_CLK_RK808=y
++CONFIG_COMMON_CLK_SCPI=y
++CONFIG_COMMON_CLK_CS2000_CP=y
++CONFIG_COMMON_CLK_S2MPS11=y
++CONFIG_CLK_QORIQ=y
++CONFIG_COMMON_CLK_PWM=y
++CONFIG_COMMON_CLK_QCOM=y
++CONFIG_QCOM_CLK_SMD_RPM=y
++CONFIG_IPQ_GCC_8074=y
++CONFIG_MSM_GCC_8916=y
++CONFIG_MSM_GCC_8994=y
++CONFIG_MSM_MMCC_8996=y
++CONFIG_HWSPINLOCK=y
++CONFIG_HWSPINLOCK_QCOM=y
++CONFIG_CLKSRC_IMX_SYS_CNT=y
++CONFIG_ARM_MHU=y
++CONFIG_PLATFORM_MHU=y
++CONFIG_BCM2835_MBOX=y
++CONFIG_HI6220_MBOX=y
++CONFIG_ROCKCHIP_IOMMU=y
++CONFIG_ARM_SMMU=y
++CONFIG_ARM_SMMU_V3=y
++CONFIG_RPMSG_QCOM_SMD=y
++CONFIG_RASPBERRYPI_POWER=y
++CONFIG_ARCH_MXC_ARM64=y
++CONFIG_QCOM_SMEM=y
++CONFIG_QCOM_SMD_RPM=y
++CONFIG_QCOM_SMP2P=y
++CONFIG_QCOM_SMSM=y
++CONFIG_ROCKCHIP_PM_DOMAINS=y
++CONFIG_ARCH_TEGRA_132_SOC=y
++CONFIG_ARCH_TEGRA_210_SOC=y
++CONFIG_ARCH_TEGRA_186_SOC=y
++CONFIG_EXTCON_PTN5150=y
++CONFIG_IIO=y
++CONFIG_EXYNOS_ADC=y
++CONFIG_IMX8QXP_ADC=y
++CONFIG_ROCKCHIP_SARADC=m
++CONFIG_PWM=y
++CONFIG_PWM_BCM2835=m
++CONFIG_PWM_CROS_EC=m
++CONFIG_PWM_FSL_FTM=y
++CONFIG_PWM_IMX=y
++CONFIG_PWM_MESON=m
++CONFIG_PWM_ROCKCHIP=y
++CONFIG_PWM_SAMSUNG=y
++CONFIG_PWM_TEGRA=m
++CONFIG_PHY_XGENE=y
++CONFIG_PHY_SUN4I_USB=y
++CONFIG_PHY_HI6220_USB=y
++CONFIG_PHY_RCAR_GEN3_USB2=y
++CONFIG_PHY_ROCKCHIP_EMMC=y
++CONFIG_PHY_ROCKCHIP_INNO_USB2=y
++CONFIG_PHY_ROCKCHIP_PCIE=m
++CONFIG_PHY_TEGRA_XUSB=y
++CONFIG_QCOM_L2_PMU=y
++CONFIG_QCOM_L3_PMU=y
++CONFIG_IMX8_DDR_PERF=y
++CONFIG_NVMEM_IMX_OCOTP=y
++CONFIG_NVMEM_IMX_SCU_OCOTP=y
++CONFIG_TEE=y
++CONFIG_OPTEE=y
++CONFIG_ARM_SCPI_PROTOCOL=y
++CONFIG_RASPBERRYPI_FIRMWARE=y
++CONFIG_EFI_CAPSULE_LOADER=y
++CONFIG_ACPI=y
++CONFIG_ACPI_APEI=y
++CONFIG_ACPI_APEI_GHES=y
++CONFIG_ACPI_APEI_PCIEAER=y
++CONFIG_EXT2_FS=y
++CONFIG_EXT3_FS=y
++CONFIG_EXT4_FS_POSIX_ACL=y
++CONFIG_BTRFS_FS=m
++CONFIG_BTRFS_FS_POSIX_ACL=y
++CONFIG_FANOTIFY=y
++CONFIG_FANOTIFY_ACCESS_PERMISSIONS=y
++CONFIG_QUOTA=y
++CONFIG_AUTOFS4_FS=y
++CONFIG_FUSE_FS=y
++CONFIG_CUSE=m
++CONFIG_OVERLAY_FS=m
++CONFIG_VFAT_FS=y
++CONFIG_HUGETLBFS=y
++CONFIG_EFIVAR_FS=y
++CONFIG_JFFS2_FS=y
++CONFIG_UBIFS_FS=y
++CONFIG_SQUASHFS=y
++CONFIG_NFS_FS=y
++CONFIG_NFS_V4=y
++CONFIG_NFS_V4_1=y
++CONFIG_NFS_V4_2=y
++CONFIG_ROOT_NFS=y
++CONFIG_9P_FS=y
++CONFIG_NLS_CODEPAGE_437=y
++CONFIG_NLS_ISO8859_1=y
++CONFIG_VIRTUALIZATION=y
++CONFIG_KVM=y
++CONFIG_PRINTK_TIME=y
++CONFIG_DEBUG_FS=y
++CONFIG_MAGIC_SYSRQ=y
++# CONFIG_SCHED_DEBUG is not set
++# CONFIG_DEBUG_PREEMPT is not set
++# CONFIG_FTRACE is not set
++CONFIG_MEMTEST=y
++CONFIG_SECURITY=y
++CONFIG_CRYPTO_RSA=y
++CONFIG_CRYPTO_AUTHENC=y
++CONFIG_CRYPTO_TEST=m
++CONFIG_CRYPTO_CHACHA20POLY1305=y
++CONFIG_CRYPTO_ECHAINIV=y
++CONFIG_CRYPTO_CBC=y
++CONFIG_CRYPTO_CTS=y
++CONFIG_CRYPTO_LRW=y
++CONFIG_CRYPTO_XTS=y
++CONFIG_CRYPTO_MD4=y
++CONFIG_CRYPTO_MD5=y
++CONFIG_CRYPTO_RMD128=y
++CONFIG_CRYPTO_RMD160=y
++CONFIG_CRYPTO_RMD256=y
++CONFIG_CRYPTO_RMD320=y
++CONFIG_CRYPTO_SHA512=y
++CONFIG_CRYPTO_SHA3=y
++CONFIG_CRYPTO_TGR192=y
++CONFIG_CRYPTO_WP512=y
++CONFIG_CRYPTO_BLOWFISH=y
++CONFIG_CRYPTO_CAMELLIA=y
++CONFIG_CRYPTO_CAST5=y
++CONFIG_CRYPTO_CAST6=y
++CONFIG_CRYPTO_DES=y
++CONFIG_CRYPTO_SERPENT=y
++CONFIG_CRYPTO_TWOFISH=y
++CONFIG_CRYPTO_ANSI_CPRNG=y
++CONFIG_CRYPTO_DEV_FSL_CAAM_SM=y
++CONFIG_CRYPTO_DEV_FSL_CAAM_SM_TEST=y
++CONFIG_ARM64_CRYPTO=y
++CONFIG_CRYPTO_SHA512_ARM64=m
++CONFIG_CRYPTO_SHA1_ARM64_CE=y
++CONFIG_CRYPTO_SHA2_ARM64_CE=y
++CONFIG_CRYPTO_GHASH_ARM64_CE=y
++CONFIG_CRYPTO_CRCT10DIF_ARM64_CE=m
++CONFIG_CRYPTO_CRC32_ARM64_CE=m
++CONFIG_CRYPTO_AES_ARM64_CE_CCM=y
++CONFIG_CRYPTO_AES_ARM64_CE_BLK=y
++CONFIG_CRYPTO_CHACHA20_NEON=m
++CONFIG_CRYPTO_AES_ARM64_BS=m
+diff --git a/drivers/gpu/drm/bridge/Kconfig b/drivers/gpu/drm/bridge/Kconfig
+old mode 100644
+new mode 100755
+index 593e9a4e9ed6..4375aaf2ef3a
+--- a/drivers/gpu/drm/bridge/Kconfig
++++ b/drivers/gpu/drm/bridge/Kconfig
+@@ -71,6 +71,14 @@ config DRM_NXP_SEIKO_43WVFIG
+ 	select DRM_KMS_HELPER
+ 	select DRM_PANEL
+ 
++config DRM_LONTIUM_LT2911
++	tristate "Lontium LT2911 dual-port MIPI/LVDS/TTL bridge"
++	depends on OF
++	select DRM_KMS_HELPER
++	select REGMAP_I2C
++	help
++	  Lontium Semiconductor LT2911 2-port MIPI-DSI/LVDS/TTL to 2-port MIPI-DSI/LVDS/TTL bridge chip driver.
++
+ config DRM_NXP_PTN3460
+ 	tristate "NXP PTN3460 DP/LVDS bridge"
+ 	depends on OF
+diff --git a/drivers/gpu/drm/bridge/Makefile b/drivers/gpu/drm/bridge/Makefile
+old mode 100644
+new mode 100755
+index d684dce13256..98be882a6877
+--- a/drivers/gpu/drm/bridge/Makefile
++++ b/drivers/gpu/drm/bridge/Makefile
+@@ -13,6 +13,7 @@ obj-$(CONFIG_DRM_I2C_ADV7511) += adv7511/
+ obj-$(CONFIG_DRM_TI_TFP410) += ti-tfp410.o
+ obj-y += synopsys/
+ obj-$(CONFIG_DRM_ITE_IT6263) += it6263.o
++obj-$(CONFIG_DRM_LONTIUM_LT2911) += lt2911.o
+ obj-$(CONFIG_DRM_NWL_DSI) += nwl-dsi.o
+ obj-$(CONFIG_DRM_SEC_MIPI_DSIM) += sec-dsim.o
+ obj-$(CONFIG_DRM_NXP_SEIKO_43WVFIG) += nxp-seiko-43wvfig.o
+diff --git a/drivers/gpu/drm/bridge/lt2911.c b/drivers/gpu/drm/bridge/lt2911.c
+new file mode 100755
+index 000000000000..517526cba393
+--- /dev/null
++++ b/drivers/gpu/drm/bridge/lt2911.c
+@@ -0,0 +1,627 @@
++/*
++ * Copyright 2016-2019 Embest Tech
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
++ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++ * for more details.
++ */
++
++#include <linux/kernel.h>
++#include <linux/delay.h>
++#include <linux/gpio.h>
++#include <linux/gpio/consumer.h>
++#include <linux/i2c.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_irq.h>
++#include <linux/of_graph.h>
++#include <linux/regmap.h>
++#include <video/of_display_timing.h>
++#include <video/videomode.h>
++
++#include <drm/drmP.h>
++#include <drm/drm_of.h>
++#include <drm/drm_atomic.h>
++#include <drm/drm_crtc_helper.h>
++#include <drm/drm_atomic_helper.h>
++#include <drm/drm_panel.h>
++#include <drm/drm_mipi_dsi.h>
++
++
++struct lt2911 {
++	struct drm_bridge bridge;
++	struct drm_connector connector;
++
++	struct drm_display_mode mode;
++	struct videomode vm;
++	struct device *dev;
++	struct mipi_dsi_device *dsi;
++	struct device_node *host_node;
++
++	u8 num_dsi_lanes;
++	u8 channel_id;
++	struct regmap *regmap;
++	struct gpio_desc *reset_gpio;
++	struct gpio_desc *enable_gpio;
++};
++
++static int lt2911_attach_dsi(struct lt2911 *lt);
++
++static inline struct lt2911 *bridge_to_lt2911(struct drm_bridge *b)
++{
++	return container_of(b, struct lt2911, bridge);
++}
++
++static inline struct lt2911 *connector_to_lt2911(struct drm_connector *c)
++{
++	return container_of(c, struct lt2911, connector);
++}
++
++static void lt2911_get_id(struct lt2911 *lt)
++{
++	unsigned int id_val[3];
++
++	regmap_write(lt->regmap, 0xff, 0x81);//register bank
++	regmap_read(lt->regmap, 0x00, &id_val[0]);
++	regmap_read(lt->regmap, 0x01, &id_val[1]);
++	regmap_read(lt->regmap, 0x02, &id_val[2]);
++
++	dev_info(lt->dev, "LT2911 Chip ID: %02x-%02x-%02x\n",
++		 id_val[0], id_val[1], id_val[2]);
++}
++
++static void lt2911_set_timings(struct lt2911 *lt)
++{
++	struct videomode *vmode = &lt->vm;
++	const struct drm_display_mode *dmode = &lt->mode;
++	u32 hactive, hfp, hsync, hbp, vactive, vfp, vsync, vbp, htotal, vtotal;
++
++	hactive = vmode->hactive;
++	hfp = vmode->hfront_porch;
++	hsync = vmode->hsync_len;
++	hbp = vmode->hback_porch;
++	vactive = vmode->vactive;
++	vfp = vmode->vfront_porch;
++	vsync = vmode->vsync_len;
++	vbp = vmode->vback_porch;
++	htotal = dmode->htotal;
++	vtotal = dmode->vtotal;
++
++	dev_dbg(lt->dev, "hactive2=%d hfp=%d hbp=%d hsync=%d htotal=%d\n",
++		 hactive, hfp, hbp, hsync, htotal);
++	dev_dbg(lt->dev, "vactive=%d vfp=%d vbp=%d vsync=%d vtotal=%d\n",
++		 vactive, vfp, vbp, vsync, vtotal);
++	usleep_range(100000, 110000);
++	regmap_write(lt->regmap, 0xff, 0xd0);
++	regmap_write(lt->regmap, 0x0d, (u8)(vtotal>>8)); //vtotal[15:8]
++	regmap_write(lt->regmap, 0x0e, (u8)(vtotal)); //vtotal[7:0]
++	regmap_write(lt->regmap, 0x0f, (u8)(vactive>>8)); //vactive[15:8]
++	regmap_write(lt->regmap, 0x10, (u8)(vactive)); //vactive[7:0]
++	regmap_write(lt->regmap, 0x15, (u8)(vsync)); //vs[7:0]
++	regmap_write(lt->regmap, 0x17, (u8)(vfp>>8)); //vfp[15:8]
++	regmap_write(lt->regmap, 0x18, (u8)(vfp)); //vfp[7:0]
++
++	regmap_write(lt->regmap, 0x11, (u8)(htotal>>8)); //htotal[15:8]
++	regmap_write(lt->regmap, 0x12, (u8)(htotal)); //htotal[7:0]
++	regmap_write(lt->regmap, 0x13, (u8)(hactive>>8)); //hactive[15:8]
++	regmap_write(lt->regmap, 0x14, (u8)(hactive)); //hactive[7:0]
++	regmap_write(lt->regmap, 0x16, (u8)(hsync)); //hs[7:0]
++	regmap_write(lt->regmap, 0x19, (u8)(hfp>>8)); //hfp[15:8]
++	regmap_write(lt->regmap, 0x1a, (u8)(hfp)); //hfp[7:0]
++
++}
++
++static void lt2911_init(struct lt2911 *lt)
++{
++	u32 hact1, hact2;
++	u32 vact1, vact2;
++	u8 Pcr_M;
++	u8 Pcr_overflow;
++	u8 Pcr_underflow;
++	u8 loopx;
++	unsigned int rd_val;
++
++	lt2911_get_id(lt);
++
++	//---- LT2911_SystemInt -----------------
++	/* system clock init */
++	regmap_write(lt->regmap, 0xff, 0x82);
++	regmap_write(lt->regmap, 0x01, 0x18);
++	regmap_write(lt->regmap, 0xff, 0x86);
++	regmap_write(lt->regmap, 0x06, 0x61);
++	regmap_write(lt->regmap, 0x07, 0xa8); //fm for sys_clk
++	regmap_write(lt->regmap, 0xff, 0x87); //初始化 txpll
++	regmap_write(lt->regmap, 0x14, 0x08); //default value
++	regmap_write(lt->regmap, 0x15, 0x00); //default value
++	regmap_write(lt->regmap, 0x18, 0x0f);
++	regmap_write(lt->regmap, 0x22, 0x08); //default value
++	regmap_write(lt->regmap, 0x23, 0x00); //default value
++	regmap_write(lt->regmap, 0x26, 0x0f);
++
++	//---- LT2911_MipiRxPhy -----------------
++	/* Mipi rx phy */
++	regmap_write(lt->regmap, 0xff, 0x82);
++	regmap_write(lt->regmap, 0x02, 0x44); //port A mipi rx enable
++	regmap_write(lt->regmap, 0x0d, 0x26);
++	regmap_write(lt->regmap, 0x17, 0x0c);
++	regmap_write(lt->regmap, 0x1d, 0x0c);
++	regmap_write(lt->regmap, 0x0a, 0xf7);
++	regmap_write(lt->regmap, 0x0b, 0x77);
++	/*port a*/
++	regmap_write(lt->regmap, 0x05, 0x32); //port A CK lane swap
++	regmap_write(lt->regmap, 0x07, 0x9f); //port clk enable
++	regmap_write(lt->regmap, 0x08, 0xfc); //port lprx enable
++	/*port diff swap*/
++	regmap_write(lt->regmap, 0x09, 0x01); //port a diff swap
++	regmap_write(lt->regmap, 0x11, 0x01); //port b diff swap
++	/*port lane swap*/
++	regmap_write(lt->regmap, 0xff, 0x86);
++	regmap_write(lt->regmap, 0x33, 0x1b); //port a lane swap	1b:no swap
++	regmap_write(lt->regmap, 0x34, 0x1b); //port b lane swap 1b:no swap
++
++	//---- LT2911_MipiRxDigital -----------------
++	regmap_write(lt->regmap, 0xff, 0x86);
++	regmap_write(lt->regmap, 0x30, 0x85); //mipirx HL swap
++	regmap_write(lt->regmap, 0xff, 0xD8);
++	regmap_write(lt->regmap, 0x16, 0x00); //mipirx HL swap
++	regmap_write(lt->regmap, 0xff, 0xd0);
++	regmap_write(lt->regmap, 0x43, 0x12); //rpta mode enable,ensure da_mlrx_lptx_en=0
++	regmap_write(lt->regmap, 0x02, 0x05); //mipi rx controller	//settle value
++
++	//---- LT2911_TimingSet -----------------
++	usleep_range(500000, 501000);
++	regmap_write(lt->regmap, 0xff, 0xd0);
++	regmap_read(lt->regmap, 0x82, &hact1);
++	regmap_read(lt->regmap, 0x83, &hact2);
++	hact1 = hact1 << 8;
++	hact1 += hact2;
++	hact1 /= 3 ;
++	regmap_read(lt->regmap, 0x85, &vact1);
++	regmap_read(lt->regmap, 0x86, &vact2);
++	vact1 = vact1 << 8;
++	vact1 += vact2;
++	dev_info(lt->dev,"mipi dsi pixel: hact = %d, vact = %d", hact1, vact1);
++
++	lt2911_set_timings(lt);
++
++	//---- LT2911_MipiRxPll -----------------
++	/* dessc pll */
++	regmap_write(lt->regmap, 0xff, 0x82);
++	regmap_write(lt->regmap, 0x2d, 0x48);
++	regmap_write(lt->regmap, 0x35, 0x83);
++
++	//---- LT2911_MipiPcr -----------------
++	usleep_range(100000, 101000);
++
++	Pcr_M = 0x17;
++	Pcr_overflow = 0x19;
++	Pcr_underflow = 0x10;
++	regmap_write(lt->regmap, 0xff, 0xd0);
++	regmap_write(lt->regmap, 0x26,Pcr_M);
++	regmap_write(lt->regmap, 0x2d,Pcr_overflow);//PCR M overflow limit setting.
++	regmap_write(lt->regmap, 0x31,Pcr_underflow); //PCR M underflow limit setting.
++	dev_dbg(lt->dev,"PCR M = %x", Pcr_M);
++	dev_dbg(lt->dev,"PCR M overflow limit setting = %x", Pcr_overflow);
++	dev_dbg(lt->dev,"PCR M underflow limit setting = %x", Pcr_underflow);
++
++	regmap_write(lt->regmap, 0x23, 0x20);
++	regmap_write(lt->regmap, 0x38, 0x02);
++	regmap_write(lt->regmap, 0x39, 0x04);
++	regmap_write(lt->regmap, 0x3a, 0x08);
++	regmap_write(lt->regmap, 0x3b, 0x10);
++	regmap_write(lt->regmap, 0x3f, 0x04);
++	regmap_write(lt->regmap, 0x40, 0x08);
++	regmap_write(lt->regmap, 0x41, 0x10);
++	usleep_range(100000, 101000);
++	regmap_write(lt->regmap, 0xff, 0x81);
++	regmap_write(lt->regmap, 0x0B, 0xEF);
++	regmap_write(lt->regmap, 0x0B, 0xFF);
++	usleep_range(500000, 501000);
++	for(loopx = 0; loopx < 5; loopx++) {//Check pcr_stable
++		usleep_range(300000, 301000);
++		regmap_write(lt->regmap, 0xff, 0xd0);
++		regmap_read(lt->regmap, 0x87, &rd_val);
++
++		if(rd_val & 0x08) {
++			dev_dbg(lt->dev,"LT2911 pcr stable");
++			break;
++		} else 	{
++			dev_dbg(lt->dev,"LT2911 pcr unstable!!!!");
++		}
++	}
++	//---- LT2911_TxDigital -----------------
++	dev_dbg(lt->dev,"\rLT2911 set to OUTPUT_LVDS");
++	regmap_write(lt->regmap, 0xff, 0x85); /* lvds tx controller */
++	regmap_write(lt->regmap, 0x59, 0x50);
++	regmap_write(lt->regmap, 0x5a, 0xaa);
++	regmap_write(lt->regmap, 0x5b, 0xaa);
++	regmap_write(lt->regmap, 0x5c, 0x00);
++	regmap_write(lt->regmap, 0x88, 0x50);
++	regmap_write(lt->regmap, 0xa1, 0x77);
++	regmap_write(lt->regmap, 0xff, 0x86);
++	regmap_write(lt->regmap, 0x40, 0x40); //tx_src_sel
++	/*port src sel*/
++	regmap_write(lt->regmap, 0x41, 0x34);
++	regmap_write(lt->regmap, 0x42, 0x10);
++	regmap_write(lt->regmap, 0x43, 0x23); //pt0_tx_src_sel
++	regmap_write(lt->regmap, 0x44, 0x41);
++	regmap_write(lt->regmap, 0x45, 0x02); //pt1_tx_src_scl
++
++	//---- LT2911_TxPhy -----------------
++	regmap_write(lt->regmap, 0xff, 0x82);
++	/* dual-port lvds tx phy */
++	regmap_write(lt->regmap, 0x62, 0x00); //ttl output disable
++	regmap_write(lt->regmap, 0x3b, 0x38);
++	regmap_write(lt->regmap, 0x3e, 0x92);
++	regmap_write(lt->regmap, 0x3f, 0x48);
++	regmap_write(lt->regmap, 0x40, 0x31);
++	regmap_write(lt->regmap, 0x43, 0x80);
++	regmap_write(lt->regmap, 0x44, 0x00);
++	regmap_write(lt->regmap, 0x45, 0x00);
++	regmap_write(lt->regmap, 0x49, 0x00);
++	regmap_write(lt->regmap, 0x4a, 0x01);
++	regmap_write(lt->regmap, 0x4e, 0x00);
++	regmap_write(lt->regmap, 0x4f, 0x00);
++	regmap_write(lt->regmap, 0x50, 0x00);
++	regmap_write(lt->regmap, 0x53, 0x00);
++	regmap_write(lt->regmap, 0x54, 0x01);
++	regmap_write(lt->regmap, 0xff, 0x81);
++	regmap_write(lt->regmap, 0x20, 0x7b);
++	regmap_write(lt->regmap, 0x20, 0xff); //mlrx mltx calib reset
++
++	//---- LT2911_Txpll -----------------
++	usleep_range(10000, 11000);
++	regmap_write(lt->regmap, 0xff, 0x82);
++	regmap_write(lt->regmap, 0x36, 0x01); //b7:txpll_pd
++	regmap_write(lt->regmap, 0x37, 0x29);
++	regmap_write(lt->regmap, 0x38, 0x06);
++	regmap_write(lt->regmap, 0x39, 0x30);
++	regmap_write(lt->regmap, 0x3a, 0x8e);
++	regmap_write(lt->regmap, 0xff, 0x87);
++	regmap_write(lt->regmap, 0x37, 0x14);
++	regmap_write(lt->regmap, 0x13, 0x00);
++	regmap_write(lt->regmap, 0x13, 0x80);
++	usleep_range(100000, 101000);
++	for(loopx = 0; loopx < 10; loopx++) {//Check Tx PLL cal
++		regmap_write(lt->regmap, 0xff, 0x87);
++		regmap_read(lt->regmap, 0x1f, &rd_val);
++
++		if(rd_val & 0x80) {
++			regmap_read(lt->regmap, 0x20, &rd_val);
++			if(rd_val & 0x80) {
++				dev_dbg(lt->dev,"LT2911 tx pll lock");
++			} else {
++				dev_dbg(lt->dev,"LT2911 tx pll unlocked");
++			}
++			dev_dbg(lt->dev,"LT2911 tx pll cal done");
++			break;
++		} else {
++			dev_dbg(lt->dev,"LT2911 tx pll unlocked");
++		}
++	}
++	dev_dbg(lt->dev,"LT2911 system success");
++}
++
++static void lt2911_exit(struct lt2911 *lt)
++{
++}
++
++static void lt2911_power_on(struct lt2911 *lt)
++{
++	gpiod_set_value(lt->enable_gpio, 1);
++}
++
++static void lt2911_power_off(struct lt2911 *lt)
++{
++	gpiod_set_value(lt->enable_gpio, 0);
++}
++
++static enum drm_connector_status
++lt2911_connector_detect(struct drm_connector *connector, bool force)
++{
++	return connector_status_connected;
++}
++
++static const struct drm_connector_funcs lt2911_connector_funcs = {
++	.detect = lt2911_connector_detect,
++	.fill_modes = drm_helper_probe_single_connector_modes,
++	.destroy = drm_connector_cleanup,
++	.reset = drm_atomic_helper_connector_reset,
++	.atomic_duplicate_state = drm_atomic_helper_connector_duplicate_state,
++	.atomic_destroy_state = drm_atomic_helper_connector_destroy_state,
++};
++
++static struct drm_encoder *
++lt2911_connector_best_encoder(struct drm_connector *connector)
++{
++	struct lt2911 *lt = connector_to_lt2911(connector);
++
++	return lt->bridge.encoder;
++}
++
++static int lt2911_connector_get_modes(struct drm_connector *connector)
++{
++	struct lt2911 *lt = connector_to_lt2911(connector);
++	struct drm_display_mode *mode;
++	u32 bus_flags = 0;
++	int ret;
++
++	mode = drm_mode_create(connector->dev);
++	if (!mode)
++		return -EINVAL;
++
++	ret = of_get_drm_display_mode(lt->dev->of_node, mode,
++				      &bus_flags, OF_USE_NATIVE_MODE);
++	if (ret) {
++		dev_err(lt->dev, "failed to get display timings\n");
++		drm_mode_destroy(connector->dev, mode);
++		return 0;
++	}
++
++	mode->type |= DRM_MODE_TYPE_PREFERRED;
++	drm_mode_set_name(mode);
++	drm_mode_probed_add(connector, mode);
++
++	return 1;
++}
++
++static const struct drm_connector_helper_funcs lt2911_connector_helper_funcs = {
++	.get_modes = lt2911_connector_get_modes,
++	.best_encoder = lt2911_connector_best_encoder,
++};
++
++static void lt2911_bridge_post_disable(struct drm_bridge *bridge)
++{
++	struct lt2911 *lt = bridge_to_lt2911(bridge);
++
++	lt2911_power_off(lt);
++}
++
++static void lt2911_bridge_disable(struct drm_bridge *bridge)
++{
++	struct lt2911 *lt = bridge_to_lt2911(bridge);
++
++	lt2911_exit(lt);
++}
++
++static void lt2911_bridge_enable(struct drm_bridge *bridge)
++{
++	struct lt2911 *lt = bridge_to_lt2911(bridge);
++
++	lt2911_init(lt);
++}
++
++static void lt2911_bridge_pre_enable(struct drm_bridge *bridge)
++{
++	struct lt2911 *lt = bridge_to_lt2911(bridge);
++
++	lt2911_power_on(lt);
++}
++
++static void lt2911_bridge_mode_set(struct drm_bridge *bridge,
++				   struct drm_display_mode *mode,
++				   struct drm_display_mode *adj)
++{
++	struct lt2911 *lt = bridge_to_lt2911(bridge);
++
++	drm_mode_copy(&lt->mode, adj);
++	drm_display_mode_to_videomode(adj, &lt->vm);
++}
++
++static int lt2911_bridge_attach(struct drm_bridge *bridge)
++{
++	struct lt2911 *lt = bridge_to_lt2911(bridge);
++	struct drm_connector *connector = &lt->connector;
++	int ret;
++
++	ret = drm_connector_init(bridge->dev, connector,
++				 &lt2911_connector_funcs,
++				 DRM_MODE_CONNECTOR_HDMIA);
++	if (ret) {
++		dev_err(lt->dev, "failed to initialize connector\n");
++		return ret;
++	}
++
++	drm_connector_helper_add(connector, &lt2911_connector_helper_funcs);
++	drm_mode_connector_attach_encoder(connector, bridge->encoder);
++
++	ret = lt2911_attach_dsi(lt);
++	return ret;
++}
++
++static const struct drm_bridge_funcs lt2911_bridge_funcs = {
++	.attach = lt2911_bridge_attach,
++	.mode_set = lt2911_bridge_mode_set,
++	.pre_enable = lt2911_bridge_pre_enable,
++	.enable = lt2911_bridge_enable,
++	.disable = lt2911_bridge_disable,
++	.post_disable = lt2911_bridge_post_disable,
++};
++
++static const struct regmap_range lt2911_volatile_ranges[] = {
++	{ .range_min = 0, .range_max = 0xff },
++};
++
++static const struct regmap_access_table lt2911_volatile_table = {
++	.yes_ranges = lt2911_volatile_ranges,
++	.n_yes_ranges = ARRAY_SIZE(lt2911_volatile_ranges),
++};
++
++static const struct regmap_config lt2911_regmap_config = {
++	.reg_bits = 8,
++	.val_bits = 8,
++	.volatile_table = &lt2911_volatile_table,
++	.cache_type = REGCACHE_NONE,
++};
++
++int lt2911_attach_dsi(struct lt2911 *lt)
++{
++	struct device *dev = lt->dev;
++	struct mipi_dsi_host *host;
++	struct mipi_dsi_device *dsi;
++	int ret = 0;
++	const struct mipi_dsi_device_info info = { .type = "lt2911",
++						   .channel = lt->channel_id,
++						   .node = NULL,
++						 };
++
++	host = of_find_mipi_dsi_host_by_node(lt->host_node);
++	if (!host) {
++		dev_err(dev, "failed to find dsi host\n");
++		return -EPROBE_DEFER;
++	}
++
++	dsi = mipi_dsi_device_register_full(host, &info);
++	if (IS_ERR(dsi)) {
++		dev_err(dev, "failed to create dsi device\n");
++		ret = PTR_ERR(dsi);
++		return ret;
++	}
++
++	lt->dsi = dsi;
++
++	dsi->lanes = lt->num_dsi_lanes;
++	dsi->format = MIPI_DSI_FMT_RGB888;
++	dsi->mode_flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_BURST |
++			  MIPI_DSI_MODE_LPM | MIPI_DSI_MODE_EOT_PACKET;
++
++	ret = mipi_dsi_attach(dsi);
++	if (ret < 0) {
++		dev_err(dev, "failed to attach dsi to host\n");
++		mipi_dsi_device_unregister(dsi);
++		return ret;
++	}
++
++	return 0;
++}
++
++void lt2911_detach_dsi(struct lt2911 *lt)
++{
++	mipi_dsi_detach(lt->dsi);
++	mipi_dsi_device_unregister(lt->dsi);
++}
++
++
++static int lt2911_probe(struct i2c_client *client, const struct i2c_device_id *id)
++{
++	struct device *dev = &client->dev;
++	struct lt2911 *lt;
++	struct device_node *endpoint;
++	int ret;
++
++	lt = devm_kzalloc(dev, sizeof(*lt), GFP_KERNEL);
++	if (!lt)
++		return -ENOMEM;
++
++	lt->dev = dev;
++
++	lt->enable_gpio = devm_gpiod_get(dev, "enable", GPIOD_OUT_HIGH);
++	if (IS_ERR(lt->enable_gpio)) {
++		lt->enable_gpio = NULL;
++		dev_err(dev, "Couldn't get our power GPIO\n");
++		return PTR_ERR(lt->enable_gpio);
++	}
++
++	lt->reset_gpio = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_HIGH);
++	if (IS_ERR(lt->reset_gpio)) {
++		ret = PTR_ERR(lt->reset_gpio);
++		dev_err(dev, "failed to request reset GPIO: %d\n", ret);
++	}
++
++	lt->regmap = devm_regmap_init_i2c(client, &lt2911_regmap_config);
++	if (IS_ERR(lt->regmap)) {
++		ret = PTR_ERR(lt->regmap);
++		dev_err(lt->dev,
++			"Failed to initialize regmap: %d\n", ret);
++		return ret;
++	}
++
++	lt->num_dsi_lanes = 4;
++	lt->channel_id = 0;
++
++	endpoint = of_graph_get_next_endpoint(dev->of_node, NULL);
++	if (!endpoint)
++		return -ENODEV;
++
++	lt->host_node = of_graph_get_remote_port_parent(endpoint);
++	if (!lt->host_node) {
++		of_node_put(endpoint);
++		return -ENODEV;
++	}
++
++	of_node_put(endpoint);
++	of_node_put(lt->host_node);
++
++	lt->bridge.funcs = &lt2911_bridge_funcs;
++	lt->bridge.of_node = dev->of_node;
++	ret = drm_bridge_add(&lt->bridge);
++	if (ret) {
++		dev_err(dev, "failed to add bridge: %d\n", ret);
++		return ret;
++	}
++
++	i2c_set_clientdata(client, lt);
++
++	return 0;
++}
++
++static int lt2911_remove(struct i2c_client *client)
++{
++	struct lt2911 *lt = i2c_get_clientdata(client);
++
++	lt2911_detach_dsi(lt);
++	drm_bridge_remove(&lt->bridge);
++
++	return 0;
++}
++
++static const struct i2c_device_id lt2911_i2c_ids[] = {
++	{ "lt2911", 0 },
++	{ }
++};
++
++static const struct of_device_id lt2911_of_match[] = {
++	{ .compatible = "lontium,lt2911" },
++	{}
++};
++MODULE_DEVICE_TABLE(of, lt2911_of_match);
++
++static struct mipi_dsi_driver lt2911_driver = {
++	.driver.name = "lt2911",
++};
++
++static struct i2c_driver lt2911_i2c_driver = {
++	.driver = {
++		.name = "lt2911",
++		.of_match_table = lt2911_of_match,
++	},
++	.id_table = lt2911_i2c_ids,
++	.probe = lt2911_probe,
++	.remove = lt2911_remove,
++};
++
++static int __init lt2911_i2c_drv_init(void)
++{
++	mipi_dsi_driver_register(&lt2911_driver);
++
++	return i2c_add_driver(&lt2911_i2c_driver);
++}
++module_init(lt2911_i2c_drv_init);
++
++static void __exit lt2911_i2c_exit(void)
++{
++	i2c_del_driver(&lt2911_i2c_driver);
++
++	mipi_dsi_driver_unregister(&lt2911_driver);
++}
++module_exit(lt2911_i2c_exit);
++
++MODULE_AUTHOR("nick@embest-tech.com>");
++MODULE_DESCRIPTION("LT2911 dual-port MIPI/LVDS/TTL converter driver");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/gpu/drm/panel/Kconfig b/drivers/gpu/drm/panel/Kconfig
+old mode 100644
+new mode 100755
+index eb2a74629a4b..d44870aa4ccd
+--- a/drivers/gpu/drm/panel/Kconfig
++++ b/drivers/gpu/drm/panel/Kconfig
+@@ -28,6 +28,15 @@ config DRM_PANEL_SIMPLE
+ 	  that it can be automatically turned off when the panel goes into a
+ 	  low power state.
+ 
++config DRM_PANEL_ILITEK_ILI9881C
++	tristate "Ilitek ILI9881C-based panels"
++	depends on OF
++	depends on DRM_MIPI_DSI
++	depends on BACKLIGHT_CLASS_DEVICE
++	help
++	  Say Y if you want to enable support for panels based on the
++	  Ilitek ILI9881c controller.
++
+ config DRM_PANEL_INNOLUX_P079ZCA
+ 	tristate "Innolux P079ZCA panel"
+ 	depends on OF
+diff --git a/drivers/gpu/drm/panel/Makefile b/drivers/gpu/drm/panel/Makefile
+old mode 100644
+new mode 100755
+index 68a80b13403f..21c56665d37d
+--- a/drivers/gpu/drm/panel/Makefile
++++ b/drivers/gpu/drm/panel/Makefile
+@@ -1,6 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0
+ obj-$(CONFIG_DRM_PANEL_LVDS) += panel-lvds.o
+ obj-$(CONFIG_DRM_PANEL_SIMPLE) += panel-simple.o
++obj-$(CONFIG_DRM_PANEL_ILITEK_ILI9881C) += panel-ilitek-ili9881c.o
+ obj-$(CONFIG_DRM_PANEL_INNOLUX_P079ZCA) += panel-innolux-p079zca.o
+ obj-$(CONFIG_DRM_PANEL_JDI_LT070ME05000) += panel-jdi-lt070me05000.o
+ obj-$(CONFIG_DRM_PANEL_LG_LG4573) += panel-lg-lg4573.o
+diff --git a/drivers/gpu/drm/panel/panel-ilitek-ili9881c.c b/drivers/gpu/drm/panel/panel-ilitek-ili9881c.c
+new file mode 100755
+index 000000000000..6bf42447e5b5
+--- /dev/null
++++ b/drivers/gpu/drm/panel/panel-ilitek-ili9881c.c
+@@ -0,0 +1,635 @@
++/* SPDX-License-Identifier: GPL-2.0
++ *
++ * Copyright (C) 2017-2018, Bootlin
++ */
++
++#include <linux/module.h>
++#include <linux/gpio/consumer.h>
++#include <linux/regulator/consumer.h>
++#include <drm/drm_mipi_dsi.h>
++#include <drm/drm_modes.h>
++#include <drm/drm_panel.h>
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <video/mipi_display.h>
++#include <video/videomode.h>
++
++/*#define USE_DISPLAY_TIMINGS*/
++
++struct ili9881c_panel {
++	struct drm_panel	panel;
++	struct mipi_dsi_device	*dsi;
++
++	struct gpio_desc	*enable_gpio;
++	struct gpio_desc	*reset_gpio;
++};
++
++enum ili9881c_op {
++	ILI9881C_SWITCH_PAGE,
++	ILI9881C_COMMAND,
++};
++
++struct ili9881c_instr {
++	enum ili9881c_op	op;
++
++	union arg {
++		struct cmd {
++			u8	cmd;
++			u8	data;
++		} cmd;
++		u8	page;
++	} arg;
++};
++
++#define ILI9881C_SWITCH_PAGE_INSTR(_page)	\
++	{					\
++		.op = ILI9881C_SWITCH_PAGE,	\
++		.arg = {			\
++			.page = (_page),	\
++		},				\
++	}
++
++#define ILI9881C_COMMAND_INSTR(_cmd, _data)		\
++	{						\
++		.op = ILI9881C_COMMAND,		\
++		.arg = {				\
++			.cmd = {			\
++				.cmd = (_cmd),		\
++				.data = (_data),	\
++			},				\
++		},					\
++	}
++
++
++static const struct ili9881c_instr ili9881c_init[] = {
++	ILI9881C_SWITCH_PAGE_INSTR(3),
++	ILI9881C_COMMAND_INSTR(0x01, 0x00),
++	ILI9881C_COMMAND_INSTR(0x02, 0x00),
++	ILI9881C_COMMAND_INSTR(0x03, 0x55),
++	ILI9881C_COMMAND_INSTR(0x04, 0x13),
++	ILI9881C_COMMAND_INSTR(0x05, 0x00),
++	ILI9881C_COMMAND_INSTR(0x06, 0x06),
++	ILI9881C_COMMAND_INSTR(0x07, 0x01),
++	ILI9881C_COMMAND_INSTR(0x08, 0x00),
++	ILI9881C_COMMAND_INSTR(0x09, 0x01),
++	ILI9881C_COMMAND_INSTR(0x0a, 0x01),
++	ILI9881C_COMMAND_INSTR(0x0b, 0x00),
++	ILI9881C_COMMAND_INSTR(0x0c, 0x00),
++	ILI9881C_COMMAND_INSTR(0x0d, 0x00),
++	ILI9881C_COMMAND_INSTR(0x0e, 0x00),
++	ILI9881C_COMMAND_INSTR(0x0f, 0x18),
++	ILI9881C_COMMAND_INSTR(0x10, 0x18),
++	ILI9881C_COMMAND_INSTR(0x11, 0x00),
++	ILI9881C_COMMAND_INSTR(0x12, 0x00),
++	ILI9881C_COMMAND_INSTR(0x13, 0x00),
++	ILI9881C_COMMAND_INSTR(0x14, 0x00),
++	ILI9881C_COMMAND_INSTR(0x15, 0x00),
++	ILI9881C_COMMAND_INSTR(0x16, 0x00),
++	ILI9881C_COMMAND_INSTR(0x17, 0x00),
++	ILI9881C_COMMAND_INSTR(0x18, 0x00),
++	ILI9881C_COMMAND_INSTR(0x19, 0x00),
++	ILI9881C_COMMAND_INSTR(0x1a, 0x00),
++	ILI9881C_COMMAND_INSTR(0x1b, 0x00),
++	ILI9881C_COMMAND_INSTR(0x1c, 0x00),
++	ILI9881C_COMMAND_INSTR(0x1d, 0x00),
++	ILI9881C_COMMAND_INSTR(0x1e, 0x44),
++	ILI9881C_COMMAND_INSTR(0x1f, 0x80),
++	ILI9881C_COMMAND_INSTR(0x20, 0x02),
++	ILI9881C_COMMAND_INSTR(0x21, 0x03),
++	ILI9881C_COMMAND_INSTR(0x22, 0x00),
++	ILI9881C_COMMAND_INSTR(0x23, 0x00),
++	ILI9881C_COMMAND_INSTR(0x24, 0x00),
++	ILI9881C_COMMAND_INSTR(0x25, 0x00),
++	ILI9881C_COMMAND_INSTR(0x26, 0x00),
++	ILI9881C_COMMAND_INSTR(0x27, 0x00),
++	ILI9881C_COMMAND_INSTR(0x28, 0x33),
++	ILI9881C_COMMAND_INSTR(0x29, 0x03),
++	ILI9881C_COMMAND_INSTR(0x2a, 0x00),
++	ILI9881C_COMMAND_INSTR(0x2b, 0x00),
++	ILI9881C_COMMAND_INSTR(0x2c, 0x00),
++	ILI9881C_COMMAND_INSTR(0x2d, 0x00),
++	ILI9881C_COMMAND_INSTR(0x2e, 0x00),
++	ILI9881C_COMMAND_INSTR(0x2f, 0x00),
++	ILI9881C_COMMAND_INSTR(0x30, 0x00),
++	ILI9881C_COMMAND_INSTR(0x31, 0x00),
++	ILI9881C_COMMAND_INSTR(0x32, 0x00),
++	ILI9881C_COMMAND_INSTR(0x33, 0x00),
++	ILI9881C_COMMAND_INSTR(0x34, 0x04),
++	ILI9881C_COMMAND_INSTR(0x35, 0x00),
++	ILI9881C_COMMAND_INSTR(0x36, 0x00),
++	ILI9881C_COMMAND_INSTR(0x37, 0x00),
++	ILI9881C_COMMAND_INSTR(0x38, 0x01),
++	ILI9881C_COMMAND_INSTR(0x39, 0x00),
++	ILI9881C_COMMAND_INSTR(0x3a, 0x00),
++	ILI9881C_COMMAND_INSTR(0x3b, 0x00),
++	ILI9881C_COMMAND_INSTR(0x3c, 0x00),
++	ILI9881C_COMMAND_INSTR(0x3d, 0x00),
++	ILI9881C_COMMAND_INSTR(0x3e, 0x00),
++	ILI9881C_COMMAND_INSTR(0x3f, 0x00),
++	ILI9881C_COMMAND_INSTR(0x40, 0x00),
++	ILI9881C_COMMAND_INSTR(0x41, 0x00),
++	ILI9881C_COMMAND_INSTR(0x42, 0x00),
++	ILI9881C_COMMAND_INSTR(0x43, 0x00),
++	ILI9881C_COMMAND_INSTR(0x44, 0x00),
++	ILI9881C_COMMAND_INSTR(0x50, 0x01),
++	ILI9881C_COMMAND_INSTR(0x51, 0x23),
++	ILI9881C_COMMAND_INSTR(0x52, 0x45),
++	ILI9881C_COMMAND_INSTR(0x53, 0x67),
++	ILI9881C_COMMAND_INSTR(0x54, 0x89),
++	ILI9881C_COMMAND_INSTR(0x55, 0xab),
++	ILI9881C_COMMAND_INSTR(0x56, 0x01),
++	ILI9881C_COMMAND_INSTR(0x57, 0x23),
++	ILI9881C_COMMAND_INSTR(0x58, 0x45),
++	ILI9881C_COMMAND_INSTR(0x59, 0x67),
++	ILI9881C_COMMAND_INSTR(0x5a, 0x89),
++	ILI9881C_COMMAND_INSTR(0x5b, 0xab),
++	ILI9881C_COMMAND_INSTR(0x5c, 0xcd),
++	ILI9881C_COMMAND_INSTR(0x5d, 0xef),
++	ILI9881C_COMMAND_INSTR(0x5e, 0x11),
++	ILI9881C_COMMAND_INSTR(0x5f, 0x14),
++	ILI9881C_COMMAND_INSTR(0x60, 0x15),
++	ILI9881C_COMMAND_INSTR(0x61, 0x0f),
++	ILI9881C_COMMAND_INSTR(0x62, 0x0d),
++	ILI9881C_COMMAND_INSTR(0x63, 0x0e),
++	ILI9881C_COMMAND_INSTR(0x64, 0x0c),
++	ILI9881C_COMMAND_INSTR(0x65, 0x06),
++	ILI9881C_COMMAND_INSTR(0x66, 0x02),
++	ILI9881C_COMMAND_INSTR(0x67, 0x02),
++	ILI9881C_COMMAND_INSTR(0x68, 0x02),
++	ILI9881C_COMMAND_INSTR(0x69, 0x02),
++	ILI9881C_COMMAND_INSTR(0x6a, 0x02),
++	ILI9881C_COMMAND_INSTR(0x6b, 0x02),
++	ILI9881C_COMMAND_INSTR(0x6c, 0x02),
++	ILI9881C_COMMAND_INSTR(0x6d, 0x02),
++	ILI9881C_COMMAND_INSTR(0x6e, 0x02),
++	ILI9881C_COMMAND_INSTR(0x6f, 0x02),
++	ILI9881C_COMMAND_INSTR(0x70, 0x02),
++	ILI9881C_COMMAND_INSTR(0x71, 0x00),
++	ILI9881C_COMMAND_INSTR(0x72, 0x01),
++	ILI9881C_COMMAND_INSTR(0x73, 0x08),
++	ILI9881C_COMMAND_INSTR(0x74, 0x02),
++	ILI9881C_COMMAND_INSTR(0x75, 0x14),
++	ILI9881C_COMMAND_INSTR(0x76, 0x15),
++	ILI9881C_COMMAND_INSTR(0x77, 0x0f),
++	ILI9881C_COMMAND_INSTR(0x78, 0x0d),
++	ILI9881C_COMMAND_INSTR(0x79, 0x0e),
++	ILI9881C_COMMAND_INSTR(0x7a, 0x0c),
++	ILI9881C_COMMAND_INSTR(0x7b, 0x08),
++	ILI9881C_COMMAND_INSTR(0x7c, 0x02),
++	ILI9881C_COMMAND_INSTR(0x7d, 0x02),
++	ILI9881C_COMMAND_INSTR(0x7e, 0x02),
++	ILI9881C_COMMAND_INSTR(0x7f, 0x02),
++	ILI9881C_COMMAND_INSTR(0x80, 0x02),
++	ILI9881C_COMMAND_INSTR(0x81, 0x02),
++	ILI9881C_COMMAND_INSTR(0x82, 0x02),
++	ILI9881C_COMMAND_INSTR(0x83, 0x02),
++	ILI9881C_COMMAND_INSTR(0x84, 0x02),
++	ILI9881C_COMMAND_INSTR(0x85, 0x02),
++	ILI9881C_COMMAND_INSTR(0x86, 0x02),
++	ILI9881C_COMMAND_INSTR(0x87, 0x00),
++	ILI9881C_COMMAND_INSTR(0x88, 0x01),
++	ILI9881C_COMMAND_INSTR(0x89, 0x06),
++	ILI9881C_COMMAND_INSTR(0x8A, 0x02),
++	ILI9881C_SWITCH_PAGE_INSTR(4),
++	ILI9881C_COMMAND_INSTR(0x6C, 0x15),
++	ILI9881C_COMMAND_INSTR(0x6E, 0x2a),
++	ILI9881C_COMMAND_INSTR(0x6F, 0x33),
++	ILI9881C_COMMAND_INSTR(0x3A, 0x24),
++	ILI9881C_COMMAND_INSTR(0x8D, 0x14),
++	ILI9881C_COMMAND_INSTR(0x87, 0xBA),
++	ILI9881C_COMMAND_INSTR(0x26, 0x76),
++	ILI9881C_COMMAND_INSTR(0xB2, 0xD1),
++	ILI9881C_COMMAND_INSTR(0xB5, 0xD7),
++	ILI9881C_COMMAND_INSTR(0x35, 0x1f),
++	ILI9881C_SWITCH_PAGE_INSTR(1),
++	ILI9881C_COMMAND_INSTR(0x22, 0x0A),
++	ILI9881C_COMMAND_INSTR(0x53, 0x72),
++	ILI9881C_COMMAND_INSTR(0x55, 0x77),
++	ILI9881C_COMMAND_INSTR(0x50, 0xa6),
++	ILI9881C_COMMAND_INSTR(0x51, 0xa6),
++	ILI9881C_COMMAND_INSTR(0x31, 0x00),
++	ILI9881C_COMMAND_INSTR(0x60, 0x20),
++	ILI9881C_COMMAND_INSTR(0xA0, 0x08),
++	ILI9881C_COMMAND_INSTR(0xA1, 0x1a),
++	ILI9881C_COMMAND_INSTR(0xA2, 0x2a),
++	ILI9881C_COMMAND_INSTR(0xA3, 0x14),
++	ILI9881C_COMMAND_INSTR(0xA4, 0x17),
++	ILI9881C_COMMAND_INSTR(0xA5, 0x2b),
++	ILI9881C_COMMAND_INSTR(0xA6, 0x1d),
++	ILI9881C_COMMAND_INSTR(0xA7, 0x20),
++	ILI9881C_COMMAND_INSTR(0xA8, 0x9d),
++	ILI9881C_COMMAND_INSTR(0xA9, 0x1C),
++	ILI9881C_COMMAND_INSTR(0xAA, 0x29),
++	ILI9881C_COMMAND_INSTR(0xAB, 0x8f),
++	ILI9881C_COMMAND_INSTR(0xAC, 0x20),
++	ILI9881C_COMMAND_INSTR(0xAD, 0x1f),
++	ILI9881C_COMMAND_INSTR(0xAE, 0x4f),
++	ILI9881C_COMMAND_INSTR(0xAF, 0x23),
++	ILI9881C_COMMAND_INSTR(0xB0, 0x29),
++	ILI9881C_COMMAND_INSTR(0xB1, 0x56),
++	ILI9881C_COMMAND_INSTR(0xB2, 0x66),
++	ILI9881C_COMMAND_INSTR(0xB3, 0x39),
++	ILI9881C_COMMAND_INSTR(0xC0, 0x08),
++	ILI9881C_COMMAND_INSTR(0xC1, 0x1a),
++	ILI9881C_COMMAND_INSTR(0xC2, 0x2a),
++	ILI9881C_COMMAND_INSTR(0xC3, 0x15),
++	ILI9881C_COMMAND_INSTR(0xC4, 0x17),
++	ILI9881C_COMMAND_INSTR(0xC5, 0x2b),
++	ILI9881C_COMMAND_INSTR(0xC6, 0x1d),
++	ILI9881C_COMMAND_INSTR(0xC7, 0x20),
++	ILI9881C_COMMAND_INSTR(0xC8, 0x9d),
++	ILI9881C_COMMAND_INSTR(0xC9, 0x1d),
++	ILI9881C_COMMAND_INSTR(0xCA, 0x29),
++	ILI9881C_COMMAND_INSTR(0xCB, 0x8f),
++	ILI9881C_COMMAND_INSTR(0xCC, 0x20),
++	ILI9881C_COMMAND_INSTR(0xCD, 0x1f),
++	ILI9881C_COMMAND_INSTR(0xCE, 0x4f),
++	ILI9881C_COMMAND_INSTR(0xCF, 0x24),
++	ILI9881C_COMMAND_INSTR(0xD0, 0x29),
++	ILI9881C_COMMAND_INSTR(0xD1, 0x56),
++	ILI9881C_COMMAND_INSTR(0xD2, 0x66),
++	ILI9881C_COMMAND_INSTR(0xD3, 0x39),
++#if 0
++/* BIST mode (Built-in Self-test Pattern)*/
++	ILI9881C_SWITCH_PAGE_INSTR(4),
++	ILI9881C_COMMAND_INSTR(0x2d, 0x08),
++	ILI9881C_COMMAND_INSTR(0x2f, 0x11),
++#endif
++};
++
++static inline struct ili9881c_panel *panel_to_ili9881c(struct drm_panel *panel)
++{
++	return container_of(panel, struct ili9881c_panel, panel);
++}
++
++static int ili9881c_switch_page(struct ili9881c_panel *tftcp, u8 page)
++{
++	u8 buf[4] = { 0xff, 0x98, 0x81, page };
++	int ret;
++
++	ret = mipi_dsi_dcs_write_buffer(tftcp->dsi, buf, sizeof(buf));
++	if (ret < 0) {
++		dev_err(&tftcp->dsi->dev, "Failed to switch_page[%d] (%d)\n", page, ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++static int ili9881c_send_cmd_data(struct ili9881c_panel *tftcp, u8 cmd, u8 data)
++{
++	u8 buf[2] = { cmd, data };
++	int ret;
++
++	ret = mipi_dsi_dcs_write_buffer(tftcp->dsi, buf, sizeof(buf));
++	if (ret < 0) {
++		dev_err(&tftcp->dsi->dev, "Failed to send_cmd_data[%02x,%02X] (%d)\n", cmd, data, ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++static int ili9881c_read_cmd_data(struct ili9881c_panel *tftcp, u8 cmd)
++{
++	u8 buf = 0;
++	int ret;
++
++	ret = mipi_dsi_dcs_read(tftcp->dsi, cmd, &buf, sizeof(buf));
++	if (ret < 0) {
++		dev_err(&tftcp->dsi->dev, "Failed to get ID (%d)\n", ret);
++		return ret;
++	}
++
++	return buf;
++}
++
++static void ili9881c_getID(struct ili9881c_panel *tftcp)
++{
++	u8 id[3];
++
++    tftcp->dsi->mode_flags |= MIPI_DSI_MODE_LPM;
++	ili9881c_switch_page(tftcp, 1);
++	id[0] = ili9881c_read_cmd_data(tftcp, 0x00);
++	id[1] = ili9881c_read_cmd_data(tftcp, 0x01);
++	id[2] = ili9881c_read_cmd_data(tftcp, 0x02);
++
++	dev_info(&tftcp->dsi->dev, "ID: 0x%02X 0x%02X 0x%02X \n", id[0], id[1], id[2]);
++}
++
++static void ili9881c_reset(struct ili9881c_panel *tftcp)
++{
++	/* Reset 5ms */
++	if (tftcp->reset_gpio) {
++		dev_dbg(&tftcp->dsi->dev,"reset the chip\n");
++		gpiod_set_value(tftcp->reset_gpio, 0);
++		usleep_range(5000, 10000);
++		gpiod_set_value(tftcp->reset_gpio, 1);
++		usleep_range(20000, 25000);
++	}
++}
++
++static int ili9881c_prepare(struct drm_panel *panel)
++{
++	struct ili9881c_panel *tftcp = panel_to_ili9881c(panel);
++
++	dev_dbg(&tftcp->dsi->dev,"%s\n",__func__);
++
++    ili9881c_reset(tftcp);
++
++	return 0;
++}
++
++static int ili9881c_enable(struct drm_panel *panel)
++{
++	struct ili9881c_panel *tftcp = panel_to_ili9881c(panel);
++	int ret;
++	unsigned int i;
++
++	tftcp->dsi->mode_flags |= MIPI_DSI_MODE_LPM;
++
++	for (i = 0; i < ARRAY_SIZE(ili9881c_init); i++) {
++		const struct ili9881c_instr *instr = &ili9881c_init[i];
++
++		if (instr->op == ILI9881C_SWITCH_PAGE)
++			ret = ili9881c_switch_page(tftcp, instr->arg.page);
++		else if (instr->op == ILI9881C_COMMAND)
++			ret = ili9881c_send_cmd_data(tftcp, instr->arg.cmd.cmd,
++						      instr->arg.cmd.data);
++		if (ret)
++			return ret;
++	}
++
++	ret = ili9881c_switch_page(tftcp, 0);
++	if (ret)
++		return ret;
++
++    /* Set tear ON */
++	ret = mipi_dsi_dcs_set_tear_on(tftcp->dsi, MIPI_DSI_DCS_TEAR_MODE_VBLANK);
++	if (ret < 0) {
++		dev_err(&tftcp->dsi->dev, "Failed to set tear ON (%d)\n", ret);
++		return ret;
++	}
++
++	/* Exit sleep mode */
++	ret = mipi_dsi_dcs_exit_sleep_mode(tftcp->dsi);
++	if (ret < 0) {
++		dev_err(&tftcp->dsi->dev, "Failed to exit sleep mode (%d)\n", ret);
++		return ret;
++	}
++
++	usleep_range(120000, 130000);
++
++	ret = mipi_dsi_dcs_set_display_on(tftcp->dsi);
++	if (ret < 0) {
++		dev_err(&tftcp->dsi->dev, "Failed to set display ON (%d)\n", ret);
++		return ret;
++	}
++
++	dev_dbg(&tftcp->dsi->dev,"%s\n",__func__);
++
++	return 0;
++}
++
++static int ili9881c_disable(struct drm_panel *panel)
++{
++	struct ili9881c_panel *tftcp = panel_to_ili9881c(panel);
++	int ret;
++
++	tftcp->dsi->mode_flags |= MIPI_DSI_MODE_LPM;
++
++	ret = mipi_dsi_dcs_set_display_off(tftcp->dsi);
++	if (ret < 0) {
++		dev_err(&tftcp->dsi->dev, "Failed to set display OFF (%d)\n", ret);
++		return ret;
++	}
++
++	usleep_range(100000, 110000);
++
++	ret = mipi_dsi_dcs_enter_sleep_mode(tftcp->dsi);
++	if (ret < 0) {
++		dev_err(&tftcp->dsi->dev, "Failed to enter sleep mode (%d)\n", ret);
++		return ret;
++	}
++
++	return 0;
++}
++
++static int ili9881c_unprepare(struct drm_panel *panel)
++{
++	struct ili9881c_panel *tftcp = panel_to_ili9881c(panel);
++
++	dev_dbg(&tftcp->dsi->dev,"%s\n",__func__);
++
++	if (tftcp->enable_gpio != NULL)
++		gpiod_set_value(tftcp->enable_gpio, 0);
++	if (tftcp->reset_gpio != NULL)
++		gpiod_set_value(tftcp->reset_gpio, 0);
++
++	return 0;
++}
++
++#ifndef USE_DISPLAY_TIMINGS
++static const struct drm_display_mode default_mode = {
++	.clock		= 60000,
++	.vrefresh	= 60,
++
++	.hdisplay	= 720,
++	.hsync_start = 720 + 120,
++	.hsync_end	= 720 + 120 + 40,
++	.htotal		= 720 + 120 + 40 + 20,
++
++	.vdisplay	= 1280,
++	.vsync_start = 1280 + 10,
++	.vsync_end	= 1280 + 10 + 2,
++	.vtotal		= 1280 + 10 + 2 + 15,
++};
++
++#else
++/* MIPI two lanes, < 850Mbps, RGB88, 24UI/pixel
++frame rate = 52.5Hz [2 data lanes: 50~60Hz]
++pclk=800M * 2lane / 24bpp =66.67M */
++static const struct display_timing ph720128t003_timing = {
++    .pixelclock = { 64000000, 62000000, 7100000 },
++	.hactive = { 720, 720, 720 },
++	.hfront_porch = { 80, 120, 120 },
++	.hback_porch = { 10, 20, 60 },
++	.hsync_len = { 33, 40, 50 },
++	.vactive = { 1280, 1280, 1280 },
++	.vfront_porch = { 5, 10, 20 },
++	.vback_porch = { 10, 15, 30 },
++	.vsync_len = { 2, 2, 2 },
++	.flags = DISPLAY_FLAGS_VSYNC_LOW |
++		 DISPLAY_FLAGS_HSYNC_LOW |
++		 DISPLAY_FLAGS_DE_LOW |
++		 DISPLAY_FLAGS_PIXDATA_NEGEDGE,
++};
++#endif
++
++static const u32 bus_formats[] = {
++	MEDIA_BUS_FMT_RGB888_1X24,
++	MEDIA_BUS_FMT_RGB666_1X18,
++	MEDIA_BUS_FMT_RGB565_1X16,
++};
++
++static int ili9881c_get_modes(struct drm_panel *panel)
++{
++	struct drm_connector *connector = panel->connector;
++	struct ili9881c_panel *tftcp = panel_to_ili9881c(panel);
++	struct drm_display_mode *mode;
++#ifdef USE_DISPLAY_TIMINGS
++	struct videomode vm;
++	u32 *bus_flags = &connector->display_info.bus_flags;
++#endif
++
++#ifndef USE_DISPLAY_TIMINGS
++  dev_dbg(&tftcp->dsi->dev,"%s get drm_display_mode\n",__func__);
++	mode = drm_mode_duplicate(panel->drm, &default_mode);
++	if (!mode) {
++		dev_err(&tftcp->dsi->dev, "failed to add mode %ux%ux@%u\n",
++			default_mode.hdisplay,
++			default_mode.vdisplay,
++			default_mode.vrefresh);
++		return -ENOMEM;
++	}
++		drm_mode_set_name(mode);
++
++#else
++  dev_dbg(&tftcp->dsi->dev,"%s get display_timing\n",__func__);
++	videomode_from_timing(&ph720128t003_timing, &vm);
++
++	mode = drm_mode_create(connector->dev);
++	if (!mode) {
++		dev_err(&tftcp->dsi->dev, "Failed to create display mode!\n");
++		return 0;
++	}
++
++	drm_display_mode_from_videomode(&vm, mode);
++
++	if (vm.flags & DISPLAY_FLAGS_DE_HIGH)
++		*bus_flags |= DRM_BUS_FLAG_DE_HIGH;
++	if (vm.flags & DISPLAY_FLAGS_DE_LOW)
++		*bus_flags |= DRM_BUS_FLAG_DE_LOW;
++	if (vm.flags & DISPLAY_FLAGS_PIXDATA_NEGEDGE)
++		*bus_flags |= DRM_BUS_FLAG_PIXDATA_NEGEDGE;
++	if (vm.flags & DISPLAY_FLAGS_PIXDATA_POSEDGE)
++		*bus_flags |= DRM_BUS_FLAG_PIXDATA_POSEDGE;
++#endif
++
++	mode->width_mm = 153;
++	mode->height_mm = 90;
++	connector->display_info.width_mm = mode->width_mm;
++	connector->display_info.height_mm = mode->height_mm;
++
++	mode->type = DRM_MODE_TYPE_DRIVER | DRM_MODE_TYPE_PREFERRED;
++
++	drm_display_info_set_bus_formats(&connector->display_info,
++			bus_formats, ARRAY_SIZE(bus_formats));
++
++	drm_mode_probed_add(connector, mode);
++
++	return 1;
++}
++
++static const struct drm_panel_funcs ili9881c_funcs = {
++	.prepare	= ili9881c_prepare,
++	.unprepare	= ili9881c_unprepare,
++	.enable		= ili9881c_enable,
++	.disable	= ili9881c_disable,
++	.get_modes	= ili9881c_get_modes,
++};
++
++static int ili9881c_dsi_probe(struct mipi_dsi_device *dsi)
++{
++	struct ili9881c_panel *tftcp;
++	int ret;
++
++	tftcp = devm_kzalloc(&dsi->dev, sizeof(*tftcp), GFP_KERNEL);
++	if (!tftcp)
++		return -ENOMEM;
++
++	mipi_dsi_set_drvdata(dsi, tftcp);
++	tftcp->dsi = dsi;
++
++	dsi->mode_flags =  MIPI_DSI_MODE_VIDEO_HSE | MIPI_DSI_MODE_VIDEO | MIPI_DSI_CLOCK_NON_CONTINUOUS;
++	/* non-burst mode with sync pulse */
++	dsi->mode_flags |= MIPI_DSI_MODE_VIDEO_SYNC_PULSE;
++	dsi->format = MIPI_DSI_FMT_RGB888;
++
++	tftcp->enable_gpio = devm_gpiod_get(&dsi->dev, "enable", GPIOD_OUT_HIGH);
++	if (IS_ERR(tftcp->enable_gpio)) {
++		tftcp->enable_gpio = NULL;
++		dev_dbg(&dsi->dev, "Couldn't get our power GPIO\n");
++		return PTR_ERR(tftcp->enable_gpio);
++	} else {
++		gpiod_set_value(tftcp->enable_gpio, 1);
++	}
++
++	tftcp->reset_gpio = devm_gpiod_get_optional(&dsi->dev, "reset", GPIOD_OUT_HIGH);
++	if (IS_ERR(tftcp->reset_gpio))
++		dev_dbg(&dsi->dev, "Couldn't get our reset GPIO\n");
++
++	ret = of_property_read_u32(dsi->dev.of_node, "dsi-lanes", &dsi->lanes);
++	if (ret < 0) {
++		dev_dbg(&dsi->dev, "Failed to get dsi-lanes property, use default setting\n");
++		dsi->lanes = 4;
++	}
++
++	drm_panel_init(&tftcp->panel);
++	tftcp->panel.dev = &dsi->dev;
++	tftcp->panel.funcs = &ili9881c_funcs;
++
++	ret = drm_panel_add(&tftcp->panel);
++	if (ret < 0)
++		return ret;
++
++	ret = mipi_dsi_attach(dsi);
++	if (ret < 0)
++		drm_panel_remove(&tftcp->panel);
++
++	return ret;
++}
++
++static int ili9881c_dsi_remove(struct mipi_dsi_device *dsi)
++{
++	struct ili9881c_panel *tftcp = mipi_dsi_get_drvdata(dsi);
++
++	ili9881c_disable(&tftcp->panel);
++	mipi_dsi_detach(dsi);
++	drm_panel_detach(&tftcp->panel);
++
++	if (tftcp->panel.dev)
++		drm_panel_remove(&tftcp->panel);
++
++	return 0;
++}
++
++static void ili9881c_dsi_shutdown(struct mipi_dsi_device *dsi)
++{
++	struct ili9881c_panel *tftcp = mipi_dsi_get_drvdata(dsi);
++
++	ili9881c_disable(&tftcp->panel);
++	ili9881c_unprepare(&tftcp->panel);
++}
++
++static const struct of_device_id ili9881c_of_match[] = {
++	{ .compatible = "ilitek,ili9881c" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, ili9881c_of_match);
++
++static struct mipi_dsi_driver ili9881c_dsi_driver = {
++	.probe		= ili9881c_dsi_probe,
++	.remove		= ili9881c_dsi_remove,
++	.shutdown	= ili9881c_dsi_shutdown,
++	.driver = {
++		.name		= "panel-ili9881c-dsi",
++		.of_match_table	= ili9881c_of_match,
++	},
++};
++module_mipi_dsi_driver(ili9881c_dsi_driver);
++
++MODULE_AUTHOR("NXP Semiconductor");
++MODULE_AUTHOR("Maxime Ripard <maxime.ripard@free-electrons.com>");
++MODULE_DESCRIPTION("Ilitek ILI9881C Controller Driver");
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/media/platform/mxc/capture/ov5640_mipi_v2.c b/drivers/media/platform/mxc/capture/ov5640_mipi_v2.c
+old mode 100644
+new mode 100755
+index 1cb3d69918f4..d620f01b3b2e
+--- a/drivers/media/platform/mxc/capture/ov5640_mipi_v2.c
++++ b/drivers/media/platform/mxc/capture/ov5640_mipi_v2.c
+@@ -337,7 +337,7 @@ static struct reg_value ov5640_setting_30fps_1080P_1920_1080[] = {
+ static struct reg_value ov5640_setting_15fps_QSXGA_2592_1944[] = {
+ 	{0x3008, 0x42, 0, 0},
+ 	{0x3820, 0x40, 0, 0}, {0x3821, 0x06, 0, 0}, /*disable flip*/
+-	{0x3035, 0x11, 0, 0}, {0x3036, 0x54, 0, 0}, {0x3c07, 0x08, 0, 0},
++	{0x3035, 0x21, 0, 0}, {0x3036, 0x54, 0, 0}, {0x3c07, 0x08, 0, 0},
+ 	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
+ 	{0x3820, 0x40, 0, 0}, {0x3821, 0x06, 0, 0}, {0x3814, 0x11, 0, 0},
+ 	{0x3815, 0x11, 0, 0}, {0x3800, 0x00, 0, 0}, {0x3801, 0x00, 0, 0},
+@@ -1182,7 +1182,7 @@ static int ov5640_init_mode(struct ov5640 *sensor,
+ 		/* dump the first eighteen frames: 1/30*18 */
+ 		msec_wait4stable = 600;
+ 	}
+-	msleep(msec_wait4stable);
++	msleep(200);
+ 
+ err:
+ 	return retval;
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+old mode 100644
+new mode 100755
+index 997a6172735e..281c70c2deed
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -1785,6 +1785,19 @@ config MFD_STW481X
+ 	  in various ST Microelectronics and ST-Ericsson embedded
+ 	  Nomadik series.
+ 
++config MFD_ROHM_BD718XX
++	tristate "ROHM BD71837 Power Management IC"
++	depends on I2C=y
++	depends on OF
++	select REGMAP_I2C
++	select REGMAP_IRQ
++	select MFD_CORE
++	help
++	  Select this option to get support for the ROHM BD71837
++	  Power Management ICs. BD71837 is designed to power processors like
++	  NXP i.MX8. It contains 8 BUCK outputs and 7 LDOs, voltage monitoring
++	  and emergency shut down as well as 32,768KHz clock output.
++
+ config MFD_STM32_LPTIMER
+ 	tristate "Support for STM32 Low-Power Timer"
+ 	depends on (ARCH_STM32 && OF) || COMPILE_TEST
+diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+old mode 100644
+new mode 100755
+index c6755df735ba..1158da8ebbda
+--- a/drivers/mfd/Makefile
++++ b/drivers/mfd/Makefile
+@@ -232,3 +232,4 @@ obj-$(CONFIG_MFD_STM32_LPTIMER)	+= stm32-lptimer.o
+ obj-$(CONFIG_MFD_STM32_TIMERS) 	+= stm32-timers.o
+ obj-$(CONFIG_MFD_MXS_LRADC)     += mxs-lradc.o
+ obj-$(CONFIG_MFD_BD71837)       += bd71837.o
++obj-$(CONFIG_MFD_ROHM_BD718XX)	+= rohm-bd718x7.o
+diff --git a/drivers/mfd/rohm-bd718x7.c b/drivers/mfd/rohm-bd718x7.c
+new file mode 100755
+index 000000000000..a29d529a96f4
+--- /dev/null
++++ b/drivers/mfd/rohm-bd718x7.c
+@@ -0,0 +1,199 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++//
++// Copyright (C) 2018 ROHM Semiconductors
++//
++// ROHM BD71837MWV and BD71847MWV PMIC driver
++//
++// Datasheet for BD71837MWV available from
++// https://www.rohm.com/datasheet/BD71837MWV/bd71837mwv-e
++
++#include <linux/gpio_keys.h>
++#include <linux/i2c.h>
++#include <linux/input.h>
++#include <linux/interrupt.h>
++#include <linux/mfd/rohm-bd718x7.h>
++#include <linux/mfd/core.h>
++#include <linux/module.h>
++#include <linux/of_device.h>
++#include <linux/regmap.h>
++#include <linux/types.h>
++
++static struct gpio_keys_button button = {
++	.code = KEY_POWER,
++	.gpio = -1,
++	.type = EV_KEY,
++};
++
++static struct gpio_keys_platform_data bd718xx_powerkey_data = {
++	.buttons = &button,
++	.nbuttons = 1,
++	.name = "bd718xx-pwrkey",
++};
++
++static struct mfd_cell bd718xx_mfd_cells[] = {
++	{
++		.name = "gpio-keys",
++		.platform_data = &bd718xx_powerkey_data,
++		.pdata_size = sizeof(bd718xx_powerkey_data),
++	},
++	{ .name = "bd718xx-clk", },
++	{ .name = "bd718xx-pmic", },
++};
++
++static const struct regmap_irq bd718xx_irqs[] = {
++	REGMAP_IRQ_REG(BD718XX_INT_SWRST, 0, BD718XX_INT_SWRST_MASK),
++	REGMAP_IRQ_REG(BD718XX_INT_PWRBTN_S, 0, BD718XX_INT_PWRBTN_S_MASK),
++	REGMAP_IRQ_REG(BD718XX_INT_PWRBTN_L, 0, BD718XX_INT_PWRBTN_L_MASK),
++	REGMAP_IRQ_REG(BD718XX_INT_PWRBTN, 0, BD718XX_INT_PWRBTN_MASK),
++	REGMAP_IRQ_REG(BD718XX_INT_WDOG, 0, BD718XX_INT_WDOG_MASK),
++	REGMAP_IRQ_REG(BD718XX_INT_ON_REQ, 0, BD718XX_INT_ON_REQ_MASK),
++	REGMAP_IRQ_REG(BD718XX_INT_STBY_REQ, 0, BD718XX_INT_STBY_REQ_MASK),
++};
++
++static struct regmap_irq_chip bd718xx_irq_chip = {
++	.name = "bd718xx-irq",
++	.irqs = bd718xx_irqs,
++	.num_irqs = ARRAY_SIZE(bd718xx_irqs),
++	.num_regs = 1,
++	.irq_reg_stride = 1,
++	.status_base = BD718XX_REG_IRQ,
++	.mask_base = BD718XX_REG_MIRQ,
++	.ack_base = BD718XX_REG_IRQ,
++	.init_ack_masked = true,
++	.mask_invert = false,
++};
++
++static const struct regmap_range pmic_status_range = {
++	.range_min = BD718XX_REG_IRQ,
++	.range_max = BD718XX_REG_POW_STATE,
++};
++
++static const struct regmap_access_table volatile_regs = {
++	.yes_ranges = &pmic_status_range,
++	.n_yes_ranges = 1,
++};
++
++static const struct regmap_config bd718xx_regmap_config = {
++	.reg_bits = 8,
++	.val_bits = 8,
++	.volatile_table = &volatile_regs,
++	.max_register = BD718XX_MAX_REGISTER - 1,
++	.cache_type = REGCACHE_RBTREE,
++};
++
++static int bd718xx_i2c_probe(struct i2c_client *i2c,
++			    const struct i2c_device_id *id)
++{
++	struct bd718xx *bd718xx;
++	int ret;
++
++	if (!i2c->irq) {
++		dev_err(&i2c->dev, "No IRQ configured\n");
++		return -EINVAL;
++	}
++
++	bd718xx = devm_kzalloc(&i2c->dev, sizeof(struct bd718xx), GFP_KERNEL);
++
++	if (!bd718xx)
++		return -ENOMEM;
++
++	bd718xx->chip_irq = i2c->irq;
++	bd718xx->chip_type = (unsigned int)(uintptr_t)
++				of_device_get_match_data(&i2c->dev);
++	bd718xx->dev = &i2c->dev;
++	dev_set_drvdata(&i2c->dev, bd718xx);
++
++	bd718xx->regmap = devm_regmap_init_i2c(i2c, &bd718xx_regmap_config);
++	if (IS_ERR(bd718xx->regmap)) {
++		dev_err(&i2c->dev, "regmap initialization failed\n");
++		return PTR_ERR(bd718xx->regmap);
++	}
++
++	ret = devm_regmap_add_irq_chip(&i2c->dev, bd718xx->regmap,
++				       bd718xx->chip_irq, IRQF_ONESHOT, 0,
++				       &bd718xx_irq_chip, &bd718xx->irq_data);
++	if (ret) {
++		dev_err(&i2c->dev, "Failed to add irq_chip\n");
++		return ret;
++	}
++
++	/* Configure short press to 10 milliseconds */
++	ret = regmap_update_bits(bd718xx->regmap,
++				 BD718XX_REG_PWRONCONFIG0,
++				 BD718XX_PWRBTN_PRESS_DURATION_MASK,
++				 BD718XX_PWRBTN_SHORT_PRESS_10MS);
++	if (ret) {
++		dev_err(&i2c->dev,
++			"Failed to configure button short press timeout\n");
++		return ret;
++	}
++
++	/* Configure long press to 10 seconds */
++	ret = regmap_update_bits(bd718xx->regmap,
++				 BD718XX_REG_PWRONCONFIG1,
++				 BD718XX_PWRBTN_PRESS_DURATION_MASK,
++				 BD718XX_PWRBTN_LONG_PRESS_10S);
++
++	if (ret) {
++		dev_err(&i2c->dev,
++			"Failed to configure button long press timeout\n");
++		return ret;
++	}
++
++	ret = regmap_irq_get_virq(bd718xx->irq_data, BD718XX_INT_PWRBTN_S);
++
++	if (ret < 0) {
++		dev_err(&i2c->dev, "Failed to get the IRQ\n");
++		return ret;
++	}
++
++	button.irq = ret;
++
++	ret = devm_mfd_add_devices(bd718xx->dev, PLATFORM_DEVID_AUTO,
++				   bd718xx_mfd_cells,
++				   ARRAY_SIZE(bd718xx_mfd_cells), NULL, 0,
++				   regmap_irq_get_domain(bd718xx->irq_data));
++	if (ret)
++		dev_err(&i2c->dev, "Failed to create subdevices\n");
++
++	return ret;
++}
++
++static const struct of_device_id bd718xx_of_match[] = {
++	{
++		.compatible = "rohm,bd71837",
++		.data = (void *)BD718XX_TYPE_BD71837,
++	},
++	{
++		.compatible = "rohm,bd71847",
++		.data = (void *)BD718XX_TYPE_BD71847,
++	},
++	{ }
++};
++MODULE_DEVICE_TABLE(of, bd718xx_of_match);
++
++static struct i2c_driver bd718xx_i2c_driver = {
++	.driver = {
++		.name = "rohm-bd718x7",
++		.of_match_table = bd718xx_of_match,
++	},
++	.probe = bd718xx_i2c_probe,
++};
++
++static int __init bd718xx_i2c_init(void)
++{
++	return i2c_add_driver(&bd718xx_i2c_driver);
++}
++
++/* Initialise early so consumer devices can complete system boot */
++subsys_initcall(bd718xx_i2c_init);
++
++static void __exit bd718xx_i2c_exit(void)
++{
++	i2c_del_driver(&bd718xx_i2c_driver);
++}
++module_exit(bd718xx_i2c_exit);
++
++MODULE_AUTHOR("Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>");
++MODULE_DESCRIPTION("ROHM BD71837/BD71847 Power Management IC driver");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
+index 62f1eedc65c2..3129f538366c 100644
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
+@@ -2563,6 +2563,7 @@ brcmf_sdio_ulp_preinit(struct device *dev)
+ 	s32 err = 0;
+ 
+ 	brcmf_dbg(TRACE, "Enter\n");
++       return;
+ 
+ 	/* Query ulp_sdioctrl iovar to get the ULP related SHM offsets */
+ 	err = brcmf_fil_iovar_data_get(ifp, "ulp_sdioctrl", &sdiodev->shm_ulp,
+diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
+old mode 100644
+new mode 100755
+index 5361947ea726..79eb4821d57c
+--- a/drivers/regulator/Kconfig
++++ b/drivers/regulator/Kconfig
+@@ -171,6 +171,17 @@ config REGULATOR_BCM590XX
+ 	  BCM590xx PMUs. This will enable support for the software
+ 	  controllable LDO/Switching regulators.
+ 
++config REGULATOR_BD718XX
++	tristate "ROHM BD71837 Power Regulator"
++	depends on MFD_ROHM_BD718XX
++	help
++	  This driver supports voltage regulators on ROHM BD71837 PMIC.
++	  This will enable support for the software controllable buck
++	  and LDO regulators.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called bd718x7-regulator.
++
+ config REGULATOR_BD9571MWV
+ 	tristate "ROHM BD9571MWV Regulators"
+ 	depends on MFD_BD9571MWV
+diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
+old mode 100644
+new mode 100755
+index 1bddbefbc8e7..78a11a746676
+--- a/drivers/regulator/Makefile
++++ b/drivers/regulator/Makefile
+@@ -126,6 +126,6 @@ obj-$(CONFIG_REGULATOR_WM8350) += wm8350-regulator.o
+ obj-$(CONFIG_REGULATOR_WM8400) += wm8400-regulator.o
+ obj-$(CONFIG_REGULATOR_WM8994) += wm8994-regulator.o
+ obj-$(CONFIG_REGULATOR_BD71837) += bd71837-regulator.o
+-
++obj-$(CONFIG_REGULATOR_BD718XX) += bd718x7-regulator.o
+ 
+ ccflags-$(CONFIG_REGULATOR_DEBUG) += -DDEBUG
+diff --git a/drivers/regulator/bd718x7-regulator.c b/drivers/regulator/bd718x7-regulator.c
+new file mode 100755
+index 000000000000..46a49971eea2
+--- /dev/null
++++ b/drivers/regulator/bd718x7-regulator.c
+@@ -0,0 +1,1064 @@
++// SPDX-License-Identifier: GPL-2.0
++// Copyright (C) 2018 ROHM Semiconductors
++// bd71837-regulator.c ROHM BD71837MWV/BD71847MWV regulator driver
++
++#include <linux/delay.h>
++#include <linux/err.h>
++#include <linux/gpio.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/mfd/rohm-bd718x7.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/regulator/driver.h>
++#include <linux/regulator/machine.h>
++#include <linux/regulator/of_regulator.h>
++#include <linux/slab.h>
++
++#define BUCK1_RUN_DEFAULT               900000
++#define BUCK1_SUSP_DEFAULT              900000
++#define BUCK1_IDLE_DEFAULT              900000
++
++#define BUCK2_RUN_DEFAULT               1000000
++#define BUCK2_IDLE_DEFAULT              900000
++
++#define BUCK3_RUN_DEFAULT               1000000
++#define BUCK4_RUN_DEFAULT               1000000
++
++#define BD71837_DVS_BUCK_NUM		4	/* Buck 1/2/3/4 support DVS */
++#define BD71837_DVS_RUN_IDLE_SUSP	3
++#define BD71837_DVS_RUN_IDLE		2
++#define BD71837_DVS_RUN				1
++
++struct bd71837_buck_dvs {
++	u32 voltage[BD71837_DVS_RUN_IDLE_SUSP];
++};
++
++/*
++ * BUCK1/2/3/4
++ * BUCK1RAMPRATE[1:0] BUCK1 DVS ramp rate setting
++ * 00: 10.00mV/usec 10mV 1uS
++ * 01: 5.00mV/usec	10mV 2uS
++ * 10: 2.50mV/usec	10mV 4uS
++ * 11: 1.25mV/usec	10mV 8uS
++ */
++static int bd718xx_buck1234_set_ramp_delay(struct regulator_dev *rdev,
++					   int ramp_delay)
++{
++	int id = rdev->desc->id;
++	unsigned int ramp_value = BUCK_RAMPRATE_10P00MV;
++
++	dev_dbg(&rdev->dev, "Buck[%d] Set Ramp = %d\n", id + 1,
++		ramp_delay);
++	switch (ramp_delay) {
++	case 1 ... 1250:
++		ramp_value = BUCK_RAMPRATE_1P25MV;
++		break;
++	case 1251 ... 2500:
++		ramp_value = BUCK_RAMPRATE_2P50MV;
++		break;
++	case 2501 ... 5000:
++		ramp_value = BUCK_RAMPRATE_5P00MV;
++		break;
++	case 5001 ... 10000:
++		ramp_value = BUCK_RAMPRATE_10P00MV;
++		break;
++	default:
++		ramp_value = BUCK_RAMPRATE_10P00MV;
++		dev_err(&rdev->dev,
++			"%s: ramp_delay: %d not supported, setting 10000mV//us\n",
++			rdev->desc->name, ramp_delay);
++	}
++
++	return regmap_update_bits(rdev->regmap, BD718XX_REG_BUCK1_CTRL + id,
++				  BUCK_RAMPRATE_MASK, ramp_value << 6);
++}
++
++static struct regulator_ops bd718xx_pickable_range_ldo_ops = {
++	.list_voltage = regulator_list_voltage_pickable_linear_range,
++	.get_voltage_sel = regulator_get_voltage_sel_pickable_regmap,
++};
++
++static struct regulator_ops bd718xx_pickable_range_buck_ops = {
++	.list_voltage = regulator_list_voltage_pickable_linear_range,
++	.get_voltage_sel = regulator_get_voltage_sel_pickable_regmap,
++	.set_voltage_time_sel = regulator_set_voltage_time_sel,
++};
++
++static struct regulator_ops bd718xx_ldo_regulator_ops = {
++	.list_voltage = regulator_list_voltage_linear_range,
++	.get_voltage_sel = regulator_get_voltage_sel_regmap,
++};
++
++static struct regulator_ops bd718xx_ldo_regulator_nolinear_ops = {
++	.list_voltage = regulator_list_voltage_table,
++	.get_voltage_sel = regulator_get_voltage_sel_regmap,
++};
++
++static struct regulator_ops bd718xx_buck_regulator_ops = {
++	.list_voltage = regulator_list_voltage_linear_range,
++	.get_voltage_sel = regulator_get_voltage_sel_regmap,
++	.set_voltage_time_sel = regulator_set_voltage_time_sel,
++};
++
++static struct regulator_ops bd718xx_buck_regulator_nolinear_ops = {
++	.list_voltage = regulator_list_voltage_table,
++	.get_voltage_sel = regulator_get_voltage_sel_regmap,
++	.set_voltage_time_sel = regulator_set_voltage_time_sel,
++};
++
++static struct regulator_ops bd718xx_dvs_buck12_regulator_ops = {
++	.list_voltage = regulator_list_voltage_linear_range,
++	.set_voltage_sel = regulator_set_voltage_sel_regmap,
++	.get_voltage_sel = regulator_get_voltage_sel_regmap,
++	.set_voltage_time_sel = regulator_set_voltage_time_sel,
++	.set_ramp_delay = bd718xx_buck1234_set_ramp_delay,
++};
++
++static struct regulator_ops bd71837_dvs_buck34_regulator_ops = {
++	.enable = regulator_enable_regmap,
++	.disable = regulator_disable_regmap,
++	.is_enabled = regulator_is_enabled_regmap,
++	.list_voltage = regulator_list_voltage_linear_range,
++	.set_voltage_sel = regulator_set_voltage_sel_regmap,
++	.get_voltage_sel = regulator_get_voltage_sel_regmap,
++	.set_voltage_time_sel = regulator_set_voltage_time_sel,
++	.set_ramp_delay = bd718xx_buck1234_set_ramp_delay,
++};
++
++/*
++ * BD71837 BUCK1/2/3/4
++ * BD71847 BUCK1/2
++ * 0.70 to 1.30V (10mV step)
++ */
++static const struct regulator_linear_range bd718xx_dvs_buck_volts[] = {
++	REGULATOR_LINEAR_RANGE(700000, 0x00, 0x3C, 10000),
++	REGULATOR_LINEAR_RANGE(1300000, 0x3D, 0x3F, 0),
++};
++
++/*
++ * BD71837 BUCK5
++ * 0.7V to 1.35V  (range 0)
++ * and
++ * 0.675 to 1.325 (range 1)
++ */
++static const struct regulator_linear_range bd71837_buck5_volts[] = {
++	/* Ranges when VOLT_SEL bit is 0 */
++	REGULATOR_LINEAR_RANGE(700000, 0x00, 0x03, 100000),
++	REGULATOR_LINEAR_RANGE(1050000, 0x04, 0x05, 50000),
++	REGULATOR_LINEAR_RANGE(1200000, 0x06, 0x07, 150000),
++	/* Ranges when VOLT_SEL bit is 1  */
++	REGULATOR_LINEAR_RANGE(675000, 0x0, 0x3, 100000),
++	REGULATOR_LINEAR_RANGE(1025000, 0x4, 0x5, 50000),
++	REGULATOR_LINEAR_RANGE(1175000, 0x6, 0x7, 150000),
++};
++
++/*
++ * Range selector for first 3 linear ranges is 0x0
++ * and 0x1 for last 3 ranges.
++ */
++static const unsigned int bd71837_buck5_volt_range_sel[] = {
++	0x0, 0x0, 0x0, 0x80, 0x80, 0x80
++};
++
++/*
++ * BD71847 BUCK3
++ */
++static const struct regulator_linear_range bd71847_buck3_volts[] = {
++	/* Ranges when VOLT_SEL bits are 00 */
++	REGULATOR_LINEAR_RANGE(700000, 0x00, 0x03, 100000),
++	REGULATOR_LINEAR_RANGE(1050000, 0x04, 0x05, 50000),
++	REGULATOR_LINEAR_RANGE(1200000, 0x06, 0x07, 150000),
++	/* Ranges when VOLT_SEL bits are 01 */
++	REGULATOR_LINEAR_RANGE(550000, 0x0, 0x7, 50000),
++	/* Ranges when VOLT_SEL bits are 11 */
++	REGULATOR_LINEAR_RANGE(675000, 0x0, 0x3, 100000),
++	REGULATOR_LINEAR_RANGE(1025000, 0x4, 0x5, 50000),
++	REGULATOR_LINEAR_RANGE(1175000, 0x6, 0x7, 150000),
++};
++
++static const unsigned int bd71847_buck3_volt_range_sel[] = {
++	0x0, 0x0, 0x0, 0x40, 0x80, 0x80, 0x80
++};
++
++static const struct regulator_linear_range bd71847_buck4_volts[] = {
++	REGULATOR_LINEAR_RANGE(3000000, 0x00, 0x03, 100000),
++	REGULATOR_LINEAR_RANGE(2600000, 0x00, 0x03, 100000),
++};
++
++static const unsigned int bd71847_buck4_volt_range_sel[] = { 0x0, 0x40 };
++
++/*
++ * BUCK6
++ * 3.0V to 3.3V (step 100mV)
++ */
++static const struct regulator_linear_range bd71837_buck6_volts[] = {
++	REGULATOR_LINEAR_RANGE(3000000, 0x00, 0x03, 100000),
++};
++
++/*
++ * BD71837 BUCK7
++ * BD71847 BUCK5
++ * 000 = 1.605V
++ * 001 = 1.695V
++ * 010 = 1.755V
++ * 011 = 1.8V (Initial)
++ * 100 = 1.845V
++ * 101 = 1.905V
++ * 110 = 1.95V
++ * 111 = 1.995V
++ */
++static const unsigned int bd718xx_3rd_nodvs_buck_volts[] = {
++	1605000, 1695000, 1755000, 1800000, 1845000, 1905000, 1950000, 1995000
++};
++
++/*
++ * BUCK8
++ * 0.8V to 1.40V (step 10mV)
++ */
++static const struct regulator_linear_range bd718xx_4th_nodvs_buck_volts[] = {
++	REGULATOR_LINEAR_RANGE(800000, 0x00, 0x3C, 10000),
++};
++
++/*
++ * LDO1
++ * 3.0 to 3.3V (100mV step)
++ */
++static const struct regulator_linear_range bd718xx_ldo1_volts[] = {
++	REGULATOR_LINEAR_RANGE(3000000, 0x00, 0x03, 100000),
++	REGULATOR_LINEAR_RANGE(1600000, 0x00, 0x03, 100000),
++};
++
++static const unsigned int bd718xx_ldo1_volt_range_sel[] = { 0x0, 0x20 };
++
++/*
++ * LDO2
++ * 0.8 or 0.9V
++ */
++static const unsigned int ldo_2_volts[] = {
++	900000, 800000
++};
++
++/*
++ * LDO3
++ * 1.8 to 3.3V (100mV step)
++ */
++static const struct regulator_linear_range bd718xx_ldo3_volts[] = {
++	REGULATOR_LINEAR_RANGE(1800000, 0x00, 0x0F, 100000),
++};
++
++/*
++ * LDO4
++ * 0.9 to 1.8V (100mV step)
++ */
++static const struct regulator_linear_range bd718xx_ldo4_volts[] = {
++	REGULATOR_LINEAR_RANGE(900000, 0x00, 0x09, 100000),
++};
++
++/*
++ * LDO5 for BD71837
++ * 1.8 to 3.3V (100mV step)
++ */
++static const struct regulator_linear_range bd71837_ldo5_volts[] = {
++	REGULATOR_LINEAR_RANGE(1800000, 0x00, 0x0F, 100000),
++};
++
++/*
++ * LDO5 for BD71837
++ * 1.8 to 3.3V (100mV step)
++ */
++static const struct regulator_linear_range bd71847_ldo5_volts[] = {
++	REGULATOR_LINEAR_RANGE(1800000, 0x00, 0x0F, 100000),
++	REGULATOR_LINEAR_RANGE(800000, 0x00, 0x0F, 100000),
++};
++
++static const unsigned int bd71847_ldo5_volt_range_sel[] = { 0x0, 0x20 };
++
++/*
++ * LDO6
++ * 0.9 to 1.8V (100mV step)
++ */
++static const struct regulator_linear_range bd718xx_ldo6_volts[] = {
++	REGULATOR_LINEAR_RANGE(900000, 0x00, 0x09, 100000),
++};
++
++/*
++ * LDO7
++ * 1.8 to 3.3V (100mV step)
++ */
++static const struct regulator_linear_range bd71837_ldo7_volts[] = {
++	REGULATOR_LINEAR_RANGE(1800000, 0x00, 0x0F, 100000),
++};
++
++struct reg_init {
++	unsigned int reg;
++	unsigned int mask;
++	unsigned int val;
++};
++
++struct state_volts {
++	int r_i_s_voltages[3];
++	uint8_t r_i_s_regs[3];
++	uint8_t r_i_s_masks[3];
++};
++
++struct bd718xx_regulator_data {
++	struct regulator_desc desc;
++	const struct reg_init *additional_inits;
++	int additional_init_amnt;
++	struct state_volts *state_volts;
++};
++
++static struct state_volts buck1_default_dvs = {
++	.r_i_s_voltages = {
++		BUCK1_RUN_DEFAULT,
++		BUCK1_IDLE_DEFAULT,
++		BUCK1_SUSP_DEFAULT
++	},
++	.r_i_s_regs = {
++		BD718XX_REG_BUCK1_VOLT_RUN,
++		BD718XX_REG_BUCK1_VOLT_IDLE,
++		BD718XX_REG_BUCK1_VOLT_SUSP,
++	},
++};
++static struct state_volts buck2_default_dvs = {
++	.r_i_s_voltages = {
++		BUCK2_RUN_DEFAULT,
++		BUCK2_IDLE_DEFAULT,
++	},
++	.r_i_s_regs = {
++		BD718XX_REG_BUCK2_VOLT_RUN,
++		BD718XX_REG_BUCK2_VOLT_IDLE,
++		0 /* Suspend not supported */,
++	},
++};
++static struct state_volts buck3_default_dvs = {
++	.r_i_s_voltages = {
++		BUCK3_RUN_DEFAULT,
++	},
++	.r_i_s_regs = {
++		BD71837_REG_BUCK3_VOLT_RUN,
++		0 /* Neither idle... */,
++		0 /* ...nor suspend are supported*/,
++	},
++};
++static struct state_volts buck4_default_dvs = {
++	.r_i_s_voltages = {
++		BUCK4_RUN_DEFAULT,
++	},
++	.r_i_s_regs = {
++		BD71837_REG_BUCK4_VOLT_RUN,
++		0 /* Neither idle... */,
++		0 /* ...nor suspend are supported*/,
++	},
++};
++
++
++/*
++ * There is a HW quirk in BD71837. The shutdown sequence timings for
++ * bucks/LDOs which are controlled via register interface are changed.
++ * At PMIC poweroff the voltage for BUCK6/7 is cut immediately at the
++ * beginning of shut-down sequence. As bucks 6 and 7 are parent
++ * supplies for LDO5 and LDO6 - this causes LDO5/6 voltage
++ * monitoring to errorneously detect under voltage and force PMIC to
++ * emergency state instead of poweroff. In order to avoid this we
++ * disable voltage monitoring for LDO5 and LDO6
++ */	
++static const struct reg_init bd71837_buck3_inits[] = {
++	{
++		.reg = BD71837_REG_BUCK3_CTRL,
++		.mask = BD718XX_BUCK_SEL,
++		.val = BD718XX_BUCK_SEL,
++	},
++};
++static const struct reg_init bd71837_buck4_inits[] = {
++	{
++		.reg = BD71837_REG_BUCK4_CTRL,
++		.mask = BD718XX_BUCK_SEL,
++		.val = BD718XX_BUCK_SEL,
++	},
++};
++
++static const struct reg_init bd71837_ldo5_inits[] = {
++	{
++		.reg = BD718XX_REG_MVRFLTMASK2,
++		.mask = BD718XX_LDO5_VRMON80,
++		.val = BD718XX_LDO5_VRMON80,
++	},
++};
++
++static const struct reg_init bd71837_ldo6_inits[] = {
++	{
++		.reg = BD718XX_REG_MVRFLTMASK2,
++		.mask = BD718XX_LDO6_VRMON80,
++		.val = BD718XX_LDO6_VRMON80,
++	},
++};
++
++static const struct bd718xx_regulator_data bd71847_regulators[] = {
++	{
++		.desc = {
++			.name = "buck1",
++			.of_match = of_match_ptr("BUCK1"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_BUCK1,
++			.ops = &bd718xx_dvs_buck12_regulator_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD718XX_DVS_BUCK_VOLTAGE_NUM,
++			.linear_ranges = bd718xx_dvs_buck_volts,
++			.n_linear_ranges =
++				ARRAY_SIZE(bd718xx_dvs_buck_volts),
++			.vsel_reg = BD718XX_REG_BUCK1_VOLT_RUN,
++			.vsel_mask = DVS_BUCK_RUN_MASK,
++			.owner = THIS_MODULE,
++		},
++		.state_volts = &buck1_default_dvs,
++	},
++	{
++		.desc = {
++			.name = "buck2",
++			.of_match = of_match_ptr("BUCK2"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_BUCK2,
++			.ops = &bd718xx_dvs_buck12_regulator_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD718XX_DVS_BUCK_VOLTAGE_NUM,
++			.linear_ranges = bd718xx_dvs_buck_volts,
++			.n_linear_ranges = ARRAY_SIZE(bd718xx_dvs_buck_volts),
++			.vsel_reg = BD718XX_REG_BUCK2_VOLT_RUN,
++			.vsel_mask = DVS_BUCK_RUN_MASK,
++			.owner = THIS_MODULE,
++		},
++		.state_volts = &buck2_default_dvs,
++	},
++	{
++		.desc = {
++			.name = "buck3",
++			.of_match = of_match_ptr("BUCK3"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_BUCK3,
++			.ops = &bd718xx_pickable_range_buck_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD71847_BUCK3_VOLTAGE_NUM,
++			.linear_ranges = bd71847_buck3_volts,
++			.n_linear_ranges =
++				ARRAY_SIZE(bd71847_buck3_volts),
++			.vsel_reg = BD718XX_REG_1ST_NODVS_BUCK_VOLT,
++			.vsel_mask = BD718XX_1ST_NODVS_BUCK_MASK,
++			.vsel_range_reg = BD718XX_REG_1ST_NODVS_BUCK_VOLT,
++			.vsel_range_mask = BD71847_BUCK3_RANGE_MASK,
++			.linear_range_selectors = bd71847_buck3_volt_range_sel,
++			.owner = THIS_MODULE,
++		},
++	},
++	{
++		.desc = {
++			.name = "buck4",
++			.of_match = of_match_ptr("BUCK4"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_BUCK4,
++			.ops = &bd718xx_pickable_range_buck_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD71847_BUCK4_VOLTAGE_NUM,
++			.linear_ranges = bd71847_buck4_volts,
++			.n_linear_ranges =
++				ARRAY_SIZE(bd71847_buck4_volts),
++			.vsel_reg = BD718XX_REG_2ND_NODVS_BUCK_VOLT,
++			.vsel_mask = BD71847_BUCK4_MASK,
++			.vsel_range_reg = BD718XX_REG_2ND_NODVS_BUCK_VOLT,
++			.vsel_range_mask = BD71847_BUCK4_RANGE_MASK,
++			.linear_range_selectors = bd71847_buck4_volt_range_sel,
++			.owner = THIS_MODULE,
++		},
++	},
++	{
++		.desc = {
++			.name = "buck5",
++			.of_match = of_match_ptr("BUCK5"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_BUCK5,
++			.ops = &bd718xx_buck_regulator_nolinear_ops,
++			.type = REGULATOR_VOLTAGE,
++			.volt_table = &bd718xx_3rd_nodvs_buck_volts[0],
++			.n_voltages = ARRAY_SIZE(bd718xx_3rd_nodvs_buck_volts),
++			.vsel_reg = BD718XX_REG_3RD_NODVS_BUCK_VOLT,
++			.vsel_mask = BD718XX_3RD_NODVS_BUCK_MASK,
++			.owner = THIS_MODULE,
++		},
++	},
++	{
++		.desc = {
++			.name = "buck6",
++			.of_match = of_match_ptr("BUCK6"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_BUCK6,
++			.ops = &bd718xx_buck_regulator_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD718XX_4TH_NODVS_BUCK_VOLTAGE_NUM,
++			.linear_ranges = bd718xx_4th_nodvs_buck_volts,
++			.n_linear_ranges =
++				ARRAY_SIZE(bd718xx_4th_nodvs_buck_volts),
++			.vsel_reg = BD718XX_REG_4TH_NODVS_BUCK_VOLT,
++			.vsel_mask = BD718XX_4TH_NODVS_BUCK_MASK,
++			.owner = THIS_MODULE,
++		},
++	},
++	{
++		.desc = {
++			.name = "ldo1",
++			.of_match = of_match_ptr("LDO1"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_LDO1,
++			.ops = &bd718xx_pickable_range_ldo_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD718XX_LDO1_VOLTAGE_NUM,
++			.linear_ranges = bd718xx_ldo1_volts,
++			.n_linear_ranges = ARRAY_SIZE(bd718xx_ldo1_volts),
++			.vsel_reg = BD718XX_REG_LDO1_VOLT,
++			.vsel_mask = BD718XX_LDO1_MASK,
++			.vsel_range_reg = BD718XX_REG_LDO1_VOLT,
++			.vsel_range_mask = BD718XX_LDO1_RANGE_MASK,
++			.linear_range_selectors = bd718xx_ldo1_volt_range_sel,
++			.owner = THIS_MODULE,
++		},
++	},
++	{
++		.desc = {
++			.name = "ldo2",
++			.of_match = of_match_ptr("LDO2"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_LDO2,
++			.ops = &bd718xx_ldo_regulator_nolinear_ops,
++			.type = REGULATOR_VOLTAGE,
++			.volt_table = &ldo_2_volts[0],
++			.vsel_reg = BD718XX_REG_LDO2_VOLT,
++			.vsel_mask = BD718XX_LDO2_MASK,
++			.n_voltages = ARRAY_SIZE(ldo_2_volts),
++			.owner = THIS_MODULE,
++		},
++	},
++	{
++		.desc = {
++			.name = "ldo3",
++			.of_match = of_match_ptr("LDO3"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_LDO3,
++			.ops = &bd718xx_ldo_regulator_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD718XX_LDO3_VOLTAGE_NUM,
++			.linear_ranges = bd718xx_ldo3_volts,
++			.n_linear_ranges = ARRAY_SIZE(bd718xx_ldo3_volts),
++			.vsel_reg = BD718XX_REG_LDO3_VOLT,
++			.vsel_mask = BD718XX_LDO3_MASK,
++			.owner = THIS_MODULE,
++		},
++	},
++	{
++		.desc = {
++			.name = "ldo4",
++			.of_match = of_match_ptr("LDO4"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_LDO4,
++			.ops = &bd718xx_ldo_regulator_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD718XX_LDO4_VOLTAGE_NUM,
++			.linear_ranges = bd718xx_ldo4_volts,
++			.n_linear_ranges = ARRAY_SIZE(bd718xx_ldo4_volts),
++			.vsel_reg = BD718XX_REG_LDO4_VOLT,
++			.vsel_mask = BD718XX_LDO4_MASK,
++			.owner = THIS_MODULE,
++		},
++	},
++	{
++		.desc = {
++			.name = "ldo5",
++			.of_match = of_match_ptr("LDO5"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_LDO5,
++			.ops = &bd718xx_pickable_range_ldo_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD71847_LDO5_VOLTAGE_NUM,
++			.linear_ranges = bd71847_ldo5_volts,
++			.n_linear_ranges = ARRAY_SIZE(bd71847_ldo5_volts),
++			.vsel_reg = BD718XX_REG_LDO5_VOLT,
++			.vsel_mask = BD71847_LDO5_MASK,
++			.vsel_range_reg = BD718XX_REG_LDO5_VOLT,
++			.vsel_range_mask = BD71847_LDO5_RANGE_MASK,
++			.linear_range_selectors = bd71847_ldo5_volt_range_sel,
++			.owner = THIS_MODULE,
++		},
++	},
++	{
++		.desc = {
++			.name = "ldo6",
++			.of_match = of_match_ptr("LDO6"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_LDO6,
++			.ops = &bd718xx_ldo_regulator_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD718XX_LDO6_VOLTAGE_NUM,
++			.linear_ranges = bd718xx_ldo6_volts,
++			.n_linear_ranges = ARRAY_SIZE(bd718xx_ldo6_volts),
++			/* LDO6 is supplied by buck5 */
++			.supply_name = "buck5",
++			.vsel_reg = BD718XX_REG_LDO6_VOLT,
++			.vsel_mask = BD718XX_LDO6_MASK,
++			.owner = THIS_MODULE,
++		},
++	},
++};
++
++static const struct bd718xx_regulator_data bd71837_regulators[] = {
++	{
++		.desc = {
++			.name = "buck1",
++			.of_match = of_match_ptr("BUCK1"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_BUCK1,
++			.ops = &bd718xx_dvs_buck12_regulator_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD718XX_DVS_BUCK_VOLTAGE_NUM,
++			.linear_ranges = bd718xx_dvs_buck_volts,
++			.n_linear_ranges = ARRAY_SIZE(bd718xx_dvs_buck_volts),
++			.vsel_reg = BD718XX_REG_BUCK1_VOLT_RUN,
++			.vsel_mask = DVS_BUCK_RUN_MASK,
++			.owner = THIS_MODULE,
++		},
++		.state_volts = &buck1_default_dvs,
++	},
++	{
++		.desc = {
++			.name = "buck2",
++			.of_match = of_match_ptr("BUCK2"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_BUCK2,
++			.ops = &bd718xx_dvs_buck12_regulator_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD718XX_DVS_BUCK_VOLTAGE_NUM,
++			.linear_ranges = bd718xx_dvs_buck_volts,
++			.n_linear_ranges = ARRAY_SIZE(bd718xx_dvs_buck_volts),
++			.vsel_reg = BD718XX_REG_BUCK2_VOLT_RUN,
++			.vsel_mask = DVS_BUCK_RUN_MASK,
++			.owner = THIS_MODULE,
++		},
++		.state_volts = &buck2_default_dvs,
++	},
++	{
++		.desc = {
++			.name = "buck3",
++			.of_match = of_match_ptr("BUCK3"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_BUCK3,
++			.ops = &bd71837_dvs_buck34_regulator_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD718XX_DVS_BUCK_VOLTAGE_NUM,
++			.linear_ranges = bd718xx_dvs_buck_volts,
++			.n_linear_ranges = ARRAY_SIZE(bd718xx_dvs_buck_volts),
++			.vsel_reg = BD71837_REG_BUCK3_VOLT_RUN,
++			.vsel_mask = DVS_BUCK_RUN_MASK,
++			.enable_reg = BD71837_REG_BUCK3_CTRL,
++			.enable_mask = BD718XX_BUCK_EN,
++			.owner = THIS_MODULE,
++		},
++		.state_volts = &buck3_default_dvs,
++		.additional_inits = bd71837_buck3_inits,
++		.additional_init_amnt = ARRAY_SIZE(bd71837_buck3_inits),
++	},
++	{
++		.desc = {
++			.name = "buck4",
++			.of_match = of_match_ptr("BUCK4"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_BUCK4,
++			.ops = &bd71837_dvs_buck34_regulator_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD718XX_DVS_BUCK_VOLTAGE_NUM,
++			.linear_ranges = bd718xx_dvs_buck_volts,
++			.n_linear_ranges = ARRAY_SIZE(bd718xx_dvs_buck_volts),
++			.vsel_reg = BD71837_REG_BUCK4_VOLT_RUN,
++			.vsel_mask = DVS_BUCK_RUN_MASK,
++			.enable_reg = BD71837_REG_BUCK4_CTRL,
++			.enable_mask = BD718XX_BUCK_EN,
++			.owner = THIS_MODULE,
++		},
++		.state_volts = &buck4_default_dvs,
++		.additional_inits = bd71837_buck4_inits,
++		.additional_init_amnt = ARRAY_SIZE(bd71837_buck4_inits),
++	},
++	{
++		.desc = {
++			.name = "buck5",
++			.of_match = of_match_ptr("BUCK5"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_BUCK5,
++			.ops = &bd718xx_pickable_range_buck_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD71837_BUCK5_VOLTAGE_NUM,
++			.linear_ranges = bd71837_buck5_volts,
++			.n_linear_ranges =
++				ARRAY_SIZE(bd71837_buck5_volts),
++			.vsel_reg = BD718XX_REG_1ST_NODVS_BUCK_VOLT,
++			.vsel_mask = BD71837_BUCK5_MASK,
++			.vsel_range_reg = BD718XX_REG_1ST_NODVS_BUCK_VOLT,
++			.vsel_range_mask = BD71837_BUCK5_RANGE_MASK,
++			.linear_range_selectors = bd71837_buck5_volt_range_sel,
++			.owner = THIS_MODULE,
++		},
++	},
++	{
++		.desc = {
++			.name = "buck6",
++			.of_match = of_match_ptr("BUCK6"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_BUCK6,
++			.ops = &bd718xx_buck_regulator_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD71837_BUCK6_VOLTAGE_NUM,
++			.linear_ranges = bd71837_buck6_volts,
++			.n_linear_ranges =
++				ARRAY_SIZE(bd71837_buck6_volts),
++			.vsel_reg = BD718XX_REG_2ND_NODVS_BUCK_VOLT,
++			.vsel_mask = BD71837_BUCK6_MASK,
++			.owner = THIS_MODULE,
++		},
++	},
++	{
++		.desc = {
++			.name = "buck7",
++			.of_match = of_match_ptr("BUCK7"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_BUCK7,
++			.ops = &bd718xx_buck_regulator_nolinear_ops,
++			.type = REGULATOR_VOLTAGE,
++			.volt_table = &bd718xx_3rd_nodvs_buck_volts[0],
++			.n_voltages = ARRAY_SIZE(bd718xx_3rd_nodvs_buck_volts),
++			.vsel_reg = BD718XX_REG_3RD_NODVS_BUCK_VOLT,
++			.vsel_mask = BD718XX_3RD_NODVS_BUCK_MASK,
++			.owner = THIS_MODULE,
++		},
++	},
++	{
++		.desc = {
++			.name = "buck8",
++			.of_match = of_match_ptr("BUCK8"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_BUCK8,
++			.ops = &bd718xx_buck_regulator_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD718XX_4TH_NODVS_BUCK_VOLTAGE_NUM,
++			.linear_ranges = bd718xx_4th_nodvs_buck_volts,
++			.n_linear_ranges =
++				ARRAY_SIZE(bd718xx_4th_nodvs_buck_volts),
++			.vsel_reg = BD718XX_REG_4TH_NODVS_BUCK_VOLT,
++			.vsel_mask = BD718XX_4TH_NODVS_BUCK_MASK,
++			.owner = THIS_MODULE,
++		},
++	},
++	{
++		.desc = {
++			.name = "ldo1",
++			.of_match = of_match_ptr("LDO1"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_LDO1,
++			.ops = &bd718xx_pickable_range_ldo_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD718XX_LDO1_VOLTAGE_NUM,
++			.linear_ranges = bd718xx_ldo1_volts,
++			.n_linear_ranges = ARRAY_SIZE(bd718xx_ldo1_volts),
++			.vsel_reg = BD718XX_REG_LDO1_VOLT,
++			.vsel_mask = BD718XX_LDO1_MASK,
++			.vsel_range_reg = BD718XX_REG_LDO1_VOLT,
++			.vsel_range_mask = BD718XX_LDO1_RANGE_MASK,
++			.linear_range_selectors = bd718xx_ldo1_volt_range_sel,
++			.owner = THIS_MODULE,
++		},
++	},
++	{
++		.desc = {
++			.name = "ldo2",
++			.of_match = of_match_ptr("LDO2"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_LDO2,
++			.ops = &bd718xx_ldo_regulator_nolinear_ops,
++			.type = REGULATOR_VOLTAGE,
++			.volt_table = &ldo_2_volts[0],
++			.vsel_reg = BD718XX_REG_LDO2_VOLT,
++			.vsel_mask = BD718XX_LDO2_MASK,
++			.n_voltages = ARRAY_SIZE(ldo_2_volts),
++			.owner = THIS_MODULE,
++		},
++	},
++	{
++		.desc = {
++			.name = "ldo3",
++			.of_match = of_match_ptr("LDO3"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_LDO3,
++			.ops = &bd718xx_ldo_regulator_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD718XX_LDO3_VOLTAGE_NUM,
++			.linear_ranges = bd718xx_ldo3_volts,
++			.n_linear_ranges = ARRAY_SIZE(bd718xx_ldo3_volts),
++			.vsel_reg = BD718XX_REG_LDO3_VOLT,
++			.vsel_mask = BD718XX_LDO3_MASK,
++			.owner = THIS_MODULE,
++		},
++	},
++	{
++		.desc = {
++			.name = "ldo4",
++			.of_match = of_match_ptr("LDO4"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_LDO4,
++			.ops = &bd718xx_ldo_regulator_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD718XX_LDO4_VOLTAGE_NUM,
++			.linear_ranges = bd718xx_ldo4_volts,
++			.n_linear_ranges = ARRAY_SIZE(bd718xx_ldo4_volts),
++			.vsel_reg = BD718XX_REG_LDO4_VOLT,
++			.vsel_mask = BD718XX_LDO4_MASK,
++			.owner = THIS_MODULE,
++		},
++	},
++	{
++		.desc = {
++			.name = "ldo5",
++			.of_match = of_match_ptr("LDO5"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_LDO5,
++			.ops = &bd718xx_ldo_regulator_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD71837_LDO5_VOLTAGE_NUM,
++			.linear_ranges = bd71837_ldo5_volts,
++			.n_linear_ranges = ARRAY_SIZE(bd71837_ldo5_volts),
++			/* LDO5 is supplied by buck6 */
++			.supply_name = "buck6",
++			.vsel_reg = BD718XX_REG_LDO5_VOLT,
++			.vsel_mask = BD71837_LDO5_MASK,
++			.owner = THIS_MODULE,
++		},
++		.additional_inits = bd71837_ldo5_inits,
++		.additional_init_amnt = ARRAY_SIZE(bd71837_ldo5_inits),
++	},
++	{
++		.desc = {
++			.name = "ldo6",
++			.of_match = of_match_ptr("LDO6"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_LDO6,
++			.ops = &bd718xx_ldo_regulator_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD718XX_LDO6_VOLTAGE_NUM,
++			.linear_ranges = bd718xx_ldo6_volts,
++			.n_linear_ranges = ARRAY_SIZE(bd718xx_ldo6_volts),
++			/* LDO6 is supplied by buck7 */
++			.supply_name = "buck7",
++			.vsel_reg = BD718XX_REG_LDO6_VOLT,
++			.vsel_mask = BD718XX_LDO6_MASK,
++			.owner = THIS_MODULE,
++		},
++		.additional_inits = bd71837_ldo6_inits,
++		.additional_init_amnt = ARRAY_SIZE(bd71837_ldo6_inits),
++	},
++	{
++		.desc = {
++			.name = "ldo7",
++			.of_match = of_match_ptr("LDO7"),
++			.regulators_node = of_match_ptr("regulators"),
++			.id = BD718XX_LDO7,
++			.ops = &bd718xx_ldo_regulator_ops,
++			.type = REGULATOR_VOLTAGE,
++			.n_voltages = BD71837_LDO7_VOLTAGE_NUM,
++			.linear_ranges = bd71837_ldo7_volts,
++			.n_linear_ranges = ARRAY_SIZE(bd71837_ldo7_volts),
++			.vsel_reg = BD71837_REG_LDO7_VOLT,
++			.vsel_mask = BD71837_LDO7_MASK,
++			.owner = THIS_MODULE,
++		},
++	},
++};
++
++struct bd718xx_pmic_inits {
++	const struct bd718xx_regulator_data (*r_datas)[];
++	unsigned int r_amount;
++};
++
++/** @brief buck1/2 dvs enable/voltage from device tree
++ * @param pdev platfrom device pointer
++ * @param buck_dvs pointer
++ * @return void
++ */
++static int of_bd71837_buck_dvs(struct platform_device *pdev, int num_bucks)
++{
++	int ret;
++	int *dvs_storage[] = {
++		&buck1_default_dvs.r_i_s_voltages[0],
++		&buck2_default_dvs.r_i_s_voltages[0],
++		&buck3_default_dvs.r_i_s_voltages[0],
++		&buck4_default_dvs.r_i_s_voltages[0],
++	};
++	const char *dvs_props[] = {
++		"rohm,pmic-buck1-dvs-voltage",
++		"rohm,pmic-buck2-dvs-voltage",
++		"rohm,pmic-buck3-dvs-voltage",
++		"rohm,pmic-buck4-dvs-voltage",
++		NULL,
++	};
++	int num_expected_values[] = {
++		BD71837_DVS_RUN_IDLE_SUSP,
++		BD71837_DVS_RUN_IDLE,
++		BD71837_DVS_RUN,
++		BD71837_DVS_RUN,
++	};
++	int i;
++
++	if (!pdev->dev.parent->of_node) {
++		dev_err(&pdev->dev, "could not find pmic sub-node\n");
++		return -ENOENT;
++	}
++
++	for (i=0; dvs_props[i] && i < num_bucks; i++) {
++
++		ret = of_property_read_u32_array(pdev->dev.parent->of_node,
++						 dvs_props[i], dvs_storage[i],
++						 num_expected_values[i]);
++
++		if (ret == -EINVAL)
++			break;
++
++		if (ret) {
++			dev_err(&pdev->dev,
++				"Bad amount of dvs voltages for buck%d in DT\n",
++				i);
++			return ret;
++		}
++	}
++
++	return 0;
++}
++
++static int bd718xx_probe(struct platform_device *pdev)
++{
++	struct bd718xx *mfd;
++	struct regulator_config config = { 0 };
++	struct bd718xx_pmic_inits pmic_regulators[] = {
++		[BD718XX_TYPE_BD71837] = {
++			.r_datas = &bd71837_regulators,
++			.r_amount = ARRAY_SIZE(bd71837_regulators),
++		},
++		[BD718XX_TYPE_BD71847] = {
++			.r_datas = &bd71847_regulators,
++			.r_amount = ARRAY_SIZE(bd71847_regulators),
++		},
++	};
++
++	int i, j, err, num_dvs_bucks = 4;
++
++	mfd = dev_get_drvdata(pdev->dev.parent);
++	if (!mfd) {
++		dev_err(&pdev->dev, "No MFD driver data\n");
++		err = -EINVAL;
++		goto err;
++	}
++
++	if (mfd->chip_type >= BD718XX_TYPE_AMOUNT ||
++	    !pmic_regulators[mfd->chip_type].r_datas) {
++		dev_err(&pdev->dev, "Unsupported chip type\n");
++		err = -EINVAL;
++		goto err;
++	}
++	if (mfd->chip_type == BD718XX_TYPE_BD71847)
++		num_dvs_bucks = 2;
++	err = of_bd71837_buck_dvs(pdev, num_dvs_bucks);
++
++	if (err)
++		goto err;
++	/* Register LOCK release */
++	err = regmap_update_bits(mfd->regmap, BD718XX_REG_REGLOCK,
++				 (REGLOCK_PWRSEQ | REGLOCK_VREG), 0);
++	if (err) {
++		dev_err(&pdev->dev, "Failed to unlock PMIC (%d)\n", err);
++		goto err;
++	} else {
++		dev_dbg(&pdev->dev, "Unlocked lock register 0x%x\n",
++			BD718XX_REG_REGLOCK);
++	}
++
++	for (i = 0; i < pmic_regulators[mfd->chip_type].r_amount; i++) {
++
++		const struct regulator_desc *desc;
++		struct regulator_dev *rdev;
++		const struct bd718xx_regulator_data *r;
++
++		r = &(*pmic_regulators[mfd->chip_type].r_datas)[i];
++		desc = &r->desc;
++
++		config.dev = pdev->dev.parent;
++		config.regmap = mfd->regmap;
++
++		rdev = devm_regulator_register(&pdev->dev, desc, &config);
++		if (IS_ERR(rdev)) {
++			dev_err(&pdev->dev,
++				"failed to register %s regulator\n",
++				desc->name);
++			err = PTR_ERR(rdev);
++			goto err;
++		}
++		if (r->state_volts) {
++			/* This simple loop works as long as the run, idle
++			 * and suspend voltages for buck are selected with
++			 * identical mask/value. This is true for BD71837
++			 */
++			for (j = 0; j < 3; j++) {
++				if (r->state_volts->r_i_s_regs[j]) {
++					int sel = regulator_map_voltage_iterate(rdev,
++						r->state_volts->r_i_s_voltages[j],
++						r->state_volts->r_i_s_voltages[j]);
++					if (sel < 0) {
++						dev_err(&pdev->dev,
++							"selector for voltage [%d] not found\n",
++							r->state_volts->r_i_s_voltages[j]);
++					} else {
++						err = regmap_update_bits(mfd->regmap,
++							r->state_volts->r_i_s_regs[j],
++							DVS_BUCK_RUN_MASK,
++							sel);
++						if (err) {
++							dev_err(&pdev->dev,
++								"Failed to write DVS voltage\n");
++							goto err;
++						}
++					}
++				}
++			}
++		}
++		for (j = 0; j < r->additional_init_amnt; j++) {
++			err = regmap_update_bits(mfd->regmap,
++						 r->additional_inits[j].reg,
++						 r->additional_inits[j].mask,
++						 r->additional_inits[j].val);
++			if (err) {
++				dev_err(&pdev->dev,
++					"Buck (%s) initialization failed\n",
++					desc->name);
++				goto err;
++			}
++		}
++	}
++
++err:
++	return err;
++}
++
++static struct platform_driver bd718xx_regulator = {
++	.driver = {
++		.name = "bd718xx-pmic",
++	},
++	.probe = bd718xx_probe,
++};
++
++module_platform_driver(bd718xx_regulator);
++
++MODULE_AUTHOR("Matti Vaittinen <matti.vaittinen@fi.rohmeurope.com>");
++MODULE_DESCRIPTION("BD71837/BD71847 voltage regulator driver");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+old mode 100644
+new mode 100755
+index 1ef182540597..98d4cf989b33
+--- a/drivers/regulator/core.c
++++ b/drivers/regulator/core.c
+@@ -2715,6 +2715,11 @@ static int regulator_map_voltage(struct regulator_dev *rdev, int min_uV,
+ 	if (desc->ops->list_voltage == regulator_list_voltage_linear_range)
+ 		return regulator_map_voltage_linear_range(rdev, min_uV, max_uV);
+ 
++	if (desc->ops->list_voltage ==
++		regulator_list_voltage_pickable_linear_range)
++		return regulator_map_voltage_pickable_linear_range(rdev,
++							min_uV, max_uV);
++
+ 	return regulator_map_voltage_iterate(rdev, min_uV, max_uV);
+ }
+ 
+diff --git a/drivers/regulator/helpers.c b/drivers/regulator/helpers.c
+old mode 100644
+new mode 100755
+index 2ae7c3ac5940..d2b9fc359318
+--- a/drivers/regulator/helpers.c
++++ b/drivers/regulator/helpers.c
+@@ -103,6 +103,128 @@ int regulator_disable_regmap(struct regulator_dev *rdev)
+ }
+ EXPORT_SYMBOL_GPL(regulator_disable_regmap);
+ 
++static int regulator_range_selector_to_index(struct regulator_dev *rdev,
++					     unsigned int rval)
++{
++	int i;
++
++	if (!rdev->desc->linear_range_selectors)
++		return -EINVAL;
++
++	rval &= rdev->desc->vsel_range_mask;
++
++	for (i = 0; i < rdev->desc->n_linear_ranges; i++) {
++		if (rdev->desc->linear_range_selectors[i] == rval)
++			return i;
++	}
++	return -EINVAL;
++}
++
++/**
++ * regulator_get_voltage_sel_pickable_regmap - pickable range get_voltage_sel
++ *
++ * @rdev: regulator to operate on
++ *
++ * Regulators that use regmap for their register I/O and use pickable
++ * ranges can set the vsel_reg, vsel_mask, vsel_range_reg and vsel_range_mask
++ * fields in their descriptor and then use this as their get_voltage_vsel
++ * operation, saving some code.
++ */
++int regulator_get_voltage_sel_pickable_regmap(struct regulator_dev *rdev)
++{
++	unsigned int r_val;
++	int range;
++	unsigned int val;
++	int ret, i;
++	unsigned int voltages_in_range = 0;
++
++	if (!rdev->desc->linear_ranges)
++		return -EINVAL;
++
++	ret = regmap_read(rdev->regmap, rdev->desc->vsel_reg, &val);
++	if (ret != 0)
++		return ret;
++
++	ret = regmap_read(rdev->regmap, rdev->desc->vsel_range_reg, &r_val);
++	if (ret != 0)
++		return ret;
++
++	val &= rdev->desc->vsel_mask;
++	val >>= ffs(rdev->desc->vsel_mask) - 1;
++
++	range = regulator_range_selector_to_index(rdev, r_val);
++	if (range < 0)
++		return -EINVAL;
++
++	for (i = 0; i < range; i++)
++		voltages_in_range += (rdev->desc->linear_ranges[i].max_sel -
++				     rdev->desc->linear_ranges[i].min_sel) + 1;
++
++	return val + voltages_in_range;
++}
++EXPORT_SYMBOL_GPL(regulator_get_voltage_sel_pickable_regmap);
++
++/**
++ * regulator_set_voltage_sel_pickable_regmap - pickable range set_voltage_sel
++ *
++ * @rdev: regulator to operate on
++ * @sel: Selector to set
++ *
++ * Regulators that use regmap for their register I/O and use pickable
++ * ranges can set the vsel_reg, vsel_mask, vsel_range_reg and vsel_range_mask
++ * fields in their descriptor and then use this as their set_voltage_vsel
++ * operation, saving some code.
++ */
++int regulator_set_voltage_sel_pickable_regmap(struct regulator_dev *rdev,
++					      unsigned int sel)
++{
++	unsigned int range;
++	int ret, i;
++	unsigned int voltages_in_range = 0;
++
++	for (i = 0; i < rdev->desc->n_linear_ranges; i++) {
++		voltages_in_range = (rdev->desc->linear_ranges[i].max_sel -
++				     rdev->desc->linear_ranges[i].min_sel) + 1;
++		if (sel < voltages_in_range)
++			break;
++		sel -= voltages_in_range;
++	}
++
++	if (i == rdev->desc->n_linear_ranges)
++		return -EINVAL;
++
++	sel <<= ffs(rdev->desc->vsel_mask) - 1;
++	sel += rdev->desc->linear_ranges[i].min_sel;
++
++	range = rdev->desc->linear_range_selectors[i];
++
++	if (rdev->desc->vsel_reg == rdev->desc->vsel_range_reg) {
++		ret = regmap_update_bits(rdev->regmap,
++					 rdev->desc->vsel_reg,
++					 rdev->desc->vsel_range_mask |
++					 rdev->desc->vsel_mask, sel | range);
++	} else {
++		ret = regmap_update_bits(rdev->regmap,
++					 rdev->desc->vsel_range_reg,
++					 rdev->desc->vsel_range_mask, range);
++		if (ret)
++			return ret;
++
++		ret = regmap_update_bits(rdev->regmap, rdev->desc->vsel_reg,
++				  rdev->desc->vsel_mask, sel);
++	}
++
++	if (ret)
++		return ret;
++
++	if (rdev->desc->apply_bit)
++		ret = regmap_update_bits(rdev->regmap, rdev->desc->apply_reg,
++					 rdev->desc->apply_bit,
++					 rdev->desc->apply_bit);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(regulator_set_voltage_sel_pickable_regmap);
++
+ /**
+  * regulator_get_voltage_sel_regmap - standard get_voltage_sel for regmap users
+  *
+@@ -336,6 +458,76 @@ int regulator_map_voltage_linear_range(struct regulator_dev *rdev,
+ }
+ EXPORT_SYMBOL_GPL(regulator_map_voltage_linear_range);
+ 
++/**
++ * regulator_map_voltage_pickable_linear_range - map_voltage, pickable ranges
++ *
++ * @rdev: Regulator to operate on
++ * @min_uV: Lower bound for voltage
++ * @max_uV: Upper bound for voltage
++ *
++ * Drivers providing pickable linear_ranges in their descriptor can use
++ * this as their map_voltage() callback.
++ */
++int regulator_map_voltage_pickable_linear_range(struct regulator_dev *rdev,
++						int min_uV, int max_uV)
++{
++	const struct regulator_linear_range *range;
++	int ret = -EINVAL;
++	int voltage, i;
++	unsigned int selector = 0;
++
++	if (!rdev->desc->n_linear_ranges) {
++		BUG_ON(!rdev->desc->n_linear_ranges);
++		return -EINVAL;
++	}
++
++	for (i = 0; i < rdev->desc->n_linear_ranges; i++) {
++		int linear_max_uV;
++
++		range = &rdev->desc->linear_ranges[i];
++		linear_max_uV = range->min_uV +
++			(range->max_sel - range->min_sel) * range->uV_step;
++
++		if (!(min_uV <= linear_max_uV && max_uV >= range->min_uV)) {
++			selector += (range->max_sel - range->min_sel + 1);
++			continue;
++		}
++
++		if (min_uV <= range->min_uV)
++			min_uV = range->min_uV;
++
++		/* range->uV_step == 0 means fixed voltage range */
++		if (range->uV_step == 0) {
++			ret = 0;
++		} else {
++			ret = DIV_ROUND_UP(min_uV - range->min_uV,
++					   range->uV_step);
++			if (ret < 0)
++				return ret;
++		}
++
++		ret += selector;
++
++		voltage = rdev->desc->ops->list_voltage(rdev, ret);
++
++		/*
++		 * Map back into a voltage to verify we're still in bounds.
++		 * We may have overlapping voltage ranges. Hence we don't
++		 * exit but retry until we have checked all ranges.
++		 */
++		if (voltage < min_uV || voltage > max_uV)
++			selector += (range->max_sel - range->min_sel + 1);
++		else
++			break;
++	}
++
++	if (i == rdev->desc->n_linear_ranges)
++		return -EINVAL;
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(regulator_map_voltage_pickable_linear_range);
++
+ /**
+  * regulator_list_voltage_linear - List voltages with simple calculation
+  *
+@@ -360,6 +552,46 @@ int regulator_list_voltage_linear(struct regulator_dev *rdev,
+ }
+ EXPORT_SYMBOL_GPL(regulator_list_voltage_linear);
+ 
++/**
++ * regulator_list_voltage_pickable_linear_range - pickable range list voltages
++ *
++ * @rdev: Regulator device
++ * @selector: Selector to convert into a voltage
++ *
++ * list_voltage() operation, intended to be used by drivers utilizing pickable
++ * ranges helpers.
++ */
++int regulator_list_voltage_pickable_linear_range(struct regulator_dev *rdev,
++						 unsigned int selector)
++{
++	const struct regulator_linear_range *range;
++	int i;
++	unsigned int all_sels = 0;
++
++	if (!rdev->desc->n_linear_ranges) {
++		BUG_ON(!rdev->desc->n_linear_ranges);
++		return -EINVAL;
++	}
++
++	for (i = 0; i < rdev->desc->n_linear_ranges; i++) {
++		unsigned int sels_in_range;
++
++		range = &rdev->desc->linear_ranges[i];
++
++		sels_in_range = range->max_sel - range->min_sel;
++
++		if (all_sels + sels_in_range >= selector) {
++			selector -= all_sels;
++			return range->min_uV + (range->uV_step * selector);
++		}
++
++		all_sels += (sels_in_range + 1);
++	}
++
++	return -EINVAL;
++}
++EXPORT_SYMBOL_GPL(regulator_list_voltage_pickable_linear_range);
++
+ /**
+  * regulator_list_voltage_linear_range - List voltages for linear ranges
+  *
+diff --git a/include/linux/backlight.h b/include/linux/backlight.h
+old mode 100644
+new mode 100755
+index af7003548593..ace825e2ca2d
+--- a/include/linux/backlight.h
++++ b/include/linux/backlight.h
+@@ -130,6 +130,38 @@ static inline int backlight_update_status(struct backlight_device *bd)
+ 	return ret;
+ }
+ 
++/**
++ * backlight_enable - Enable backlight
++ * @bd: the backlight device to enable
++ */
++static inline int backlight_enable(struct backlight_device *bd)
++{
++	if (!bd)
++		return 0;
++
++	bd->props.power = FB_BLANK_UNBLANK;
++	bd->props.fb_blank = FB_BLANK_UNBLANK;
++	bd->props.state &= ~BL_CORE_FBBLANK;
++
++	return backlight_update_status(bd);
++}
++
++/**
++ * backlight_disable - Disable backlight
++ * @bd: the backlight device to disable
++ */
++static inline int backlight_disable(struct backlight_device *bd)
++{
++	if (!bd)
++		return 0;
++
++	bd->props.power = FB_BLANK_POWERDOWN;
++	bd->props.fb_blank = FB_BLANK_POWERDOWN;
++	bd->props.state |= BL_CORE_FBBLANK;
++
++	return backlight_update_status(bd);
++}
++
+ extern struct backlight_device *backlight_device_register(const char *name,
+ 	struct device *dev, void *devdata, const struct backlight_ops *ops,
+ 	const struct backlight_properties *props);
+diff --git a/include/linux/gpio_keys.h b/include/linux/gpio_keys.h
+old mode 100644
+new mode 100755
+index d06bf77400f1..35dc7f29dd36
+--- a/include/linux/gpio_keys.h
++++ b/include/linux/gpio_keys.h
+@@ -2,6 +2,8 @@
+ #ifndef _GPIO_KEYS_H
+ #define _GPIO_KEYS_H
+ 
++#include <linux/types.h>
++
+ struct device;
+ 
+ /**
+diff --git a/include/linux/mfd/rohm-bd718x7.h b/include/linux/mfd/rohm-bd718x7.h
+new file mode 100755
+index 000000000000..fd194bfc836f
+--- /dev/null
++++ b/include/linux/mfd/rohm-bd718x7.h
+@@ -0,0 +1,338 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++/* Copyright (C) 2018 ROHM Semiconductors */
++
++#ifndef __LINUX_MFD_BD718XX_H__
++#define __LINUX_MFD_BD718XX_H__
++
++#include <linux/regmap.h>
++
++enum {
++	BD718XX_TYPE_BD71837 = 0,
++	BD718XX_TYPE_BD71847,
++	BD718XX_TYPE_AMOUNT
++};
++
++enum {
++	BD718XX_BUCK1 = 0,
++	BD718XX_BUCK2,
++	BD718XX_BUCK3,
++	BD718XX_BUCK4,
++	BD718XX_BUCK5,
++	BD718XX_BUCK6,
++	BD718XX_BUCK7,
++	BD718XX_BUCK8,
++	BD718XX_LDO1,
++	BD718XX_LDO2,
++	BD718XX_LDO3,
++	BD718XX_LDO4,
++	BD718XX_LDO5,
++	BD718XX_LDO6,
++	BD718XX_LDO7,
++	BD718XX_REGULATOR_AMOUNT,
++};
++
++/* Common voltage configurations */
++#define BD718XX_DVS_BUCK_VOLTAGE_NUM		0x3D
++#define BD718XX_4TH_NODVS_BUCK_VOLTAGE_NUM	0x3D
++
++#define BD718XX_LDO1_VOLTAGE_NUM	0x08
++#define BD718XX_LDO2_VOLTAGE_NUM	0x02
++#define BD718XX_LDO3_VOLTAGE_NUM	0x10
++#define BD718XX_LDO4_VOLTAGE_NUM	0x0A
++#define BD718XX_LDO6_VOLTAGE_NUM	0x0A
++
++/* BD71837 specific voltage configurations */
++#define BD71837_BUCK5_VOLTAGE_NUM	0x10
++#define BD71837_BUCK6_VOLTAGE_NUM	0x04
++#define BD71837_BUCK7_VOLTAGE_NUM	0x08
++#define BD71837_LDO5_VOLTAGE_NUM	0x10
++#define BD71837_LDO7_VOLTAGE_NUM	0x10
++
++/* BD71847 specific voltage configurations */
++#define BD71847_BUCK3_VOLTAGE_NUM	0x18
++#define BD71847_BUCK4_VOLTAGE_NUM	0x08
++#define BD71847_LDO5_VOLTAGE_NUM	0x20
++
++/* Registers specific to BD71837 */
++enum {
++	BD71837_REG_BUCK3_CTRL =	0x07,
++	BD71837_REG_BUCK4_CTRL =	0x08,
++	BD71837_REG_BUCK3_VOLT_RUN =	0x12,
++	BD71837_REG_BUCK4_VOLT_RUN =	0x13,
++	BD71837_REG_LDO7_VOLT =		0x1E,
++};
++
++/* Registers common for BD71837 and BD71847 */
++enum {
++	BD718XX_REG_REV =			0x00,
++	BD718XX_REG_SWRESET =			0x01,
++	BD718XX_REG_I2C_DEV =			0x02,
++	BD718XX_REG_PWRCTRL0 =			0x03,
++	BD718XX_REG_PWRCTRL1 =			0x04,
++	BD718XX_REG_BUCK1_CTRL =		0x05,
++	BD718XX_REG_BUCK2_CTRL =		0x06,
++	BD718XX_REG_1ST_NODVS_BUCK_CTRL =	0x09,
++	BD718XX_REG_2ND_NODVS_BUCK_CTRL =	0x0A,
++	BD718XX_REG_3RD_NODVS_BUCK_CTRL =	0x0B,
++	BD718XX_REG_4TH_NODVS_BUCK_CTRL =	0x0C,
++	BD718XX_REG_BUCK1_VOLT_RUN =		0x0D,
++	BD718XX_REG_BUCK1_VOLT_IDLE =		0x0E,
++	BD718XX_REG_BUCK1_VOLT_SUSP =		0x0F,
++	BD718XX_REG_BUCK2_VOLT_RUN =		0x10,
++	BD718XX_REG_BUCK2_VOLT_IDLE =		0x11,
++	BD718XX_REG_1ST_NODVS_BUCK_VOLT =	0x14,
++	BD718XX_REG_2ND_NODVS_BUCK_VOLT =	0x15,
++	BD718XX_REG_3RD_NODVS_BUCK_VOLT =	0x16,
++	BD718XX_REG_4TH_NODVS_BUCK_VOLT =	0x17,
++	BD718XX_REG_LDO1_VOLT =			0x18,
++	BD718XX_REG_LDO2_VOLT =			0x19,
++	BD718XX_REG_LDO3_VOLT =			0x1A,
++	BD718XX_REG_LDO4_VOLT =			0x1B,
++	BD718XX_REG_LDO5_VOLT =			0x1C,
++	BD718XX_REG_LDO6_VOLT =			0x1D,
++	BD718XX_REG_TRANS_COND0 =		0x1F,
++	BD718XX_REG_TRANS_COND1 =		0x20,
++	BD718XX_REG_VRFAULTEN =			0x21,
++	BD718XX_REG_MVRFLTMASK0 =		0x22,
++	BD718XX_REG_MVRFLTMASK1 =		0x23,
++	BD718XX_REG_MVRFLTMASK2 =		0x24,
++	BD718XX_REG_RCVCFG =			0x25,
++	BD718XX_REG_RCVNUM =			0x26,
++	BD718XX_REG_PWRONCONFIG0 =		0x27,
++	BD718XX_REG_PWRONCONFIG1 =		0x28,
++	BD718XX_REG_RESETSRC =			0x29,
++	BD718XX_REG_MIRQ =			0x2A,
++	BD718XX_REG_IRQ =			0x2B,
++	BD718XX_REG_IN_MON =			0x2C,
++	BD718XX_REG_POW_STATE =			0x2D,
++	BD718XX_REG_OUT32K =			0x2E,
++	BD718XX_REG_REGLOCK =			0x2F,
++	BD718XX_REG_OTPVER =			0xFF,
++	BD718XX_MAX_REGISTER =			0x100,
++};
++
++#define REGLOCK_PWRSEQ	0x1
++#define REGLOCK_VREG	0x10
++
++/* Generic BUCK control masks */
++#define BD718XX_BUCK_SEL	0x02
++#define BD718XX_BUCK_EN		0x01
++#define BD718XX_BUCK_RUN_ON	0x04
++
++/* Generic LDO masks */
++#define BD718XX_LDO_SEL		0x80
++#define BD718XX_LDO_EN		0x40
++
++/* BD71837 BUCK ramp rate CTRL reg bits */
++#define BUCK_RAMPRATE_MASK	0xC0
++#define BUCK_RAMPRATE_10P00MV	0x0
++#define BUCK_RAMPRATE_5P00MV	0x1
++#define BUCK_RAMPRATE_2P50MV	0x2
++#define BUCK_RAMPRATE_1P25MV	0x3
++
++#define DVS_BUCK_RUN_MASK	0x3F
++#define DVS_BUCK_SUSP_MASK	0x3F
++#define DVS_BUCK_IDLE_MASK	0x3F
++
++#define BD718XX_1ST_NODVS_BUCK_MASK	0x07
++#define BD718XX_3RD_NODVS_BUCK_MASK	0x07
++#define BD718XX_4TH_NODVS_BUCK_MASK	0x3F
++
++#define BD71847_BUCK3_MASK		0x07
++#define BD71847_BUCK3_RANGE_MASK	0xC0
++#define BD71847_BUCK4_MASK		0x03
++#define BD71847_BUCK4_RANGE_MASK	0x40
++
++#define BD71837_BUCK5_MASK		0x07
++#define BD71837_BUCK5_RANGE_MASK	0x80
++#define BD71837_BUCK6_MASK		0x03
++
++#define BD718XX_LDO1_MASK		0x03
++#define BD718XX_LDO1_RANGE_MASK		0x20
++#define BD718XX_LDO2_MASK		0x20
++#define BD718XX_LDO3_MASK		0x0F
++#define BD718XX_LDO4_MASK		0x0F
++#define BD718XX_LDO6_MASK		0x0F
++
++#define BD71837_LDO5_MASK		0x0F
++#define BD71847_LDO5_MASK		0x0F
++#define BD71847_LDO5_RANGE_MASK		0x20
++
++#define BD71837_LDO7_MASK		0x0F
++
++/* BD718XX Voltage monitoring masks */
++#define BD718XX_BUCK1_VRMON80           0x1
++#define BD718XX_BUCK1_VRMON130          0x2
++#define BD718XX_BUCK2_VRMON80           0x4
++#define BD718XX_BUCK2_VRMON130          0x8
++#define BD718XX_1ST_NODVS_BUCK_VRMON80  0x1
++#define BD718XX_1ST_NODVS_BUCK_VRMON130 0x2
++#define BD718XX_2ND_NODVS_BUCK_VRMON80  0x4
++#define BD718XX_2ND_NODVS_BUCK_VRMON130 0x8
++#define BD718XX_3RD_NODVS_BUCK_VRMON80  0x10
++#define BD718XX_3RD_NODVS_BUCK_VRMON130 0x20
++#define BD718XX_4TH_NODVS_BUCK_VRMON80  0x40
++#define BD718XX_4TH_NODVS_BUCK_VRMON130 0x80
++#define BD718XX_LDO1_VRMON80            0x1
++#define BD718XX_LDO2_VRMON80            0x2
++#define BD718XX_LDO3_VRMON80            0x4
++#define BD718XX_LDO4_VRMON80            0x8
++#define BD718XX_LDO5_VRMON80            0x10
++#define BD718XX_LDO6_VRMON80            0x20
++
++/* BD71837 specific voltage monitoring masks */
++#define BD71837_BUCK3_VRMON80           0x10
++#define BD71837_BUCK3_VRMON130          0x20
++#define BD71837_BUCK4_VRMON80           0x40
++#define BD71837_BUCK4_VRMON130          0x80
++#define BD71837_LDO7_VRMON80            0x40
++
++/* BD718XX_REG_IRQ bits */
++#define IRQ_SWRST		0x40
++#define IRQ_PWRON_S		0x20
++#define IRQ_PWRON_L		0x10
++#define IRQ_PWRON		0x08
++#define IRQ_WDOG		0x04
++#define IRQ_ON_REQ		0x02
++#define IRQ_STBY_REQ		0x01
++
++/* BD718XX_REG_OUT32K bits */
++#define BD718XX_OUT32K_EN	0x01
++
++/* BD7183XX gated clock rate */
++#define BD718XX_CLK_RATE 32768
++
++/* ROHM BD718XX irqs */
++enum {
++	BD718XX_INT_STBY_REQ,
++	BD718XX_INT_ON_REQ,
++	BD718XX_INT_WDOG,
++	BD718XX_INT_PWRBTN,
++	BD718XX_INT_PWRBTN_L,
++	BD718XX_INT_PWRBTN_S,
++	BD718XX_INT_SWRST
++};
++
++/* ROHM BD718XX interrupt masks */
++#define BD718XX_INT_SWRST_MASK		0x40
++#define BD718XX_INT_PWRBTN_S_MASK	0x20
++#define BD718XX_INT_PWRBTN_L_MASK	0x10
++#define BD718XX_INT_PWRBTN_MASK		0x8
++#define BD718XX_INT_WDOG_MASK		0x4
++#define BD718XX_INT_ON_REQ_MASK		0x2
++#define BD718XX_INT_STBY_REQ_MASK	0x1
++
++/* Register write induced reset settings */
++
++/*
++ * Even though the bit zero is not SWRESET type we still want to write zero
++ * to it when changing type. Bit zero is 'SWRESET' trigger bit and if we
++ * write 1 to it we will trigger the action. So always write 0 to it when
++ * changning SWRESET action - no matter what we read from it.
++ */
++#define BD718XX_SWRESET_TYPE_MASK	7
++#define BD718XX_SWRESET_TYPE_DISABLED	0
++#define BD718XX_SWRESET_TYPE_COLD	4
++#define BD718XX_SWRESET_TYPE_WARM	6
++
++#define BD718XX_SWRESET_RESET_MASK	1
++#define BD718XX_SWRESET_RESET		1
++
++/* Poweroff state transition conditions */
++
++#define BD718XX_ON_REQ_POWEROFF_MASK	1
++#define BD718XX_SWRESET_POWEROFF_MASK	2
++#define BD718XX_WDOG_POWEROFF_MASK	4
++#define BD718XX_KEY_L_POWEROFF_MASK	8
++
++#define BD718XX_POWOFF_TO_SNVS	0
++#define BD718XX_POWOFF_TO_RDY	0xF
++
++#define BD718XX_POWOFF_TIME_MASK 0xF0
++enum {
++	BD718XX_POWOFF_TIME_5MS = 0,
++	BD718XX_POWOFF_TIME_10MS,
++	BD718XX_POWOFF_TIME_15MS,
++	BD718XX_POWOFF_TIME_20MS,
++	BD718XX_POWOFF_TIME_25MS,
++	BD718XX_POWOFF_TIME_30MS,
++	BD718XX_POWOFF_TIME_35MS,
++	BD718XX_POWOFF_TIME_40MS,
++	BD718XX_POWOFF_TIME_45MS,
++	BD718XX_POWOFF_TIME_50MS,
++	BD718XX_POWOFF_TIME_75MS,
++	BD718XX_POWOFF_TIME_100MS,
++	BD718XX_POWOFF_TIME_250MS,
++	BD718XX_POWOFF_TIME_500MS,
++	BD718XX_POWOFF_TIME_750MS,
++	BD718XX_POWOFF_TIME_1500MS
++};
++
++/* Poweron sequence state transition conditions */
++#define BD718XX_RDY_TO_SNVS_MASK 0xF
++#define BD718XX_SNVS_TO_RUN_MASK 0xF0
++
++#define BD718XX_PWR_TRIG_KEY_L		1
++#define BD718XX_PWR_TRIG_KEY_S		2
++#define BD718XX_PWR_TRIG_PMIC_ON	4
++#define BD718XX_PWR_TRIG_VSYS_UVLO	8
++#define BD718XX_RDY_TO_SNVS_SIFT	0
++#define BD718XX_SNVS_TO_RUN_SIFT	4
++
++#define BD718XX_PWRBTN_PRESS_DURATION_MASK 0xF
++
++/* Timeout value for detecting short press */
++enum {
++	BD718XX_PWRBTN_SHORT_PRESS_10MS = 0,
++	BD718XX_PWRBTN_SHORT_PRESS_500MS,
++	BD718XX_PWRBTN_SHORT_PRESS_1000MS,
++	BD718XX_PWRBTN_SHORT_PRESS_1500MS,
++	BD718XX_PWRBTN_SHORT_PRESS_2000MS,
++	BD718XX_PWRBTN_SHORT_PRESS_2500MS,
++	BD718XX_PWRBTN_SHORT_PRESS_3000MS,
++	BD718XX_PWRBTN_SHORT_PRESS_3500MS,
++	BD718XX_PWRBTN_SHORT_PRESS_4000MS,
++	BD718XX_PWRBTN_SHORT_PRESS_4500MS,
++	BD718XX_PWRBTN_SHORT_PRESS_5000MS,
++	BD718XX_PWRBTN_SHORT_PRESS_5500MS,
++	BD718XX_PWRBTN_SHORT_PRESS_6000MS,
++	BD718XX_PWRBTN_SHORT_PRESS_6500MS,
++	BD718XX_PWRBTN_SHORT_PRESS_7000MS,
++	BD718XX_PWRBTN_SHORT_PRESS_7500MS
++};
++
++/* Timeout value for detecting LONG press */
++enum {
++	BD718XX_PWRBTN_LONG_PRESS_10MS = 0,
++	BD718XX_PWRBTN_LONG_PRESS_1S,
++	BD718XX_PWRBTN_LONG_PRESS_2S,
++	BD718XX_PWRBTN_LONG_PRESS_3S,
++	BD718XX_PWRBTN_LONG_PRESS_4S,
++	BD718XX_PWRBTN_LONG_PRESS_5S,
++	BD718XX_PWRBTN_LONG_PRESS_6S,
++	BD718XX_PWRBTN_LONG_PRESS_7S,
++	BD718XX_PWRBTN_LONG_PRESS_8S,
++	BD718XX_PWRBTN_LONG_PRESS_9S,
++	BD718XX_PWRBTN_LONG_PRESS_10S,
++	BD718XX_PWRBTN_LONG_PRESS_11S,
++	BD718XX_PWRBTN_LONG_PRESS_12S,
++	BD718XX_PWRBTN_LONG_PRESS_13S,
++	BD718XX_PWRBTN_LONG_PRESS_14S,
++	BD718XX_PWRBTN_LONG_PRESS_15S
++};
++
++struct bd718xx_clk;
++
++struct bd718xx {
++	unsigned int chip_type;
++	struct device *dev;
++	struct regmap *regmap;
++	unsigned long int id;
++
++	int chip_irq;
++	struct regmap_irq_chip_data *irq_data;
++
++	struct bd718xx_clk *clk;
++};
++
++#endif /* __LINUX_MFD_BD718XX_H__ */
+diff --git a/include/linux/regulator/driver.h b/include/linux/regulator/driver.h
+old mode 100644
+new mode 100755
+index 94417b4226bd..7c29dc2f9c21
+--- a/include/linux/regulator/driver.h
++++ b/include/linux/regulator/driver.h
+@@ -330,10 +330,14 @@ struct regulator_desc {
+ 	int min_dropout_uV;
+ 
+ 	const struct regulator_linear_range *linear_ranges;
++	const unsigned int *linear_range_selectors;
++
+ 	int n_linear_ranges;
+ 
+ 	const unsigned int *volt_table;
+ 
++	unsigned int vsel_range_reg;
++	unsigned int vsel_range_mask;
+ 	unsigned int vsel_reg;
+ 	unsigned int vsel_mask;
+ 	unsigned int csel_reg;
+@@ -470,18 +474,25 @@ int regulator_mode_to_status(unsigned int);
+ 
+ int regulator_list_voltage_linear(struct regulator_dev *rdev,
+ 				  unsigned int selector);
++int regulator_list_voltage_pickable_linear_range(struct regulator_dev *rdev,
++						   unsigned int selector);
+ int regulator_list_voltage_linear_range(struct regulator_dev *rdev,
+ 					unsigned int selector);
+ int regulator_list_voltage_table(struct regulator_dev *rdev,
+ 				  unsigned int selector);
+ int regulator_map_voltage_linear(struct regulator_dev *rdev,
+ 				  int min_uV, int max_uV);
++int regulator_map_voltage_pickable_linear_range(struct regulator_dev *rdev,
++						  int min_uV, int max_uV);
+ int regulator_map_voltage_linear_range(struct regulator_dev *rdev,
+ 				       int min_uV, int max_uV);
+ int regulator_map_voltage_iterate(struct regulator_dev *rdev,
+ 				  int min_uV, int max_uV);
+ int regulator_map_voltage_ascend(struct regulator_dev *rdev,
+ 				  int min_uV, int max_uV);
++int regulator_get_voltage_sel_pickable_regmap(struct regulator_dev *rdev);
++int regulator_set_voltage_sel_pickable_regmap(struct regulator_dev *rdev,
++						unsigned int sel);
+ int regulator_get_voltage_sel_regmap(struct regulator_dev *rdev);
+ int regulator_set_voltage_sel_regmap(struct regulator_dev *rdev, unsigned sel);
+ int regulator_is_enabled_regmap(struct regulator_dev *rdev);

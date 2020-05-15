@@ -1,0 +1,1 @@
+PLATFORM_FLAVOR_maaxboard   = "mx8mqevk"
