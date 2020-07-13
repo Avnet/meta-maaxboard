@@ -5,8 +5,7 @@ inherit core-image
 
 ## Select Image Features
 IMAGE_FEATURES += " \
-    splash \
-    ssh-server-dropbear \
+    ssh-server-openssh \
     hwcodecs \
     package-management \
 "
@@ -17,7 +16,15 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     packagegroup-fsl-tools-audio \
     packagegroup-fsl-tools-gpu \
     packagegroup-fsl-gstreamer1.0 \
+    apt \
     sudo \
+    bash \
+    nano \
+    dhcpcd \
+    git \
+    e2fsprogs-resize2fs \
+    parted \
+    man-db \
 "
 
 inherit extrausers
