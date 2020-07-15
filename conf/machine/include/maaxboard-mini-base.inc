@@ -1,23 +1,22 @@
-# Embest MaaxBoard common settings
+# Embest MaaxBoard Mini common settings
 
-MACHINEOVERRIDES =. "mx8:mx8m:mx8mq:"
-MACHINEOVERRIDES =. "maaxboardbase:maaxboard:"
+MACHINEOVERRIDES =. "mx8:mx8m:mx8mm:"
+MACHINEOVERRIDES =. "maaxboardbase:maaxboardmini:"
 
 require conf/machine/include/imx-base.inc
 require conf/machine/include/arm/arch-arm64.inc
 
 MACHINE_FEATURES += " pci wifi bluetooth qca6174 bcm43455 bcm4356 bcm4359"
 
-KERNEL_DEVICETREE = "freescale/maaxboard-dcss-mipi.dtb"
-KERNEL_DEVICETREE += "freescale/maaxboard-usb0-device.dtb"
-KERNEL_DEVICETREE += "freescale/maaxboard-dcss-lvds.dtb"
-KERNEL_DEVICETREE += "freescale/maaxboard-dcss-hdmi.dtb"
+KERNEL_DEVICETREE  = "freescale/maaxboard-mini.dtb"
+KERNEL_DEVICETREE += "freescale/maaxboard-mini-lvds.dtb"
+KERNEL_DEVICETREE += "freescale/maaxboard-mini-device.dtb"
 
 UBOOT_CONFIG ??= "sd"
-UBOOT_CONFIG[sd] = "maaxboard_defconfig,sdcard"
+UBOOT_CONFIG[sd] = "maaxboard_mini_defconfig,sdcard"
 
 # Set u-boot DTB
-UBOOT_DTB_NAME = "maaxboard.dtb"
+UBOOT_DTB_NAME = "maaxboard-mini.dtb"
 
 # Set imx-mkimage boot target
 IMXBOOT_TARGETS = "flash_ddr4_em"
@@ -38,6 +37,7 @@ IMX_BOOT_SEEK = "33"
 # More refer to meta-fsl-bsp-release/imx/meta-bsp/classes/image_types_fsl.bbclass
 BOOT_SPACE = "65536"
 
+# uboot-imx/include/configs/maaxboard_mini.h
 # Refer to linux-imx/drivers/tty/serial/imx.c
 SERIAL_CONSOLES = "115200;ttymxc0"
 
@@ -49,8 +49,7 @@ PREFERRED_PROVIDER_u-boot = "u-boot-imx"
 
 # meta-fsl-bsp-release/imx/meta-bsp/conf/machine/include/imx-base.inc
 PREFERRED_PROVIDER_virtual/kernel = "linux-imx"
-PREFERRED_VERSION_linux-imx = "4.14.78"
+PREFERRED_VERSION_linux-imx = "4.14.98"
 
 PREFERRED_PROVIDER_virtual/imxvpu = "imx-vpu-hantro"
 
-PREFERRED_VERSION_imx-alsa-plugins = "1.0.26"

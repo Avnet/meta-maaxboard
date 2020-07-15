@@ -13,7 +13,9 @@ index ccf42e8..f78d004 100644
  
  help:
 diff --git a/iMX8M/soc.mak b/iMX8M/soc.mak
-index 1b6e357..a1e1ea2 100644
+old mode 100644
+new mode 100755
+index 1b6e357..f9d37f3
 --- a/iMX8M/soc.mak
 +++ b/iMX8M/soc.mak
 @@ -39,6 +39,13 @@ endif
@@ -24,7 +26,7 @@ index 1b6e357..a1e1ea2 100644
 +ifeq ($(SOC),iMX8MM)
 +DTBS_DDR4_EMBEST = maaxboard-mini.dtb
 +else
-+DTBS_DDR4_EMBEST = em-sbc-imx8m.dtb
++DTBS_DDR4_EMBEST = maaxboard.dtb
 +endif
 +
  $(MKIMG): mkimage_imx8.c

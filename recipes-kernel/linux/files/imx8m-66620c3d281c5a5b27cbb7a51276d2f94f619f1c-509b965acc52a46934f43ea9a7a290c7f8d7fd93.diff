@@ -216,1098 +216,20 @@ index 000000000000..4b98ca26e61a
 diff --git a/arch/arm64/boot/dts/freescale/Makefile b/arch/arm64/boot/dts/freescale/Makefile
 old mode 100644
 new mode 100755
-index fcbca40bc8fa..cd0778db33ea
+index fcbca40bc8fa..be0774c70aa4
 --- a/arch/arm64/boot/dts/freescale/Makefile
 +++ b/arch/arm64/boot/dts/freescale/Makefile
 @@ -94,6 +94,10 @@ dtb-$(CONFIG_ARCH_FSL_IMX8MQ) += fsl-imx8mq-ddr3l-arm2.dtb \
  				 fsl-imx8mq-ddr4-arm2.dtb \
  				 fsl-imx8mq-ddr4-arm2-gpmi-nand.dtb \
  				 fsl-imx8mq-evk.dtb \
-+				 em-sbc-imx8m.dtb \
-+				 em-sbc-imx8m-dcss-dsi.dtb \
-+				 em-sbc-imx8m-dcss-lvds.dtb \
-+				 em-sbc-imx8m-usb0-device.dtb \
++				 maaxboard-dcss-hdmi.dtb \
++				 maaxboard-dcss-mipi.dtb \
++				 maaxboard-dcss-lvds.dtb \
++				 maaxboard-usb0-device.dtb \
  				 fsl-imx8mq-evk-b3.dtb \
  				 fsl-imx8mq-evk-m4.dtb \
  				 fsl-imx8mq-evk-pcie1-m2.dtb \
-diff --git a/arch/arm64/boot/dts/freescale/em-sbc-imx8m-dcss-dsi.dts b/arch/arm64/boot/dts/freescale/em-sbc-imx8m-dcss-dsi.dts
-new file mode 100755
-index 000000000000..370ea4d7eac7
---- /dev/null
-+++ b/arch/arm64/boot/dts/freescale/em-sbc-imx8m-dcss-dsi.dts
-@@ -0,0 +1,172 @@
-+/*
-+ * Copyright 2018 NXP
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include "em-sbc-imx8m.dts"
-+
-+/ {
-+	sound-hdmi {
-+		status = "disabled";
-+	};
-+};
-+
-+&hdmi {
-+	status = "disabled";
-+};
-+
-+&dcss {
-+	status = "okay";
-+	disp-dev = "mipi_disp";
-+
-+	clocks = <&clk IMX8MQ_CLK_DISP_APB_ROOT>,
-+		 <&clk IMX8MQ_CLK_DISP_AXI_ROOT>,
-+		 <&clk IMX8MQ_CLK_DISP_RTRM_ROOT>,
-+		 <&clk IMX8MQ_CLK_DC_PIXEL>,
-+		 <&clk IMX8MQ_CLK_DUMMY>,
-+		 <&clk IMX8MQ_CLK_DISP_DTRC>;
-+	clock-names = "apb", "axi", "rtrm", "pix_div", "pix_out", "dtrc";
-+
-+	assigned-clocks = <&clk IMX8MQ_CLK_DC_PIXEL>,
-+			  <&clk IMX8MQ_CLK_DISP_AXI>,
-+			  <&clk IMX8MQ_CLK_DISP_RTRM>,
-+			  <&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
-+			  <&clk IMX8MQ_VIDEO_PLL1>;
-+	assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
-+				 <&clk IMX8MQ_SYS1_PLL_800M>,
-+				 <&clk IMX8MQ_SYS1_PLL_800M>,
-+				 <&clk IMX8MQ_CLK_25M>;
-+	assigned-clock-rates = <600000000>,
-+			       <800000000>,
-+			       <0>,
-+			       <400000000>,
-+			       <599999999>;
-+
-+	dcss_disp0: port@0 {
-+		reg = <0>;
-+
-+		dcss_disp0_mipi_dsi: mipi_dsi {
-+			remote-endpoint = <&mipi_dsi_in>;
-+		};
-+	};
-+};
-+
-+&mipi_dsi_phy {
-+	status = "okay";
-+};
-+
-+&mipi_dsi {
-+	status = "okay";
-+	assigned-clocks = <&clk IMX8MQ_CLK_DSI_PHY_REF>,
-+			  <&clk IMX8MQ_CLK_DSI_CORE>,
-+			  <&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
-+			  <&clk IMX8MQ_VIDEO_PLL1>;
-+	assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
-+				 <&clk IMX8MQ_SYS1_PLL_266M>,
-+				 <&clk IMX8MQ_CLK_25M>;
-+	assigned-clock-rates = <24000000>,
-+			       <266000000>,
-+			       <0>,
-+			       <599999999>;
-+
-+	port@1 {
-+		mipi_dsi_in: endpoint {
-+			remote-endpoint = <&dcss_disp0_mipi_dsi>;
-+		};
-+	};
-+
-+};
-+
-+&mipi_dsi_bridge {
-+	status = "okay";
-+
-+	panel@0 {
-+		compatible = "ilitek,ili9881c";
-+		reg = <0>;
-+		pinctrl-0 = <&pinctrl_mipi_dsi_en>;
-+		enable-gpio = <&gpio3 12 GPIO_ACTIVE_HIGH>;
-+		dsi-lanes = <2>;
-+
-+		port {
-+			panel1_in: endpoint {
-+				remote-endpoint = <&mipi_dsi_bridge_out>;
-+			};
-+		};
-+	};
-+
-+	port@2 {
-+		mipi_dsi_bridge_out: endpoint {
-+			remote-endpoint = <&panel1_in>;
-+		};
-+	};
-+};
-+
-+&iomuxc {
-+	imx8mq-evk {
-+		pinctrl_mipi_dsi_en: mipi_dsi_en {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_NAND_DATA06_GPIO3_IO12	0x16 /*DSI_EN*/
-+			>;
-+		};
-+
-+		pinctrl_pwm1: pwm1_grp {
-+			fsl,pins = <
-+					MX8MQ_IOMUXC_GPIO1_IO01_PWM1_OUT  0x06
-+			>;
-+		};
-+
-+		pinctrl_ts_ft5426: ft5426_pinsgrp {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_NAND_DATA07_GPIO3_IO13  0x19 /* DSI_TS_nINT */
-+				MX8MQ_IOMUXC_GPIO1_IO04_GPIO1_IO4   0x19 /* DSI_TS_RST */
-+			>;
-+		};
-+	};
-+};
-+
-+/ {
-+	backlight {
-+			compatible = "pwm-backlight";
-+			pwms = <&pwm1 0 40000 0>;
-+			brightness-levels = <0 8 32 64 96 128 160 192 224 255>;
-+			default-brightness-level = <8>;
-+			status = "okay";
-+	};
-+};
-+
-+&pwm1 {
-+        pinctrl-names = "default";
-+        pinctrl-0 = <&pinctrl_pwm1>;
-+        status = "okay";
-+};
-+
-+
-+&i2c4 {
-+	ft5426_ts@38 {
-+			compatible = "focaltech,fts";
-+			reg = <0x38>;
-+			pinctrl-0 = <&pinctrl_ts_ft5426>;
-+
-+			interrupt-parent = <&gpio3>;
-+			interrupts = <13 2>;
-+			focaltech,reset-gpio = <&gpio1 4 0x01>;
-+			focaltech,irq-gpio = <&gpio3 13 0x02>;
-+			focaltech,max-touch-number = <10>;
-+			focaltech,panel-type = <0x54260002>;/* _FT5426 */
-+			focaltech,display-coords =  <0 0 720 1280>;
-+			focaltech,have-key;
-+			focaltech,key-number = <3>;
-+			focaltech,keys = <139 102 158>;
-+			focaltech,key-y-coord = <2000>;
-+			focaltech,key-x-coords = <200 600 800>;
-+	};
-+};
-diff --git a/arch/arm64/boot/dts/freescale/em-sbc-imx8m-dcss-lvds.dts b/arch/arm64/boot/dts/freescale/em-sbc-imx8m-dcss-lvds.dts
-new file mode 100755
-index 000000000000..56bf1eed8783
---- /dev/null
-+++ b/arch/arm64/boot/dts/freescale/em-sbc-imx8m-dcss-lvds.dts
-@@ -0,0 +1,181 @@
-+/*
-+ * Copyright 2019 EMBEST
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include "em-sbc-imx8m.dts"
-+
-+/ {
-+	sound-hdmi {
-+		status = "disabled";
-+	};
-+};
-+
-+&hdmi {
-+	status = "disabled";
-+};
-+
-+&dcss {
-+	status = "okay";
-+	disp-dev = "mipi_disp";
-+
-+	clocks = <&clk IMX8MQ_CLK_DISP_APB_ROOT>,
-+		 <&clk IMX8MQ_CLK_DISP_AXI_ROOT>,
-+		 <&clk IMX8MQ_CLK_DISP_RTRM_ROOT>,
-+		 <&clk IMX8MQ_CLK_DC_PIXEL>,
-+		 <&clk IMX8MQ_CLK_DUMMY>,
-+		 <&clk IMX8MQ_CLK_DISP_DTRC>;
-+	clock-names = "apb", "axi", "rtrm", "pix_div", "pix_out", "dtrc";
-+
-+	assigned-clocks = <&clk IMX8MQ_CLK_DC_PIXEL>,
-+			  <&clk IMX8MQ_CLK_DISP_AXI>,
-+			  <&clk IMX8MQ_CLK_DISP_RTRM>,
-+			  <&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
-+			  <&clk IMX8MQ_VIDEO_PLL1>;
-+	assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
-+				 <&clk IMX8MQ_SYS1_PLL_800M>,
-+				 <&clk IMX8MQ_SYS1_PLL_800M>,
-+				 <&clk IMX8MQ_CLK_25M>;
-+	assigned-clock-rates = <600000000>,
-+			       <800000000>,
-+			       <0>,
-+			       <400000000>,
-+			       <599999999>;
-+
-+	dcss_disp0: port@0 {
-+		reg = <0>;
-+
-+		dcss_disp0_mipi_dsi: mipi_dsi {
-+			remote-endpoint = <&mipi_dsi_in>;
-+		};
-+	};
-+};
-+
-+&mipi_dsi_phy {
-+	status = "okay";
-+};
-+
-+&mipi_dsi {
-+	status = "okay";
-+
-+	port@1 {
-+		mipi_dsi_in: endpoint {
-+			remote-endpoint = <&dcss_disp0_mipi_dsi>;
-+		};
-+	};
-+
-+};
-+
-+&mipi_dsi_bridge {
-+	status = "okay";
-+
-+    port@1 {
-+		mipi_dsi_bridge_lvds: endpoint {
-+			remote-endpoint = <&lt2911_in>;
-+		};
-+	};
-+};
-+
-+&i2c4 {
-+    lt2911@29 {
-+		compatible = "lontium,lt2911";
-+		reg = <0x29>;
-+        pinctrl-0 = <&pinctrl_mipi_dsi_en>;
-+        enable-gpio = <&gpio3 12 GPIO_ACTIVE_HIGH>;
-+
-+		port {
-+			lt2911_in: endpoint {
-+				remote-endpoint = <&mipi_dsi_bridge_lvds>;
-+			};
-+		};
-+
-+		display-timings {
-+			native-mode = <&timing1>;
-+			timing1: timing1 {
-+				clock-frequency = <34000000>;
-+				hactive = <1024>;
-+				vactive = <600>;
-+				hfront-porch = <60>;
-+				hsync-len = <60>;
-+				hback-porch = <100>;
-+				vfront-porch = <2>;
-+				vsync-len = <5>;
-+				vback-porch = <10>;
-+				hsync-active = <0>;
-+				vsync-active = <0>;
-+				de-active = <0>;
-+				pixelclk-active = <0>;
-+			};
-+		};
-+	};
-+
-+    ft5426_ts@38 {
-+            compatible = "focaltech,fts";
-+            reg = <0x38>;
-+            pinctrl-0 = <&pinctrl_ts_ft5426>;
-+
-+            interrupt-parent = <&gpio3>;
-+            interrupts = <13 2>;
-+            focaltech,reset-gpio = <&gpio1 4 0x01>;
-+            focaltech,irq-gpio = <&gpio3 13 0x02>;
-+            focaltech,max-touch-number = <5>;
-+            focaltech,panel-type = <0x54260002>; /* _FT5426 */
-+            focaltech,display-coords =  <0 0 1024 600>;
-+            focaltech,have-key;
-+            focaltech,key-number = <3>;
-+            focaltech,keys = <139 102 158>;
-+            focaltech,key-y-coord = <2000>;
-+            focaltech,key-x-coords = <200 600 800>;
-+    };
-+
-+};
-+
-+&iomuxc {
-+	imx8mq-evk {
-+		pinctrl_mipi_dsi_en: mipi_dsi_en {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_NAND_DATA06_GPIO3_IO12	0x16 /*DSI_EN*/
-+			>;
-+		};
-+
-+		pinctrl_ts_ft5426: ft5426_pinsgrp {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_NAND_DATA07_GPIO3_IO13  0x19 /* DSI_TS_nINT */
-+				MX8MQ_IOMUXC_GPIO1_IO04_GPIO1_IO4   0x19 /* DSI_TS_RST */
-+			>;
-+		};
-+
-+		pinctrl_pwm1: pwm1_grp {
-+			fsl,pins = <
-+					MX8MQ_IOMUXC_GPIO1_IO01_PWM1_OUT  0x06
-+			>;
-+		};
-+	};
-+};
-+
-+
-+/ {
-+
-+	lvds_backlight {
-+			compatible = "pwm-backlight";
-+			pwms = <&pwm1 0 40000 0>;
-+			brightness-levels = <0 8 32 64 96 128 160 192 224 255>;
-+			default-brightness-level = <8>;
-+			status = "okay";
-+	};
-+};
-+
-+&pwm1 {
-+        pinctrl-names = "default";
-+        pinctrl-0 = <&pinctrl_pwm1>;
-+        status = "okay";
-+};
-\ No newline at end of file
-diff --git a/arch/arm64/boot/dts/freescale/em-sbc-imx8m-usb0-device.dts b/arch/arm64/boot/dts/freescale/em-sbc-imx8m-usb0-device.dts
-new file mode 100755
-index 000000000000..45a183d59fdf
---- /dev/null
-+++ b/arch/arm64/boot/dts/freescale/em-sbc-imx8m-usb0-device.dts
-@@ -0,0 +1,21 @@
-+/*
-+ * Copyright 2019 EMBEST
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include "em-sbc-imx8m.dts"
-+
-+&usb_dwc3_0 {
-+	status = "okay";
-+	dr_mode = "peripheral";
-+};
-+
-diff --git a/arch/arm64/boot/dts/freescale/em-sbc-imx8m.dts b/arch/arm64/boot/dts/freescale/em-sbc-imx8m.dts
-new file mode 100755
-index 000000000000..a387436dfd80
---- /dev/null
-+++ b/arch/arm64/boot/dts/freescale/em-sbc-imx8m.dts
-@@ -0,0 +1,679 @@
-+/*
-+ * Copyright 2019 EMBEST
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+/dts-v1/;
-+
-+#include "fsl-imx8mq.dtsi"
-+
-+/ {
-+	model = "Freescale i.MX8MQ EVK";
-+	compatible = "fsl,imx8mq-evk", "fsl,imx8mq";
-+
-+	chosen {
-+		bootargs = "console=ttymxc0,115200 earlycon=ec_imx6q,0x30860000,115200";
-+		stdout-path = &uart1;
-+	};
-+
-+	leds {
-+		compatible = "gpio-leds";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_gpio_leds>;
-+		status = "okay";
-+
-+		sys_led {
-+				label = "sys_led";
-+				gpios = <&gpio1 5 0>;
-+				default-state = "on";
-+				linux,default-trigger = "heartbeat";
-+		};
-+
-+		usr_led {
-+				label = "usr_led";
-+				gpios = <&gpio1 8 0>;
-+				default-state = "on";
-+		};
-+
-+	};
-+
-+	gpio_keys {
-+			compatible = "gpio-keys";
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&pinctrl_gpio_keys>;
-+
-+			home {
-+					label = "home Button";
-+					gpios = <&gpio3 7 GPIO_ACTIVE_LOW>;
-+					linux,code = <102>;
-+					gpio-key,wakeup;
-+			};
-+
-+			back {
-+					label = "back Button";
-+					gpios = <&gpio3 6 GPIO_ACTIVE_LOW>;
-+					linux,code = <412>;
-+			};
-+	};
-+
-+	sound-hdmi {
-+		compatible = "fsl,imx8mq-evk-cdnhdmi",
-+				"fsl,imx-audio-cdnhdmi";
-+		model = "imx-audio-hdmi";
-+		audio-cpu = <&sai4>;
-+		protocol = <1>;
-+		hdmi-out;
-+		constraint-rate = <44100>,
-+				<88200>,
-+				<176400>,
-+				<32000>,
-+				<48000>,
-+				<96000>,
-+				<192000>;
-+	};
-+
-+	regulators {
-+		compatible = "simple-bus";
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		reg_3V3WF: regulator@1 {
-+			compatible = "regulator-fixed";
-+			reg = <1>;
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&pinctrl_reg3V3wf>;
-+			regulator-name = "WF_3V3";
-+			regulator-min-microvolt = <3300000>;
-+			regulator-max-microvolt = <3300000>;
-+			gpio = <&gpio2 20 0>;  /* WB_PWR_EN */
-+			regulator-always-on;
-+			enable-active-high;
-+		};
-+	};
-+
-+	wlan_pwrseq: sdio-pwrseq {
-+		compatible = "mmc-pwrseq-simple";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_wlan>;
-+		reset-gpios = <&gpio2 19 GPIO_ACTIVE_LOW>;      /* WL_REG_ON */
-+	};
-+
-+	bt_reset: bt_reset{
-+		compatible = "gpio-reset";
-+		reset-gpios = <&gpio5 11 GPIO_ACTIVE_LOW>;    /* BT_REG_ON */
-+		reset-delay-us = <1000>;
-+		reset-post-delay-ms = <40>;
-+		#reset-cells = <0>;
-+	};
-+
-+	osc: oscillator {
-+			compatible = "fixed-clock";
-+			#clock-cells = <1>;
-+			clock-frequency  = <32768>;
-+			clock-output-names = "osc-pmic";
-+	};
-+};
-+
-+&clk {
-+	assigned-clocks = <&clk IMX8MQ_AUDIO_PLL1>, <&clk IMX8MQ_AUDIO_PLL2>;
-+	assigned-clock-rates = <786432000>, <722534400>;
-+};
-+
-+&iomuxc {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_hog>;
-+
-+	imx8mq-evk {
-+		pinctrl_hog: hoggrp {
-+			fsl,pins = <
-+				/*default GPIOs*/
-+				MX8MQ_IOMUXC_NAND_READY_B_GPIO3_IO16	0x19	/*pin7*/
-+				MX8MQ_IOMUXC_NAND_WE_B_GPIO3_IO17	0x19	/*pin11*/
-+				MX8MQ_IOMUXC_NAND_RE_B_GPIO3_IO15	0x19	/*pin22*/
-+				MX8MQ_IOMUXC_NAND_CLE_GPIO3_IO5		0x19	/*pin29*/
-+				MX8MQ_IOMUXC_NAND_DATA04_GPIO3_IO10	0x19	/*pin31*/
-+				/*MX8MQ_IOMUXC_GPIO1_IO15_GPIO1_IO15 0x19*/ 	/*pin32*/
-+				MX8MQ_IOMUXC_GPIO1_IO13_GPIO1_IO13	0x19	/*pin33*/
-+				MX8MQ_IOMUXC_GPIO1_IO03_GPIO1_IO3	0x19	/*pin36*/
-+				MX8MQ_IOMUXC_NAND_DATA05_GPIO3_IO11	0x19	/*pin37*/
-+				MX8MQ_IOMUXC_GPIO1_IO00_ANAMIX_REF_CLK_32K  0x05
-+			>;
-+		};
-+
-+		pinctrl_gpio_leds: gpio_ledsgrp {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_GPIO1_IO05_GPIO1_IO5                0x19
-+				MX8MQ_IOMUXC_GPIO1_IO08_GPIO1_IO8                0x19
-+			>;
-+		};
-+
-+		pinctrl_gpio_keys: gpio_keysgrp {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_NAND_DATA01_GPIO3_IO7          0x56
-+				MX8MQ_IOMUXC_NAND_DATA00_GPIO3_IO6          0x56
-+			>;
-+		};
-+
-+		pinctrl_uart1: uart1grp {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_UART1_RXD_UART1_DCE_RX		0x49
-+				MX8MQ_IOMUXC_UART1_TXD_UART1_DCE_TX		0x49
-+			>;
-+		};
-+
-+		pinctrl_wlan: wlangrp {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_SD2_RESET_B_GPIO2_IO19		0x19 /* WL_REG_ON */
-+				MX8MQ_IOMUXC_SD2_CD_B_GPIO2_IO12		0x19 /* WL_HOST_WAKE irq */
-+			>;
-+		};
-+		pinctrl_reg3V3wf: reg3V3wfgrp {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_SD2_WP_GPIO2_IO20          0x19     /* WB_PWR_EN */
-+			>;
-+		};
-+
-+		pinctrl_usdhc1: usdhc1grp {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_SD1_CLK_USDHC1_CLK			0x83
-+				MX8MQ_IOMUXC_SD1_CMD_USDHC1_CMD			0xc3
-+				MX8MQ_IOMUXC_SD1_DATA0_USDHC1_DATA0		0xc3
-+				MX8MQ_IOMUXC_SD1_DATA1_USDHC1_DATA1		0xc3
-+				MX8MQ_IOMUXC_SD1_DATA2_USDHC1_DATA2		0xc3
-+				MX8MQ_IOMUXC_SD1_DATA3_USDHC1_DATA3		0xc3
-+				MX8MQ_IOMUXC_GPIO1_IO06_GPIO1_IO6		0x19
-+			>;
-+		};
-+
-+		pinctrl_usdhc1_100mhz: usdhc1grp100mhz {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_SD1_CLK_USDHC1_CLK			0x85
-+				MX8MQ_IOMUXC_SD1_CMD_USDHC1_CMD			0xc5
-+				MX8MQ_IOMUXC_SD1_DATA0_USDHC1_DATA0		0xc5
-+				MX8MQ_IOMUXC_SD1_DATA1_USDHC1_DATA1		0xc5
-+				MX8MQ_IOMUXC_SD1_DATA2_USDHC1_DATA2		0xc5
-+				MX8MQ_IOMUXC_SD1_DATA3_USDHC1_DATA3		0xc5
-+			>;
-+		};
-+
-+		pinctrl_usdhc1_200mhz: usdhc1grp200mhz {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_SD1_CLK_USDHC1_CLK			0x87
-+				MX8MQ_IOMUXC_SD1_CMD_USDHC1_CMD			0xc7
-+				MX8MQ_IOMUXC_SD1_DATA0_USDHC1_DATA0		0xc7
-+				MX8MQ_IOMUXC_SD1_DATA1_USDHC1_DATA1		0xc7
-+				MX8MQ_IOMUXC_SD1_DATA2_USDHC1_DATA2		0xc7
-+				MX8MQ_IOMUXC_SD1_DATA3_USDHC1_DATA3		0xc7
-+			>;
-+		};
-+
-+        pinctrl_usdhc2: usdhc2grp {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_SD2_CLK_USDHC2_CLK                 0x83
-+				MX8MQ_IOMUXC_SD2_CMD_USDHC2_CMD                 0xc3
-+				MX8MQ_IOMUXC_SD2_DATA0_USDHC2_DATA0             0xc3
-+				MX8MQ_IOMUXC_SD2_DATA1_USDHC2_DATA1             0xc3
-+				MX8MQ_IOMUXC_SD2_DATA2_USDHC2_DATA2             0xc3
-+				MX8MQ_IOMUXC_SD2_DATA3_USDHC2_DATA3             0xc3
-+			>;
-+		};
-+
-+		pinctrl_i2c1: i2c1grp {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_I2C1_SCL_I2C1_SCL			0x4000007f
-+				MX8MQ_IOMUXC_I2C1_SDA_I2C1_SDA			0x4000007f
-+			>;
-+		};
-+
-+		pinctrl_i2c2: i2c2grp {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_I2C2_SCL_I2C2_SCL			0x4000007f
-+				MX8MQ_IOMUXC_I2C2_SDA_I2C2_SDA			0x4000007f
-+			>;
-+		};
-+
-+		pinctrl_i2c3: i2c3grp {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_I2C3_SCL_I2C3_SCL			0x4000007f
-+				MX8MQ_IOMUXC_I2C3_SDA_I2C3_SDA			0x4000007f
-+			>;
-+		};
-+
-+		pinctrl_i2c4: i2c4grp {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_I2C4_SCL_I2C4_SCL			0x4000007f
-+				MX8MQ_IOMUXC_I2C4_SDA_I2C4_SDA			0x4000007f
-+			>;
-+		};
-+
-+		pinctrl_csi1: csi1grp {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_NAND_WP_B_GPIO3_IO18		0x19
-+				MX8MQ_IOMUXC_NAND_DQS_GPIO3_IO14		0x19
-+			>;
-+		};
-+
-+		pinctrl_pmic: pmicirq {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_GPIO1_IO07_GPIO1_IO7		0x19
-+			>;
-+		};
-+
-+		pinctrl_wdog: wdoggrp {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_GPIO1_IO02_WDOG1_WDOG_B 0xc6
-+			>;
-+		};
-+
-+		pinctrl_fec1: fec1grp {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_ENET_MDC_ENET1_MDC		0x3
-+				MX8MQ_IOMUXC_ENET_MDIO_ENET1_MDIO	0x23
-+				MX8MQ_IOMUXC_ENET_TD3_ENET1_RGMII_TD3	0x1f
-+				MX8MQ_IOMUXC_ENET_TD2_ENET1_RGMII_TD2	0x1f
-+				MX8MQ_IOMUXC_ENET_TD1_ENET1_RGMII_TD1	0x1f
-+				MX8MQ_IOMUXC_ENET_TD0_ENET1_RGMII_TD0	0x1f
-+				MX8MQ_IOMUXC_ENET_RD3_ENET1_RGMII_RD3	0x91
-+				MX8MQ_IOMUXC_ENET_RD2_ENET1_RGMII_RD2	0x91
-+				MX8MQ_IOMUXC_ENET_RD1_ENET1_RGMII_RD1	0x91
-+				MX8MQ_IOMUXC_ENET_RD0_ENET1_RGMII_RD0	0x91
-+				MX8MQ_IOMUXC_ENET_TXC_ENET1_RGMII_TXC	0x1f
-+				MX8MQ_IOMUXC_ENET_RXC_ENET1_RGMII_RXC	0x91
-+				MX8MQ_IOMUXC_ENET_RX_CTL_ENET1_RGMII_RX_CTL	0x91
-+				MX8MQ_IOMUXC_ENET_TX_CTL_ENET1_RGMII_TX_CTL	0x1f
-+				MX8MQ_IOMUXC_GPIO1_IO09_GPIO1_IO9	0x19
-+			>;
-+		};
-+
-+		pinctrl_uart2: uart2grp {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_UART2_RXD_UART2_DCE_RX		0x49
-+				MX8MQ_IOMUXC_UART2_TXD_UART2_DCE_TX		0x49
-+			>;
-+		};
-+
-+		pinctrl_uart3: uart3grp {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_UART3_TXD_UART3_DCE_TX		0x49
-+				MX8MQ_IOMUXC_UART3_RXD_UART3_DCE_RX		0x49
-+			>;
-+		};
-+
-+		pinctrl_uart4: uart4grp {
-+			fsl,pins = <
-+				MX8MQ_IOMUXC_UART4_RXD_UART4_DCE_RX		0x49
-+				MX8MQ_IOMUXC_UART4_TXD_UART4_DCE_TX		0x49
-+				MX8MQ_IOMUXC_ECSPI2_SS0_UART4_DCE_RTS_B		0x49
-+				MX8MQ_IOMUXC_ECSPI2_MISO_UART4_DCE_CTS_B	0x49
-+
-+				MX8MQ_IOMUXC_ECSPI2_MOSI_GPIO5_IO11		0x19
-+			>;
-+		};
-+
-+	};
-+};
-+
-+/* console */
-+&uart1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_uart1>;
-+	assigned-clocks = <&clk IMX8MQ_CLK_UART1>;
-+	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
-+	status = "okay";
-+};
-+
-+&usdhc1 {
-+	pinctrl-names = "default", "state_100mhz", "state_200mhz";
-+	pinctrl-0 = <&pinctrl_usdhc1>;
-+	non-removable;
-+	bus-width = <4>;
-+	status = "okay";
-+};
-+
-+&usdhc2 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_usdhc2>;
-+	bus-width = <4>;
-+	vmmc-supply = <&reg_3V3WF>;
-+	mmc-pwrseq = <&wlan_pwrseq>;
-+	no-1-8-v;
-+	non-removable;
-+	pm-ignore-notify;
-+	keep-power-in-suspend;
-+	status = "okay";
-+
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+	brcmf: bcrmf@1 {
-+			reg = <1>;
-+			compatible = "brcm,bcm4329-fmac";
-+			interrupt-parent = <&gpio2>;
-+			interrupts = <12 IRQ_TYPE_LEVEL_LOW>;
-+			interrupt-names = "host-wake";
-+        };
-+};
-+
-+&A53_0 {
-+	operating-points = <
-+		/* kHz    uV */
-+		1500000 1000000
-+		1300000 1000000
-+		1000000 900000
-+		800000  900000
-+	>;
-+	/* arm-supply = <&buck2>; */
-+};
-+
-+&wdog1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_wdog>;
-+	fsl,ext-reset-output;
-+	status = "okay";
-+};
-+
-+&gpu_pd {
-+	power-supply = <&buck3>;
-+};
-+
-+&vpu_pd {
-+	power-supply = <&buck4>;
-+};
-+
-+&gpu {
-+       status = "okay";
-+	   gpu-noc-priority = <0x80000600>;
-+};
-+
-+&vpu {
-+	   /delete-property/ regulator-supply;
-+       status = "okay";
-+};
-+
-+&dcss {
-+	status = "okay";
-+	disp-dev = "hdmi_disp";
-+};
-+
-+&hdmi {
-+	status = "okay";
-+};
-+
-+&i2c1 {
-+	clock-frequency = <400000>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_i2c1>;
-+	status = "okay";
-+
-+	pmic: pmic@4b {
-+			compatible = "rohm,bd71837";
-+			reg = <0x4b>;
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&pinctrl_pmic>;
-+			interrupt-parent = <&gpio1>;
-+			interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-+			interrupt-names = "irq-pmic";
-+			#clock-cells = <0>;
-+			clocks = <&osc 0>;
-+			clock-output-names = "bd71837-32k-out";
-+
-+			rohm,pmic-buck1-dvs-voltage = <900000>, <850000>, <800000>;
-+			rohm,pmic-buck2-dvs-voltage = <1000000>, <900000>;
-+			rohm,pmic-buck3-dvs-voltage = <1000000>;
-+			rohm,pmic-buck4-dvs-voltage = <1000000>;
-+			regulators {
-+					buck1: BUCK1 {
-+							regulator-name = "buck1";
-+							regulator-min-microvolt = <810000>;
-+							regulator-max-microvolt = <990000>;
-+							regulator-boot-on;
-+							regulator-always-on;
-+							regulator-ramp-delay = <1250>;
-+					};
-+					buck2: BUCK2 {
-+							regulator-name = "buck2";
-+							regulator-min-microvolt = <810000>;
-+							regulator-max-microvolt = <1100000>;
-+							regulator-boot-on;
-+							regulator-always-on;
-+							regulator-ramp-delay = <1250>;
-+					};
-+					buck3: BUCK3 {
-+							regulator-name = "buck3";
-+							regulator-min-microvolt = <810000>;
-+							regulator-max-microvolt = <1100000>;
-+							regulator-boot-on;
-+							regulator-enable-ramp-delay= <180>;
-+					};
-+					buck4: BUCK4 {
-+							regulator-name = "buck4";
-+							regulator-min-microvolt = <810000>;
-+							regulator-max-microvolt = <1100000>;
-+							regulator-boot-on;
-+							regulator-enable-ramp-delay= <180>;
-+					};
-+					buck5: BUCK5 {
-+							regulator-name = "buck5";
-+							regulator-min-microvolt = <810000>;
-+							regulator-max-microvolt = <1050000>;
-+							regulator-boot-on;
-+							regulator-always-on;
-+					};
-+					buck6: BUCK6 {
-+							regulator-name = "buck6";
-+							regulator-min-microvolt = <3000000>;
-+							regulator-max-microvolt = <3300000>;
-+							regulator-boot-on;
-+							regulator-always-on;
-+					};
-+					buck8: BUCK8 {
-+							regulator-name = "buck8";
-+							regulator-min-microvolt = <1100000>;
-+							regulator-max-microvolt = <1300000>;
-+							regulator-boot-on;
-+							regulator-always-on;
-+					};
-+
-+					ldo1: LDO1 {
-+							regulator-name = "ldo1";
-+							regulator-min-microvolt = <3000000>;
-+							regulator-max-microvolt = <3300000>;
-+							regulator-boot-on;
-+							regulator-always-on;
-+					};
-+					ldo2: LDO2 {
-+							regulator-name = "ldo2";
-+							regulator-min-microvolt = <810000>;
-+							regulator-max-microvolt = <990000>;
-+							regulator-boot-on;
-+							regulator-always-on;
-+					};
-+					ldo3: LDO3 {
-+							regulator-name = "ldo3";
-+							regulator-min-microvolt = <1700000>;
-+							regulator-max-microvolt = <1900000>;
-+							regulator-boot-on;
-+							regulator-always-on;
-+					};
-+					ldo4: LDO4 {
-+							regulator-name = "ldo4";
-+							regulator-min-microvolt = <810000>;
-+							regulator-max-microvolt = <990000>;
-+							regulator-boot-on;
-+							regulator-always-on;
-+					};
-+					ldo7_reg: LDO7 {
-+							regulator-name = "ldo7";
-+							regulator-min-microvolt = <3000000>;
-+							regulator-max-microvolt = <3300000>;
-+							regulator-boot-on;
-+							regulator-always-on;
-+					};
-+			};
-+	};
-+
-+	ov5640_mipi: ov5640_mipi@3c {
-+		compatible = "ovti,ov5640_mipi";
-+		reg = <0x3c>;
-+		status = "okay";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_csi1>;
-+		clocks = <&clk IMX8MQ_CLK_CLKO2>;
-+		clock-names = "csi_mclk";
-+		csi_id = <0>;
-+		pwn-gpios = <&gpio3 14 GPIO_ACTIVE_HIGH>;
-+		rst-gpios = <&gpio3 18 GPIO_ACTIVE_HIGH>;
-+
-+		mclk = <24000000>;
-+		mclk_source = <0>;
-+		port {
-+			ov5640_mipi1_ep: endpoint {
-+				remote-endpoint = <&mipi1_sensor_ep>;
-+			};
-+		};
-+	};
-+
-+};
-+
-+&i2c2 {
-+	clock-frequency = <100000>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_i2c2>;
-+	status = "okay";
-+};
-+
-+&i2c3 {
-+	clock-frequency = <100000>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_i2c3>;
-+	status = "okay";
-+};
-+
-+&i2c4 {
-+	clock-frequency = <400000>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_i2c4>;
-+	status = "okay";
-+};
-+
-+&fec1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_fec1>;
-+	phy-mode = "rgmii-id";
-+	phy-handle = <&ethphy0>;
-+	fsl,magic-packet;
-+	phy-reset-gpios = <&gpio1 9 GPIO_ACTIVE_LOW>;
-+	status = "okay";
-+
-+	mdio {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		ethphy0: ethernet-phy@4 {
-+			compatible = "ethernet-phy-ieee802.3-c22";
-+			reg = <4>;
-+			at803x,led-act-blind-workaround;
-+			at803x,eee-disabled;
-+		};
-+	};
-+};
-+
-+&uart2 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_uart2>;
-+	assigned-clocks = <&clk IMX8MQ_CLK_UART2>;
-+	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
-+	status = "okay";
-+};
-+
-+&uart3 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_uart3>;
-+	assigned-clocks = <&clk IMX8MQ_CLK_UART3>;
-+	assigned-clock-parents = <&clk IMX8MQ_SYS1_PLL_80M>;
-+	status = "disabled";
-+};
-+
-+/* BT */
-+&uart4 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_uart4>;
-+	assigned-clocks = <&clk IMX8MQ_CLK_UART4>;
-+	assigned-clock-parents = <&clk IMX8MQ_SYS1_PLL_80M>;
-+	fsl,uart-has-rtscts;
-+	resets = <&bt_reset>;
-+	status = "okay";
-+};
-+
-+&usb3_phy0 {
-+       status = "okay";
-+};
-+
-+&usb3_0 {
-+       status = "okay";
-+};
-+
-+&usb_dwc3_0 {
-+       /delete-property/ power-domains;
-+	status = "okay";
-+	dr_mode = "host";
-+};
-+
-+&usb3_phy1 {
-+	status = "okay";
-+};
-+
-+&usb3_1 {
-+	status = "okay";
-+};
-+
-+&usb_dwc3_1 {
-+	status = "okay";
-+	dr_mode = "host";
-+};
-+
-+&sai4 {
-+	assigned-clocks = <&clk IMX8MQ_CLK_SAI4>;
-+	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
-+	assigned-clock-rates = <24576000>;
-+	clocks = <&clk IMX8MQ_CLK_SAI4_IPG>, <&clk IMX8MQ_CLK_DUMMY>,
-+		<&clk IMX8MQ_CLK_SAI4_ROOT>, <&clk IMX8MQ_CLK_DUMMY>,
-+		<&clk IMX8MQ_CLK_DUMMY>, <&clk IMX8MQ_AUDIO_PLL1_OUT>,
-+		<&clk IMX8MQ_AUDIO_PLL2_OUT>;
-+	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k", "pll11k";
-+	status = "okay";
-+};
-+&csi1_bridge {
-+	fsl,mipi-mode;
-+	fsl,two-8bit-sensor-mode;
-+	status = "okay";
-+
-+	port {
-+		csi1_ep: endpoint {
-+			remote-endpoint = <&csi1_mipi_ep>;
-+		};
-+	};
-+};
-+&mipi_csi_1 {
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+	status = "okay";
-+	port {
-+		mipi1_sensor_ep: endpoint1 {
-+			remote-endpoint = <&ov5640_mipi1_ep>;
-+			data-lanes = <1 2>;
-+		};
-+
-+		csi1_mipi_ep: endpoint2 {
-+			remote-endpoint = <&csi1_ep>;
-+		};
-+	};
-+};
 diff --git a/arch/arm64/boot/dts/freescale/em-sbc-imx8m_v0.dts b/arch/arm64/boot/dts/freescale/em-sbc-imx8m_v0.dts
 new file mode 100755
 index 000000000000..11005f0c6e69
@@ -2004,11 +926,1177 @@ index 000000000000..11005f0c6e69
 +		};
 +	};
 +};
-diff --git a/arch/arm64/configs/em-sbc-imx8m_defconfig b/arch/arm64/configs/em-sbc-imx8m_defconfig
+diff --git a/arch/arm64/boot/dts/freescale/maaxboard-dcss-common.dtsi b/arch/arm64/boot/dts/freescale/maaxboard-dcss-common.dtsi
 new file mode 100755
-index 000000000000..f22247c1b457
+index 000000000000..949220773c63
 --- /dev/null
-+++ b/arch/arm64/configs/em-sbc-imx8m_defconfig
++++ b/arch/arm64/boot/dts/freescale/maaxboard-dcss-common.dtsi
+@@ -0,0 +1,143 @@
++/*
++ * Copyright 2019 EMBEST
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++/ {
++	backlight: backlight {
++			compatible = "pwm-backlight";
++			pwms = <&pwm1 0 40000 0>;
++			brightness-levels = <0 8 32 64 96 128 160 192 224 255>;
++			default-brightness-level = <8>;
++			status = "disabled";
++	};
++};
++
++&iomuxc {
++	imx8mq-evk {
++		pinctrl_mipi_dsi_en: mipi_dsi_en {
++			fsl,pins = <
++				MX8MQ_IOMUXC_NAND_DATA06_GPIO3_IO12		0x16  /* DSI_EN */
++			>;
++		};
++
++		pinctrl_ts_ft5426: ft5426_pinsgrp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_NAND_DATA07_GPIO3_IO13		0x19  /* DSI_TS_nINT */
++				MX8MQ_IOMUXC_GPIO1_IO04_GPIO1_IO4		0x19  /* DSI_TS_RST  */
++			>;
++		};
++
++		pinctrl_pwm1: pwm1_grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_GPIO1_IO01_PWM1_OUT		0x06
++			>;
++		};
++	};
++};
++
++&dcss {
++	status = "okay";
++	disp-dev = "mipi_disp";
++
++	clocks = <&clk IMX8MQ_CLK_DISP_APB_ROOT>,
++		 <&clk IMX8MQ_CLK_DISP_AXI_ROOT>,
++		 <&clk IMX8MQ_CLK_DISP_RTRM_ROOT>,
++		 <&clk IMX8MQ_CLK_DC_PIXEL>,
++		 <&clk IMX8MQ_CLK_DUMMY>,
++		 <&clk IMX8MQ_CLK_DISP_DTRC>;
++	clock-names = "apb", "axi", "rtrm", "pix_div", "pix_out", "dtrc";
++
++	assigned-clocks = <&clk IMX8MQ_CLK_DC_PIXEL>,
++			  <&clk IMX8MQ_CLK_DISP_AXI>,
++			  <&clk IMX8MQ_CLK_DISP_RTRM>,
++			  <&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
++			  <&clk IMX8MQ_VIDEO_PLL1>;
++	assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
++				 <&clk IMX8MQ_SYS1_PLL_800M>,
++				 <&clk IMX8MQ_SYS1_PLL_800M>,
++				 <&clk IMX8MQ_CLK_25M>;
++	assigned-clock-rates = <600000000>,
++			       <800000000>,
++			       <0>,
++			       <400000000>,
++			       <599999999>;
++
++	dcss_disp0: port@0 {
++		reg = <0>;
++
++		dcss_disp0_mipi_dsi: mipi_dsi {
++			remote-endpoint = <&mipi_dsi_in>;
++		};
++	};
++};
++
++&mipi_dsi_phy {
++	status = "okay";
++};
++
++&mipi_dsi {
++	status = "okay";
++	assigned-clocks = <&clk IMX8MQ_CLK_DSI_PHY_REF>,
++			  <&clk IMX8MQ_CLK_DSI_CORE>,
++			  <&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
++			  <&clk IMX8MQ_VIDEO_PLL1>;
++	assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
++				 <&clk IMX8MQ_SYS1_PLL_266M>,
++				 <&clk IMX8MQ_CLK_25M>;
++	assigned-clock-rates = <24000000>,
++			       <266000000>,
++			       <0>,
++			       <599999999>;
++
++	port@1 {
++		mipi_dsi_in: endpoint {
++			remote-endpoint = <&dcss_disp0_mipi_dsi>;
++		};
++	};
++
++};
++
++&mipi_dsi_bridge {
++	status = "disabled";
++};
++
++&pwm1 {
++        pinctrl-names = "default";
++        pinctrl-0 = <&pinctrl_pwm1>;
++        status = "disabled";
++};
++
++&i2c4 {
++	status = "okay";
++
++	ft5426: ft5426_ts@38 {
++		compatible = "focaltech,fts";
++		reg = <0x38>;
++		pinctrl-0 = <&pinctrl_ts_ft5426>;
++
++		interrupt-parent = <&gpio3>;
++		interrupts = <13 2>;
++		focaltech,reset-gpio = <&gpio1 4 0x01>;
++		focaltech,irq-gpio = <&gpio3 13 0x02>;
++		focaltech,max-touch-number = <10>;
++		focaltech,panel-type = <0x54260002>; /* _FT5426 */
++		focaltech,display-coords =  <0 0 720 1280>;
++		focaltech,have-key;
++		focaltech,key-number = <3>;
++		focaltech,keys = <139 102 158>;
++		focaltech,key-y-coord = <2000>;
++		focaltech,key-x-coords = <200 600 800>;
++		status = "disabled";
++	};
++};
++
+diff --git a/arch/arm64/boot/dts/freescale/maaxboard-dcss-hdmi.dts b/arch/arm64/boot/dts/freescale/maaxboard-dcss-hdmi.dts
+new file mode 100755
+index 000000000000..b4e2e57b4c56
+--- /dev/null
++++ b/arch/arm64/boot/dts/freescale/maaxboard-dcss-hdmi.dts
+@@ -0,0 +1,33 @@
++/*
++ * Copyright 2019 EMBEST
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include "maaxboard.dtsi"
++#include "maaxboard-extended-gpio.dtsi"
++
++&dcss {
++	status = "okay";
++	disp-dev = "hdmi_disp";
++};
++
++&hdmi {
++	status = "okay";
++};
++
++&hdmi_audio {
++	status = "okay";
++};
++
++&sai4 {
++	status = "okay";
++};
+diff --git a/arch/arm64/boot/dts/freescale/maaxboard-dcss-lvds.dts b/arch/arm64/boot/dts/freescale/maaxboard-dcss-lvds.dts
+new file mode 100755
+index 000000000000..1b88ce0f7be6
+--- /dev/null
++++ b/arch/arm64/boot/dts/freescale/maaxboard-dcss-lvds.dts
+@@ -0,0 +1,76 @@
++/*
++ * Copyright 2019 EMBEST
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include "maaxboard.dtsi"
++#include "maaxboard-extended-gpio.dtsi"
++#include "maaxboard-dcss-common.dtsi"
++
++&mipi_dsi_bridge {
++	status = "okay";
++
++    port@1 {
++		mipi_dsi_bridge_lvds: endpoint {
++			remote-endpoint = <&lt2911_in>;
++		};
++	};
++};
++
++&i2c4 {
++    lt2911@29 {
++		compatible = "lontium,lt2911";
++		reg = <0x29>;
++		pinctrl-0 = <&pinctrl_mipi_dsi_en>;
++		enable-gpio = <&gpio3 12 GPIO_ACTIVE_HIGH>;
++
++		port {
++			lt2911_in: endpoint {
++				remote-endpoint = <&mipi_dsi_bridge_lvds>;
++			};
++		};
++
++		display-timings {
++			native-mode = <&timing1>;
++			timing1: timing1 {
++				clock-frequency = <34000000>;
++				hactive = <1024>;
++				vactive = <600>;
++				hfront-porch = <60>;
++				hsync-len = <60>;
++				hback-porch = <100>;
++				vfront-porch = <2>;
++				vsync-len = <5>;
++				vback-porch = <10>;
++				hsync-active = <0>;
++				vsync-active = <0>;
++				de-active = <0>;
++				pixelclk-active = <0>;
++			};
++		};
++	};
++};
++
++&pwm1 {
++        status = "okay";
++};
++
++&backlight {
++	status = "okay";
++};
++
++&ft5426 {
++	status = "okay";
++
++	focaltech,max-touch-number = <5>;
++	focaltech,display-coords =  <0 0 1024 600>;
++};
+diff --git a/arch/arm64/boot/dts/freescale/maaxboard-dcss-mipi.dts b/arch/arm64/boot/dts/freescale/maaxboard-dcss-mipi.dts
+new file mode 100755
+index 000000000000..25a4beb8b341
+--- /dev/null
++++ b/arch/arm64/boot/dts/freescale/maaxboard-dcss-mipi.dts
+@@ -0,0 +1,53 @@
++/*
++ * Copyright 2019 EMBEST
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include "maaxboard.dtsi"
++#include "maaxboard-extended-gpio.dtsi"
++#include "maaxboard-dcss-common.dtsi"
++
++&mipi_dsi_bridge {
++	status = "okay";
++
++	panel@0 {
++		compatible = "ilitek,ili9881c";
++		reg = <0>;
++		pinctrl-0 = <&pinctrl_mipi_dsi_en>;
++		enable-gpio = <&gpio3 12 GPIO_ACTIVE_HIGH>;
++		dsi-lanes = <2>;
++
++		port {
++			panel1_in: endpoint {
++				remote-endpoint = <&mipi_dsi_bridge_out>;
++			};
++		};
++	};
++
++	port@2 {
++		mipi_dsi_bridge_out: endpoint {
++			remote-endpoint = <&panel1_in>;
++		};
++	};
++};
++
++&pwm1 {
++        status = "okay";
++};
++
++&backlight {
++	status = "okay";
++};
++
++&ft5426 {
++	status = "okay";
++};
+diff --git a/arch/arm64/boot/dts/freescale/maaxboard-default-gpio.dtsi b/arch/arm64/boot/dts/freescale/maaxboard-default-gpio.dtsi
+new file mode 100755
+index 000000000000..9f37698cf654
+--- /dev/null
++++ b/arch/arm64/boot/dts/freescale/maaxboard-default-gpio.dtsi
+@@ -0,0 +1,53 @@
++/*
++ * Copyright 2019 EMBEST
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++/* 40-pin extended GPIO, as the default gpio function */
++
++&iomuxc {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_hog>;
++
++	imx8mq-evk {
++		pinctrl_hog: hoggrp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_I2C2_SCL_GPIO5_IO16		0x19	/* PIN 3,  GPIO 2  */
++				MX8MQ_IOMUXC_I2C2_SDA_GPIO5_IO17		0x19	/* PIN 5,  GPIO 3  */
++				MX8MQ_IOMUXC_I2C3_SCL_GPIO5_IO18		0x19	/* PIN 28, GPIO 1  */
++				MX8MQ_IOMUXC_I2C3_SDA_GPIO5_IO19		0x19	/* PIN 27, GPIO 0  */
++				MX8MQ_IOMUXC_UART2_RXD_GPIO5_IO24		0x19	/* PIN 16, GPIO 23 */
++				MX8MQ_IOMUXC_UART2_TXD_GPIO5_IO25		0x19	/* PIN 18, GPIO 24 */
++				MX8MQ_IOMUXC_ECSPI1_MOSI_GPIO5_IO7		0x19	/* PIN 13, GPIO 10 */
++				MX8MQ_IOMUXC_ECSPI1_MISO_GPIO5_IO8		0x19	/* PIN 21, GPIO 9  */
++				MX8MQ_IOMUXC_ECSPI1_SCLK_GPIO5_IO6		0x19	/* PIN 23, GPIO 11 */
++				MX8MQ_IOMUXC_ECSPI1_SS0_GPIO5_IO9		0x19	/* PIN 24, GPIO 8  */
++				MX8MQ_IOMUXC_NAND_READY_B_GPIO3_IO16	0x19	/* PIN 7,  GPIO 4  */
++				MX8MQ_IOMUXC_NAND_WE_B_GPIO3_IO17		0x19	/* PIN 11, GPIO 17 */
++				MX8MQ_IOMUXC_NAND_DATA02_GPIO3_IO8		0x19	/* PIN 13, GPIO 27 */
++				MX8MQ_IOMUXC_NAND_DATA03_GPIO3_IO9		0x19	/* PIN 15, GPIO 22 */
++				MX8MQ_IOMUXC_NAND_RE_B_GPIO3_IO15		0x19	/* PIN 22, GPIO 25 */
++				MX8MQ_IOMUXC_GPIO1_IO03_GPIO1_IO3		0x19	/* PIN 36, GPIO 16 */
++				MX8MQ_IOMUXC_NAND_DATA05_GPIO3_IO11		0x19	/* PIN 37, GPIO 26 */
++				MX8MQ_IOMUXC_NAND_CE1_B_GPIO3_IO2		0x19	/* PIN 26, GPIO 8  */
++				MX8MQ_IOMUXC_GPIO1_IO15_GPIO1_IO15		0x19	/* PIN 32, GPIO 12 */
++				MX8MQ_IOMUXC_GPIO1_IO13_GPIO1_IO13		0x19	/* PIN 33, GPIO 13 */
++				MX8MQ_IOMUXC_NAND_CLE_GPIO3_IO5			0x19	/* PIN 29, GPIO 5  */
++				MX8MQ_IOMUXC_NAND_DATA04_GPIO3_IO10		0x19	/* PIN 31, GPIO 6  */
++				MX8MQ_IOMUXC_SAI2_TXC_GPIO4_IO25		0x19	/* PIN 12, GPIO 18 */
++				MX8MQ_IOMUXC_SAI2_RXFS_GPIO4_IO21		0x19	/* PIN 35, GPIO 19 */
++				MX8MQ_IOMUXC_SAI2_RXD0_GPIO4_IO23		0x19	/* PIN 38, GPIO 20 */
++				MX8MQ_IOMUXC_SAI2_TXD0_GPIO4_IO26		0x19	/* PIN 40, GPIO 21 */
++			>;
++		};
++	};
++};
+\ No newline at end of file
+diff --git a/arch/arm64/boot/dts/freescale/maaxboard-extended-gpio.dtsi b/arch/arm64/boot/dts/freescale/maaxboard-extended-gpio.dtsi
+new file mode 100755
+index 000000000000..e5a338f36056
+--- /dev/null
++++ b/arch/arm64/boot/dts/freescale/maaxboard-extended-gpio.dtsi
+@@ -0,0 +1,135 @@
++/*
++ * Copyright 2019 EMBEST
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++/* 40-pin extended GPIO, expanded into SPI, I2C, PWM and other interfaces */
++
++&iomuxc {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_hog>;
++
++	imx8mq-evk {
++		pinctrl_hog: hoggrp {
++			fsl,pins = <
++				/*Default GPIOs*/
++				MX8MQ_IOMUXC_NAND_READY_B_GPIO3_IO16	0x19	/* PIN 7,  GPIO 4  */
++				MX8MQ_IOMUXC_NAND_WE_B_GPIO3_IO17		0x19	/* PIN 11, GPIO 17 */
++				MX8MQ_IOMUXC_NAND_DATA02_GPIO3_IO8		0x19	/* PIN 13, GPIO 27 */
++				MX8MQ_IOMUXC_NAND_DATA03_GPIO3_IO9		0x19	/* PIN 15, GPIO 22 */
++				MX8MQ_IOMUXC_NAND_RE_B_GPIO3_IO15		0x19	/* PIN 22, GPIO 25 */
++				MX8MQ_IOMUXC_GPIO1_IO03_GPIO1_IO3		0x19	/* PIN 36, GPIO 16 */
++				MX8MQ_IOMUXC_NAND_DATA05_GPIO3_IO11		0x19	/* PIN 37, GPIO 26 */
++				MX8MQ_IOMUXC_NAND_CE1_B_GPIO3_IO2		0x19	/* PIN 26, GPIO 8  */
++				MX8MQ_IOMUXC_NAND_CLE_GPIO3_IO5			0x19	/* PIN 29, GPIO 5  */
++				MX8MQ_IOMUXC_NAND_DATA04_GPIO3_IO10		0x19	/* PIN 31, GPIO 6  */
++				MX8MQ_IOMUXC_SAI2_TXC_GPIO4_IO25		0x19	/* PIN 12, GPIO 18 */
++				MX8MQ_IOMUXC_SAI2_RXFS_GPIO4_IO21		0x19	/* PIN 35, GPIO 19 */
++				MX8MQ_IOMUXC_SAI2_RXD0_GPIO4_IO23		0x19	/* PIN 38, GPIO 20 */
++				MX8MQ_IOMUXC_SAI2_TXD0_GPIO4_IO26		0x19	/* PIN 40, GPIO 21 */
++			>;
++		};
++
++		pinctrl_ecspi1: ecspi1grp {
++				fsl,pins = <
++				MX8MQ_IOMUXC_ECSPI1_SS0_GPIO5_IO9		0x16
++				MX8MQ_IOMUXC_ECSPI1_MOSI_ECSPI1_MOSI	0x16
++				MX8MQ_IOMUXC_ECSPI1_MISO_ECSPI1_MISO	0x16
++				MX8MQ_IOMUXC_ECSPI1_SCLK_ECSPI1_SCLK	0x1816
++			>;
++		};
++
++		pinctrl_i2c2: i2c2grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_I2C2_SCL_I2C2_SCL			0x4000007f
++				MX8MQ_IOMUXC_I2C2_SDA_I2C2_SDA			0x4000007f
++			>;
++		};
++
++		pinctrl_i2c3: i2c3grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_I2C3_SCL_I2C3_SCL			0x4000007f
++				MX8MQ_IOMUXC_I2C3_SDA_I2C3_SDA			0x4000007f
++			>;
++		};
++
++		pinctrl_uart2: uart2grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_UART2_RXD_UART2_DCE_RX		0x49
++				MX8MQ_IOMUXC_UART2_TXD_UART2_DCE_TX		0x49
++			>;
++		};
++
++		pinctrl_pwm2: pwm1_grp {
++			fsl,pins = <
++					MX8MQ_IOMUXC_GPIO1_IO13_PWM2_OUT	0x06
++			>;
++		};
++
++		pinctrl_pwm4: pwm1_grp {
++			fsl,pins = <
++					MX8MQ_IOMUXC_GPIO1_IO15_PWM4_OUT	0x06
++			>;
++		};
++	};
++};
++
++&ecspi1{
++	fsl,spi-num-chipselects = < 1 >;
++	cs-gpios = <&gpio5 13 0 > ;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_ecspi1 >;
++	status = "okay";
++	#address-cells=<1>;
++	#size-cells=<0>;
++	spidev@0x00{
++		#address-cellss=<1>;
++		#size-cells=<1>;
++		compatible = "spidev", "semtech,sx1301";
++		spi-max-frequency = <20000000>;
++		reg = <0>;
++	};
++};
++
++&i2c2 {
++	clock-frequency = <100000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c2>;
++	status = "okay";
++};
++
++&i2c3 {
++	clock-frequency = <100000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c3>;
++	status = "okay";
++};
++
++&uart2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_uart2>;
++	assigned-clocks = <&clk IMX8MQ_CLK_UART2>;
++	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
++	status = "okay";
++};
++
++&pwm2 {
++        pinctrl-names = "default";
++        pinctrl-0 = <&pinctrl_pwm2>;
++        status = "okay";
++};
++
++&pwm4 {
++        pinctrl-names = "default";
++        pinctrl-0 = <&pinctrl_pwm4>;
++        status = "okay";
++};
+\ No newline at end of file
+diff --git a/arch/arm64/boot/dts/freescale/maaxboard-usb0-device.dts b/arch/arm64/boot/dts/freescale/maaxboard-usb0-device.dts
+new file mode 100755
+index 000000000000..c137937a91bd
+--- /dev/null
++++ b/arch/arm64/boot/dts/freescale/maaxboard-usb0-device.dts
+@@ -0,0 +1,21 @@
++/*
++ * Copyright 2019 EMBEST
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include "maaxboard-dcss-hdmi.dts"
++
++&usb_dwc3_0 {
++	status = "okay";
++	dr_mode = "peripheral";
++};
++
+diff --git a/arch/arm64/boot/dts/freescale/maaxboard.dtsi b/arch/arm64/boot/dts/freescale/maaxboard.dtsi
+new file mode 100755
+index 000000000000..bc7733641824
+--- /dev/null
++++ b/arch/arm64/boot/dts/freescale/maaxboard.dtsi
+@@ -0,0 +1,602 @@
++/*
++ * Copyright 2019 EMBEST
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++/dts-v1/;
++
++#include "fsl-imx8mq.dtsi"
++
++/ {
++	model = "Avnet Maaxboard";
++	compatible = "avnet/embest,maaxboard", "fsl,imx8mq";
++
++	chosen {
++		bootargs = "console=ttymxc0,115200 earlycon=ec_imx6q,0x30860000,115200";
++		stdout-path = &uart1;
++	};
++
++	leds {
++		compatible = "gpio-leds";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_gpio_leds>;
++		status = "okay";
++
++		sys_led {
++				label = "sys_led";
++				gpios = <&gpio1 5 0>;
++				default-state = "on";
++				linux,default-trigger = "heartbeat";
++		};
++
++		usr_led {
++				label = "usr_led";
++				gpios = <&gpio1 8 0>;
++				default-state = "on";
++		};
++
++	};
++
++	gpio_keys {
++			compatible = "gpio-keys";
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_gpio_keys>;
++
++			home {
++					label = "home Button";
++					gpios = <&gpio3 7 GPIO_ACTIVE_LOW>;
++					linux,code = <102>;
++					gpio-key,wakeup;
++			};
++
++			back {
++					label = "back Button";
++					gpios = <&gpio3 6 GPIO_ACTIVE_LOW>;
++					linux,code = <412>;
++			};
++	};
++
++    gpiomem {
++			compatible = "maaxboard,maaxboard-gpiomem";
++			status = "okay";
++	};
++
++	hdmi_audio: sound-hdmi {
++		compatible = "fsl,imx8mq-evk-cdnhdmi",
++				"fsl,imx-audio-cdnhdmi";
++		model = "imx-audio-hdmi";
++		audio-cpu = <&sai4>;
++		protocol = <1>;
++		status = "disabled";
++
++		hdmi-out;
++		constraint-rate = <44100>,
++				<88200>,
++				<176400>,
++				<32000>,
++				<48000>,
++				<96000>,
++				<192000>;
++
++	};
++
++	regulators {
++		compatible = "simple-bus";
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		reg_3V3WF: regulator@1 {
++			compatible = "regulator-fixed";
++			reg = <1>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_reg3V3wf>;
++			regulator-name = "WF_3V3";
++			regulator-min-microvolt = <3300000>;
++			regulator-max-microvolt = <3300000>;
++			gpio = <&gpio2 20 0>;  /* WB_PWR_EN */
++			regulator-always-on;
++			enable-active-high;
++		};
++	};
++
++	wlan_pwrseq: sdio-pwrseq {
++		compatible = "mmc-pwrseq-simple";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_wlan>;
++		reset-gpios = <&gpio2 19 GPIO_ACTIVE_LOW>;    /* WL_REG_ON */
++	};
++
++	bt_reset: bt_reset{
++		compatible = "gpio-reset";
++		reset-gpios = <&gpio5 11 GPIO_ACTIVE_LOW>;    /* BT_REG_ON */
++		reset-delay-us = <1000>;
++		reset-post-delay-ms = <40>;
++		#reset-cells = <0>;
++	};
++
++	osc: oscillator {
++			compatible = "fixed-clock";
++			#clock-cells = <1>;
++			clock-frequency  = <32768>;
++			clock-output-names = "osc-pmic";
++	};
++};
++
++&clk {
++	assigned-clocks = <&clk IMX8MQ_AUDIO_PLL1>, <&clk IMX8MQ_AUDIO_PLL2>;
++	assigned-clock-rates = <786432000>, <722534400>;
++};
++
++&iomuxc {
++	imx8mq-evk {
++		pinctrl_gpio_leds: gpio_ledsgrp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_GPIO1_IO05_GPIO1_IO5           0x19
++				MX8MQ_IOMUXC_GPIO1_IO08_GPIO1_IO8           0x19
++			>;
++		};
++
++		pinctrl_gpio_keys: gpio_keysgrp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_NAND_DATA01_GPIO3_IO7          0x56
++				MX8MQ_IOMUXC_NAND_DATA00_GPIO3_IO6          0x56
++			>;
++		};
++
++		pinctrl_uart1: uart1grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_UART1_RXD_UART1_DCE_RX         0x49
++				MX8MQ_IOMUXC_UART1_TXD_UART1_DCE_TX         0x49
++			>;
++		};
++
++		pinctrl_uart4: uart4grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_UART4_RXD_UART4_DCE_RX		0x49
++				MX8MQ_IOMUXC_UART4_TXD_UART4_DCE_TX		0x49
++				MX8MQ_IOMUXC_ECSPI2_SS0_UART4_DCE_RTS_B		0x49
++				MX8MQ_IOMUXC_ECSPI2_MISO_UART4_DCE_CTS_B	0x49
++
++				MX8MQ_IOMUXC_ECSPI2_MOSI_GPIO5_IO11		0x19
++			>;
++		};
++
++		pinctrl_wlan: wlangrp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_SD2_RESET_B_GPIO2_IO19		0x19  /* WL_REG_ON */
++				MX8MQ_IOMUXC_SD2_CD_B_GPIO2_IO12		0x19  /* WL_HOST_WAKE irq */
++				MX8MQ_IOMUXC_GPIO1_IO00_ANAMIX_REF_CLK_32K  0x05 /* 32K CLK IN */
++			>;
++		};
++		pinctrl_reg3V3wf: reg3V3wfgrp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_SD2_WP_GPIO2_IO20          0x19   /* WB_PWR_EN */
++			>;
++		};
++
++		pinctrl_usdhc1: usdhc1grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_SD1_CLK_USDHC1_CLK			0x83
++				MX8MQ_IOMUXC_SD1_CMD_USDHC1_CMD			0xc3
++				MX8MQ_IOMUXC_SD1_DATA0_USDHC1_DATA0		0xc3
++				MX8MQ_IOMUXC_SD1_DATA1_USDHC1_DATA1		0xc3
++				MX8MQ_IOMUXC_SD1_DATA2_USDHC1_DATA2		0xc3
++				MX8MQ_IOMUXC_SD1_DATA3_USDHC1_DATA3		0xc3
++				MX8MQ_IOMUXC_GPIO1_IO06_GPIO1_IO6		0x19
++			>;
++		};
++
++		pinctrl_usdhc1_100mhz: usdhc1grp100mhz {
++			fsl,pins = <
++				MX8MQ_IOMUXC_SD1_CLK_USDHC1_CLK			0x85
++				MX8MQ_IOMUXC_SD1_CMD_USDHC1_CMD			0xc5
++				MX8MQ_IOMUXC_SD1_DATA0_USDHC1_DATA0		0xc5
++				MX8MQ_IOMUXC_SD1_DATA1_USDHC1_DATA1		0xc5
++				MX8MQ_IOMUXC_SD1_DATA2_USDHC1_DATA2		0xc5
++				MX8MQ_IOMUXC_SD1_DATA3_USDHC1_DATA3		0xc5
++			>;
++		};
++
++		pinctrl_usdhc1_200mhz: usdhc1grp200mhz {
++			fsl,pins = <
++				MX8MQ_IOMUXC_SD1_CLK_USDHC1_CLK			0x87
++				MX8MQ_IOMUXC_SD1_CMD_USDHC1_CMD			0xc7
++				MX8MQ_IOMUXC_SD1_DATA0_USDHC1_DATA0		0xc7
++				MX8MQ_IOMUXC_SD1_DATA1_USDHC1_DATA1		0xc7
++				MX8MQ_IOMUXC_SD1_DATA2_USDHC1_DATA2		0xc7
++				MX8MQ_IOMUXC_SD1_DATA3_USDHC1_DATA3		0xc7
++			>;
++		};
++
++        pinctrl_usdhc2: usdhc2grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_SD2_CLK_USDHC2_CLK          0x83
++				MX8MQ_IOMUXC_SD2_CMD_USDHC2_CMD          0xc3
++				MX8MQ_IOMUXC_SD2_DATA0_USDHC2_DATA0      0xc3
++				MX8MQ_IOMUXC_SD2_DATA1_USDHC2_DATA1      0xc3
++				MX8MQ_IOMUXC_SD2_DATA2_USDHC2_DATA2      0xc3
++				MX8MQ_IOMUXC_SD2_DATA3_USDHC2_DATA3      0xc3
++			>;
++		};
++
++		pinctrl_i2c1: i2c1grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_I2C1_SCL_I2C1_SCL			0x4000007f
++				MX8MQ_IOMUXC_I2C1_SDA_I2C1_SDA			0x4000007f
++			>;
++		};
++
++		pinctrl_i2c4: i2c4grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_I2C4_SCL_I2C4_SCL			0x4000007f
++				MX8MQ_IOMUXC_I2C4_SDA_I2C4_SDA			0x4000007f
++			>;
++		};
++
++		pinctrl_csi1: csi1grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_NAND_WP_B_GPIO3_IO18		0x19
++				MX8MQ_IOMUXC_NAND_DQS_GPIO3_IO14		0x19
++			>;
++		};
++
++		pinctrl_pmic: pmicirq {
++			fsl,pins = <
++				MX8MQ_IOMUXC_GPIO1_IO07_GPIO1_IO7		0x19
++			>;
++		};
++
++		pinctrl_wdog: wdoggrp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_GPIO1_IO02_WDOG1_WDOG_B 0xc6
++			>;
++		};
++
++		pinctrl_fec1: fec1grp {
++			fsl,pins = <
++				MX8MQ_IOMUXC_ENET_MDC_ENET1_MDC			0x3
++				MX8MQ_IOMUXC_ENET_MDIO_ENET1_MDIO		0x23
++				MX8MQ_IOMUXC_ENET_TD3_ENET1_RGMII_TD3	0x1f
++				MX8MQ_IOMUXC_ENET_TD2_ENET1_RGMII_TD2	0x1f
++				MX8MQ_IOMUXC_ENET_TD1_ENET1_RGMII_TD1	0x1f
++				MX8MQ_IOMUXC_ENET_TD0_ENET1_RGMII_TD0	0x1f
++				MX8MQ_IOMUXC_ENET_RD3_ENET1_RGMII_RD3	0x91
++				MX8MQ_IOMUXC_ENET_RD2_ENET1_RGMII_RD2	0x91
++				MX8MQ_IOMUXC_ENET_RD1_ENET1_RGMII_RD1	0x91
++				MX8MQ_IOMUXC_ENET_RD0_ENET1_RGMII_RD0	0x91
++				MX8MQ_IOMUXC_ENET_TXC_ENET1_RGMII_TXC	0x1f
++				MX8MQ_IOMUXC_ENET_RXC_ENET1_RGMII_RXC	0x91
++				MX8MQ_IOMUXC_ENET_RX_CTL_ENET1_RGMII_RX_CTL	0x91
++				MX8MQ_IOMUXC_ENET_TX_CTL_ENET1_RGMII_TX_CTL	0x1f
++				MX8MQ_IOMUXC_GPIO1_IO09_GPIO1_IO9		0x19
++			>;
++		};
++	};
++};
++
++/* console */
++&uart1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_uart1>;
++	assigned-clocks = <&clk IMX8MQ_CLK_UART1>;
++	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
++	status = "okay";
++};
++
++/* BT */
++&uart4 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_uart4>;
++	assigned-clocks = <&clk IMX8MQ_CLK_UART4>;
++	assigned-clock-parents = <&clk IMX8MQ_SYS1_PLL_80M>;
++	fsl,uart-has-rtscts;
++	resets = <&bt_reset>;
++	status = "okay";
++};
++
++&usdhc1 {
++	pinctrl-names = "default", "state_100mhz", "state_200mhz";
++	pinctrl-0 = <&pinctrl_usdhc1>;
++	non-removable;
++	bus-width = <4>;
++	status = "okay";
++};
++
++&usdhc2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_usdhc2>;
++	bus-width = <4>;
++	vmmc-supply = <&reg_3V3WF>;
++	mmc-pwrseq = <&wlan_pwrseq>;
++	no-1-8-v;
++	non-removable;
++	pm-ignore-notify;
++	keep-power-in-suspend;
++	status = "okay";
++
++	#address-cells = <1>;
++	#size-cells = <0>;
++	brcmf: bcrmf@1 {
++			reg = <1>;
++			compatible = "brcm,bcm4329-fmac";
++			interrupt-parent = <&gpio2>;
++			interrupts = <12 IRQ_TYPE_LEVEL_LOW>;
++			interrupt-names = "host-wake";
++        };
++};
++
++&wdog1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_wdog>;
++	fsl,ext-reset-output;
++	status = "okay";
++};
++
++&A53_0 {
++	operating-points = <
++		/* kHz    uV */
++		1500000 1000000
++		1300000 1000000
++		1000000 900000
++		800000  900000
++	>;
++};
++
++&gpu_pd {
++	power-supply = <&buck3>;
++};
++
++&vpu_pd {
++	power-supply = <&buck4>;
++};
++
++&gpu {
++       status = "okay";
++	   gpu-noc-priority = <0x80000600>;
++};
++
++&vpu {
++	   /delete-property/ regulator-supply;
++       status = "okay";
++};
++
++&i2c1 {
++	clock-frequency = <400000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c1>;
++	status = "okay";
++
++	pmic: pmic@4b {
++			compatible = "rohm,bd71837";
++			reg = <0x4b>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_pmic>;
++			interrupt-parent = <&gpio1>;
++			interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
++			interrupt-names = "irq-pmic";
++			#clock-cells = <0>;
++			clocks = <&osc 0>;
++			clock-output-names = "bd71837-32k-out";
++
++			rohm,pmic-buck1-dvs-voltage = <900000>, <850000>, <800000>;
++			rohm,pmic-buck2-dvs-voltage = <1000000>, <900000>;
++			rohm,pmic-buck3-dvs-voltage = <1000000>;
++			rohm,pmic-buck4-dvs-voltage = <1000000>;
++			regulators {
++					buck1: BUCK1 {
++							regulator-name = "buck1";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <990000>;
++							regulator-boot-on;
++							regulator-always-on;
++							regulator-ramp-delay = <1250>;
++					};
++					buck2: BUCK2 {
++							regulator-name = "buck2";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <1100000>;
++							regulator-boot-on;
++							regulator-always-on;
++							regulator-ramp-delay = <1250>;
++					};
++					buck3: BUCK3 {
++							regulator-name = "buck3";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <1100000>;
++							regulator-boot-on;
++							regulator-enable-ramp-delay= <180>;
++					};
++					buck4: BUCK4 {
++							regulator-name = "buck4";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <1100000>;
++							regulator-boot-on;
++							regulator-enable-ramp-delay= <180>;
++					};
++					buck5: BUCK5 {
++							regulator-name = "buck5";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <1050000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++					buck6: BUCK6 {
++							regulator-name = "buck6";
++							regulator-min-microvolt = <3000000>;
++							regulator-max-microvolt = <3300000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++					buck8: BUCK8 {
++							regulator-name = "buck8";
++							regulator-min-microvolt = <1100000>;
++							regulator-max-microvolt = <1300000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++
++					ldo1: LDO1 {
++							regulator-name = "ldo1";
++							regulator-min-microvolt = <3000000>;
++							regulator-max-microvolt = <3300000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++					ldo2: LDO2 {
++							regulator-name = "ldo2";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <990000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++					ldo3: LDO3 {
++							regulator-name = "ldo3";
++							regulator-min-microvolt = <1700000>;
++							regulator-max-microvolt = <1900000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++					ldo4: LDO4 {
++							regulator-name = "ldo4";
++							regulator-min-microvolt = <810000>;
++							regulator-max-microvolt = <990000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++					ldo7_reg: LDO7 {
++							regulator-name = "ldo7";
++							regulator-min-microvolt = <3000000>;
++							regulator-max-microvolt = <3300000>;
++							regulator-boot-on;
++							regulator-always-on;
++					};
++			};
++	};
++
++	ov5640_mipi: ov5640_mipi@3c {
++		compatible = "ovti,ov5640_mipi";
++		reg = <0x3c>;
++		status = "okay";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_csi1>;
++		clocks = <&clk IMX8MQ_CLK_CLKO2>;
++		clock-names = "csi_mclk";
++		csi_id = <0>;
++		pwn-gpios = <&gpio3 14 GPIO_ACTIVE_HIGH>;
++		rst-gpios = <&gpio3 18 GPIO_ACTIVE_HIGH>;
++
++		mclk = <24000000>;
++		mclk_source = <0>;
++		port {
++			ov5640_mipi1_ep: endpoint {
++				remote-endpoint = <&mipi1_sensor_ep>;
++			};
++		};
++	};
++
++};
++
++&i2c4 {
++	clock-frequency = <400000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c4>;
++	status = "disabled";
++};
++
++&fec1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_fec1>;
++	phy-mode = "rgmii-id";
++	phy-handle = <&ethphy0>;
++	fsl,magic-packet;
++	phy-reset-gpios = <&gpio1 9 GPIO_ACTIVE_LOW>;
++	status = "okay";
++
++	mdio {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		ethphy0: ethernet-phy@4 {
++			compatible = "ethernet-phy-ieee802.3-c22";
++			reg = <4>;
++			at803x,led-act-blind-workaround;
++			at803x,eee-disabled;
++		};
++	};
++};
++
++&usb3_phy0 {
++       status = "okay";
++};
++
++&usb3_0 {
++       status = "okay";
++};
++
++&usb_dwc3_0 {
++	/delete-property/ power-domains;
++	status = "okay";
++	dr_mode = "host";
++};
++
++&usb3_phy1 {
++	status = "okay";
++};
++
++&usb3_1 {
++	status = "okay";
++};
++
++&usb_dwc3_1 {
++	status = "okay";
++	dr_mode = "host";
++};
++
++&sai4 {
++	assigned-clocks = <&clk IMX8MQ_CLK_SAI4>;
++	assigned-clock-parents = <&clk IMX8MQ_AUDIO_PLL1_OUT>;
++	assigned-clock-rates = <24576000>;
++	clocks = <&clk IMX8MQ_CLK_SAI4_IPG>, <&clk IMX8MQ_CLK_DUMMY>,
++		<&clk IMX8MQ_CLK_SAI4_ROOT>, <&clk IMX8MQ_CLK_DUMMY>,
++		<&clk IMX8MQ_CLK_DUMMY>, <&clk IMX8MQ_AUDIO_PLL1_OUT>,
++		<&clk IMX8MQ_AUDIO_PLL2_OUT>;
++	clock-names = "bus", "mclk0", "mclk1", "mclk2", "mclk3", "pll8k", "pll11k";
++	status = "disabled";
++};
++
++&csi1_bridge {
++	fsl,mipi-mode;
++	fsl,two-8bit-sensor-mode;
++	status = "okay";
++
++	port {
++		csi1_ep: endpoint {
++			remote-endpoint = <&csi1_mipi_ep>;
++		};
++	};
++};
++
++&mipi_csi_1 {
++	#address-cells = <1>;
++	#size-cells = <0>;
++	status = "okay";
++	port {
++		mipi1_sensor_ep: endpoint1 {
++			remote-endpoint = <&ov5640_mipi1_ep>;
++			data-lanes = <1 2>;
++		};
++
++		csi1_mipi_ep: endpoint2 {
++			remote-endpoint = <&csi1_ep>;
++		};
++	};
++};
+diff --git a/arch/arm64/configs/maaxboard_defconfig b/arch/arm64/configs/maaxboard_defconfig
+new file mode 100755
+index 000000000000..770e07c593b8
+--- /dev/null
++++ b/arch/arm64/configs/maaxboard_defconfig
 @@ -0,0 +1,836 @@
 +CONFIG_SYSVIPC=y
 +CONFIG_POSIX_MQUEUE=y
@@ -2366,7 +2454,7 @@ index 000000000000..f22247c1b457
 +CONFIG_SPI_ROCKCHIP=y
 +CONFIG_SPI_QUP=y
 +CONFIG_SPI_S3C64XX=y
-+CONFIG_SPI_SPIDEV=m
++CONFIG_SPI_SPIDEV=y
 +CONFIG_SPMI=y
 +CONFIG_PINCTRL_SINGLE=y
 +CONFIG_PINCTRL_MAX77620=y
@@ -2846,6 +2934,453 @@ index 000000000000..f22247c1b457
 +CONFIG_CRYPTO_AES_ARM64_CE_BLK=y
 +CONFIG_CRYPTO_CHACHA20_NEON=m
 +CONFIG_CRYPTO_AES_ARM64_BS=m
+diff --git a/drivers/char/Kconfig b/drivers/char/Kconfig
+old mode 100644
+new mode 100755
+index e08863be916c..11d2215db456
+--- a/drivers/char/Kconfig
++++ b/drivers/char/Kconfig
+@@ -604,5 +604,8 @@ config TILE_SROM
+ source "drivers/char/xillybus/Kconfig"
+ 
+ source "drivers/char/imx_amp/Kconfig"
++
++source "drivers/char/maaxboard/Kconfig"
++
+ endmenu
+ 
+diff --git a/drivers/char/Makefile b/drivers/char/Makefile
+old mode 100644
+new mode 100755
+index e02181144a95..853bff203f07
+--- a/drivers/char/Makefile
++++ b/drivers/char/Makefile
+@@ -58,6 +58,8 @@ obj-$(CONFIG_PS3_FLASH)		+= ps3flash.o
+ obj-$(CONFIG_JS_RTC)		+= js-rtc.o
+ js-rtc-y = rtc.o
+ 
++obj-$(CONFIG_MAAX_GPIOMEM)         += maaxboard/
++
+ obj-$(CONFIG_TILE_SROM)		+= tile-srom.o
+ obj-$(CONFIG_XILLYBUS)		+= xillybus/
+ obj-$(CONFIG_POWERNV_OP_PANEL)	+= powernv-op-panel.o
+diff --git a/drivers/char/maaxboard/Kconfig b/drivers/char/maaxboard/Kconfig
+new file mode 100755
+index 000000000000..b8c3b5f11c92
+--- /dev/null
++++ b/drivers/char/maaxboard/Kconfig
+@@ -0,0 +1,12 @@
++#
++# charector drivers of maaxboard
++#
++
++config MAAX_GPIOMEM
++#	tristate "maaxboard gpiomem driver"
++	tristate "maaxboard gpiomem driver"
++#	depends on CONFIG_MAAXBOARD
++#	default y
++	help
++	  support gpiomem of maaxboard && maaxboard mini, and imx8mq/imx8mm.
++
+diff --git a/drivers/char/maaxboard/Makefile b/drivers/char/maaxboard/Makefile
+new file mode 100755
+index 000000000000..9af4e010487e
+--- /dev/null
++++ b/drivers/char/maaxboard/Makefile
+@@ -0,0 +1,5 @@
++#
++# Makefile for maaxboard
++#
++
++obj-$(CONFIG_MAAX_GPIOMEM) += maaxboard-gpiomem.o
+diff --git a/drivers/char/maaxboard/maaxboard-gpiomem.c b/drivers/char/maaxboard/maaxboard-gpiomem.c
+new file mode 100755
+index 000000000000..4457b17b4b49
+--- /dev/null
++++ b/drivers/char/maaxboard/maaxboard-gpiomem.c
+@@ -0,0 +1,325 @@
++/**
++ * GPIO memory device driver
++ *
++ * Creates a chardev /dev/gpiomem which will provide user access to
++ * the I.MX8MQ/I.MX8M Mini's GPIO registers when it is mmap()'d.
++ * No longer need root for user GPIO access, but without relaxing permissions
++ * on /dev/mem.
++ *
++ * Written by Eric <eric.wu@embest-tech.com>
++ * Copyright (c) 2020, AVNET Ltd.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions, and the following disclaimer,
++ *    without modification.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ * 3. The names of the above-listed copyright holders may not be used
++ *    to endorse or promote products derived from this software without
++ *    specific prior written permission.
++ *
++ * ALTERNATIVELY, this software may be distributed under the terms of the
++ * GNU General Public License ("GPL") version 2, as published by the Free
++ * Software Foundation.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
++ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
++ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
++ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
++ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
++ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
++ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
++ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
++ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
++ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
++ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
++#include <linux/mm.h>
++#include <linux/slab.h>
++#include <linux/cdev.h>
++#include <linux/pagemap.h>
++#include <linux/io.h>
++#include <linux/fs.h>
++#include <linux/uaccess.h>
++
++#include "maaxboard-gpiomem.h"
++
++static struct cdev maaxboard_gpiomem_cdev;
++static dev_t maaxboard_gpiomem_devid;
++static struct class *maaxboard_gpiomem_class;
++static struct device *maaxboard_gpiomem_dev;
++static struct maaxboard_gpiomem_instance *inst;
++
++static int 	maaxboard_gpiomem_pinmux;
++static int	maaxboard_gpiomem_ctrl;
++
++/****************************************************************************
++*
++*   GPIO mem chardev file ops
++*
++***************************************************************************/
++static int maaxboard_gpiomem_open(struct inode *inode, struct file *file)
++{
++	int dev = iminor(inode);
++	int ret = 0;
++
++	if (dev != DEVICE_MINOR) {
++		dev_err(inst->dev, "Unknown minor device: %d", dev);
++		ret = -ENXIO;
++	}
++	return ret;
++}
++
++static int maaxboard_gpiomem_release(struct inode *inode, struct file *file)
++{
++	int dev = iminor(inode);
++	int ret = 0;
++
++	if (dev != DEVICE_MINOR) {
++		dev_err(inst->dev, "Unknown minor device %d", dev);
++		ret = -ENXIO;
++	}
++	return ret;
++}
++
++static const struct vm_operations_struct maaxboard_gpiomem_vm_ops = {
++#ifdef CONFIG_HAVE_IOREMAP_PROT
++	.access = generic_access_phys
++#endif
++};
++
++int maaxboard_gpiomem_mmap_helper(struct file *file, struct vm_area_struct *vma)
++{
++	/* Ignore what the user says - they're getting the GPIO regs
++	   whether they like it or not! */
++	unsigned int offset = vma->vm_pgoff << PAGE_SHIFT;
++	unsigned int shm_addr ;
++	unsigned int shm_size ;
++	unsigned int shm_pfn_addr,size = 0;
++
++	if ( maaxboard_gpiomem_pinmux ){
++		shm_addr = GPIO_PINMUX_AREA_BASE;
++		shm_size = GPIO_PINMUX_AREA_SIZE;
++		shm_pfn_addr = ((unsigned int )shm_addr >> PAGE_SHIFT );
++	} else if (maaxboard_gpiomem_ctrl){
++		shm_addr = GPIO_FUNCTION_BASE_ADDR;
++		shm_size = GPIO_FUNCTION_AREA_SIZE;
++		shm_pfn_addr = ((unsigned int )shm_addr >> PAGE_SHIFT );
++	}else{
++		printk( "\nInvalid mmap command.\n" );
++		return -EINVAL;
++	}
++
++	if ( !shm_addr ){
++		return -ENXIO;
++	}
++
++	if ( shm_addr & ( PAGE_SIZE - 1 ) ){
++		printk( "\nMmaping to invalid address ... %#x\n",( unsigned int ) shm_addr );
++		return -EINVAL;
++	}
++
++	if ( offset >= shm_size ){
++		return -ESPIPE;
++	}
++
++	if ( vma->vm_flags & VM_LOCKED ){
++		return -EPERM;
++	}
++
++	size = vma->vm_end - vma->vm_start;
++	//vma->vm_flags |= VM_RESERVED;//VM_NORESERVE
++  	vma->vm_flags |= VM_IO;
++
++	vma->vm_page_prot = pgprot_noncached (vma->vm_page_prot); //io memory is no cache 
++
++	vma->vm_page_prot = phys_mem_access_prot(file, shm_pfn_addr,
++						 PAGE_SIZE,
++						 vma->vm_page_prot);
++
++	vma->vm_ops = &maaxboard_gpiomem_vm_ops;
++
++	if (remap_pfn_range(vma, vma->vm_start,
++			shm_pfn_addr,
++			PAGE_SIZE,
++			vma->vm_page_prot)) {
++		return -EAGAIN;
++	}
++	return 0;
++}
++
++static int maaxboard_gpiomem_mmap( struct file* filep, struct vm_area_struct* vma )
++{
++	int ret;
++	ret = maaxboard_gpiomem_mmap_helper( filep, vma );
++	maaxboard_gpiomem_pinmux = 0;
++	maaxboard_gpiomem_ctrl = 0;
++
++	return ret;
++}
++
++static long maaxboard_gpiomem_ioctl( struct file *filp, unsigned int cmd, unsigned long arg )
++{	
++	switch (cmd)
++	{
++		case MAAX_IOC_MMAP_PINMUX:
++			maaxboard_gpiomem_pinmux = 1;
++			maaxboard_gpiomem_ctrl = 0;
++			break;
++						
++		case  MAAX_IOC_MMAP_CTRL:
++			maaxboard_gpiomem_pinmux = 0;
++			maaxboard_gpiomem_ctrl = 1;
++			break;
++
++		default:
++			printk( "ioctl(): invalid command=0x%x\n", cmd );
++			return -EINVAL;
++	}
++	return 0;
++}
++
++static const struct file_operations
++maaxboard_gpiomem_fops = {
++	.owner = THIS_MODULE,
++	.open = maaxboard_gpiomem_open,
++	.release = maaxboard_gpiomem_release,
++	.mmap = maaxboard_gpiomem_mmap,
++	.unlocked_ioctl = maaxboard_gpiomem_ioctl,
++};
++
++
++ /****************************************************************************
++*
++*   Probe and remove functions
++*
++***************************************************************************/
++static int maaxboard_gpiomem_probe(struct platform_device *pdev)
++{
++	int err;
++	void *ptr_err;
++	struct device *dev = &pdev->dev;
++
++	/* Allocate buffers and instance data */
++	inst = kzalloc(sizeof(struct maaxboard_gpiomem_instance), GFP_KERNEL);
++
++	if (!inst) {
++		err = -ENOMEM;
++		goto failed_inst_alloc;
++	}
++
++	inst->dev = dev;
++
++#if 0
++	ioresource = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (ioresource) {
++		inst->gpio_regs_phys = ioresource->start;
++	} else {
++		dev_err(inst->dev, "failed to get IO resource");
++		err = -ENOENT;
++		goto failed_get_resource;
++	}
++#endif
++
++	/* Create character device entries */
++
++	err = alloc_chrdev_region(&maaxboard_gpiomem_devid,
++				  DEVICE_MINOR, 1, DEVICE_NAME);
++	if (err != 0) {
++		dev_err(inst->dev, "unable to allocate device number");
++		goto failed_alloc_chrdev;
++	}
++	cdev_init(&maaxboard_gpiomem_cdev, &maaxboard_gpiomem_fops);
++	maaxboard_gpiomem_cdev.owner = THIS_MODULE;
++	err = cdev_add(&maaxboard_gpiomem_cdev, maaxboard_gpiomem_devid, 1);
++	if (err != 0) {
++		dev_err(inst->dev, "unable to register device");
++		goto failed_cdev_add;
++	}
++
++	/* Create sysfs entries */
++
++	maaxboard_gpiomem_class = class_create(THIS_MODULE, DEVICE_NAME);
++	ptr_err = maaxboard_gpiomem_class;
++	if (IS_ERR(ptr_err))
++		goto failed_class_create;
++
++	maaxboard_gpiomem_dev = device_create(maaxboard_gpiomem_class, NULL,
++					maaxboard_gpiomem_devid, NULL,
++					"gpiomem");
++	ptr_err = maaxboard_gpiomem_dev;
++	if (IS_ERR(ptr_err))
++		goto failed_device_create;
++
++	dev_info(inst->dev, "Initialised: Registers at 0x%08lx",
++		inst->gpio_regs_phys);
++
++	return 0;
++
++failed_device_create:
++	class_destroy(maaxboard_gpiomem_class);
++failed_class_create:
++	cdev_del(&maaxboard_gpiomem_cdev);
++	err = PTR_ERR(ptr_err);
++failed_cdev_add:
++	unregister_chrdev_region(maaxboard_gpiomem_devid, 1);
++failed_alloc_chrdev:
++failed_get_resource:
++	kfree(inst);
++failed_inst_alloc:
++	dev_err(inst->dev, "could not load maaxboard_gpiomem");
++	return err;
++}
++
++static int maaxboard_gpiomem_remove(struct platform_device *pdev)
++{
++	struct device *dev = inst->dev;
++
++	kfree(inst);
++	device_destroy(maaxboard_gpiomem_class, maaxboard_gpiomem_devid);
++	class_destroy(maaxboard_gpiomem_class);
++	cdev_del(&maaxboard_gpiomem_cdev);
++	unregister_chrdev_region(maaxboard_gpiomem_devid, 1);
++
++	dev_info(dev, "GPIO mem driver removed - OK");
++	return 0;
++}
++
++ /****************************************************************************
++*
++*   Register the driver with device tree
++*
++***************************************************************************/
++
++static const struct of_device_id maaxboard_gpiomem_of_match[] = {
++	{.compatible = "maaxboard,maaxboard-gpiomem",},
++	{ /* sentinel */ },
++};
++
++MODULE_DEVICE_TABLE(of, maaxboard_gpiomem_of_match);
++
++static struct platform_driver maaxboard_gpiomem_driver = {
++	.probe = maaxboard_gpiomem_probe,
++	.remove = maaxboard_gpiomem_remove,
++	.driver = {
++		   .name = DRIVER_NAME,
++		   .owner = THIS_MODULE,
++		   .of_match_table = maaxboard_gpiomem_of_match,
++		   },
++};
++
++module_platform_driver(maaxboard_gpiomem_driver);
++
++MODULE_ALIAS("platform:gpiomem-maaxboard");
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("gpiomem driver for accessing GPIO from userspace");
++MODULE_AUTHOR("Eric.Wu <eric.wu@eric.wu@embest-tech.com>");
+diff --git a/drivers/char/maaxboard/maaxboard-gpiomem.h b/drivers/char/maaxboard/maaxboard-gpiomem.h
+new file mode 100755
+index 000000000000..91c92c5589dc
+--- /dev/null
++++ b/drivers/char/maaxboard/maaxboard-gpiomem.h
+@@ -0,0 +1,51 @@
++#ifndef __MAAXBOARD_GPIOMEM_H__
++#define __MAAXBOARD_GPIOMEM_H__
++
++#include <linux/ioctl.h>
++#include <linux/cdev.h>
++
++//for ioctl
++#define MAAX_IOC_MAGIC 					'X'
++#define MAAX_IOC_MMAP_PINMUX	_IOWR(MAAX_IOC_MAGIC, 0,unsigned short)
++#define MAAX_IOC_MMAP_CTRL		_IOWR(MAAX_IOC_MAGIC, 1,unsigned short)
++
++
++// for mmap area
++#define DEVICE_NAME "maaxboard-gpiomem"
++#define DRIVER_NAME "gpiomem-maaxboard"
++#define DEVICE_MINOR 0
++
++/*I.MX8MQ, I.MX8MM GPIO number:
++GPIO1 0-29
++GPIO2 0-20
++GPIO3 0-25
++GPIO4 0-31
++GPIO5 0-29
++total 139 */
++#define GPIO_IOMUX_BASE_ADDR			0x30330028  /*0x30330250*/
++#define GPIO_PAD_BASE_ADDR				0x30330290  /*0x30330418*/
++
++#define GPIO_PINMUX_AREA_BASE			0x30330000  
++#define GPIO_PINMUX_AREA_SIZE			0x10000  
++
++ 
++/*
++GPIO1  0x30200000-0x3020001C
++GPIO2  0x30210000-0x3021001C
++GPIO3  0x30220000-0x3022001C
++GPIO4  0x30230000-0x3023001C
++GPIO5  0x30240000-0x3024001C
++*/
++#define GPIO_FUNCTION_BASE_ADDR			0x30200000
++#define GPIO_FUNCTION_AREA_SIZE			0x60000
++
++//#define GPIO_AREA_SIZE					0x200000
++
++
++struct maaxboard_gpiomem_instance {
++	unsigned long gpio_regs_phys;
++	struct device *dev;
++};
++
++
++#endif
 diff --git a/drivers/gpu/drm/bridge/Kconfig b/drivers/gpu/drm/bridge/Kconfig
 old mode 100644
 new mode 100755
