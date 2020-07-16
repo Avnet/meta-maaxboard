@@ -50,6 +50,7 @@ PREFERRED_PROVIDER_u-boot = "u-boot-imx"
 # meta-fsl-bsp-release/imx/meta-bsp/conf/machine/include/imx-base.inc
 PREFERRED_PROVIDER_virtual/kernel = "linux-imx"
 PREFERRED_VERSION_linux-imx = "4.14.98"
+PREFERRED_VERSION_linux-imx-headers = "4.14.98"
 
 PREFERRED_PROVIDER_virtual/imxvpu = "imx-vpu-hantro"
 

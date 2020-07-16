@@ -16,6 +16,8 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     packagegroup-fsl-tools-audio \
     packagegroup-fsl-tools-gpu \
     packagegroup-fsl-gstreamer1.0 \
+    opencv \
+    python3-opencv \
     apt \
     sudo \
     bash \
@@ -25,6 +27,8 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     e2fsprogs-resize2fs \
     parted \
     man-db \
+    linux-imx-headers \
+    gcc \
 "
 
 inherit extrausers
