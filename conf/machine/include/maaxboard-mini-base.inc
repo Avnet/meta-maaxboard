@@ -47,6 +47,8 @@ UBOOT_MAKE_TARGET = "all"
 PREFERRED_PROVIDER_virtual/bootloader = "u-boot-imx"
 PREFERRED_PROVIDER_u-boot = "u-boot-imx"
 
+PREFERRED_VERSION_firmware-imx = "8.0.1"
+
 # meta-fsl-bsp-release/imx/meta-bsp/conf/machine/include/imx-base.inc
 PREFERRED_PROVIDER_virtual/kernel = "linux-imx"
 PREFERRED_VERSION_linux-imx = "4.14.98"
