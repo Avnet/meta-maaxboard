@@ -15,7 +15,10 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     packagegroup-tools-bluetooth \
     packagegroup-fsl-tools-audio \
     packagegroup-fsl-tools-gpu \
+    packagegroup-fsl-tools-gpu-external \
     packagegroup-fsl-gstreamer1.0 \
+    packagegroup-fsl-gstreamer1.0-full \
+    x264 \
     opencv \
     python3-opencv \
     apt \
@@ -29,6 +32,13 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     man-db \
     linux-imx-headers \
     gcc \
+    gcc-symlinks \
+    binutils \
+    automake \
+    autoconf \
+    dnsmasq \
+    hostapd \
+    evtest \
 "
 
 inherit extrausers

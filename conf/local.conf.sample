@@ -21,3 +21,6 @@ DL_DIR ?= "${HOME}/oe-sources/"
 ACCEPT_FSL_EULA = "1"
 
 # EXTRA_IMAGE_FEATURES ?= "debug-tweaks"
+
+LICENSE_FLAGS_WHITELIST += "commercial "
+PACKAGECONFIG_pn-gstreamer1.0-plugins-ugly += "x264"
