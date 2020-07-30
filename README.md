@@ -4,6 +4,58 @@ A meta-layer for Embest MaaXBoard.
 
 ## How to
 
+### Install Host Yocto Development Env
+
+You should have a linux machine, below instructions show how to setup the env on a Ubuntu:18.04 machine.
+
+```bash
+$ sudo apt-get update && sudo apt-get install -y \
+        gawk \
+        wget \
+        git-core \
+        diffstat \
+        unzip \
+        texinfo \
+        gcc-multilib \
+        build-essential \
+        chrpath \
+        socat \
+        libsdl1.2-dev \
+        xterm \
+        sed \
+        cvs \
+        subversion \
+        coreutils \
+        texi2html \
+        docbook-utils \
+        python-pysqlite2 \
+        help2man \
+        make \
+        gcc \
+        g++ \
+        desktop-file-utils \
+        libgl1-mesa-dev \
+        libglu1-mesa-dev \
+        mercurial \
+        autoconf \
+        automake \
+        groff \
+        curl \
+        lzop \
+        asciidoc \
+        u-boot-tools \
+        cpio \
+        sudo \
+        locales
+```
+
+Install repo
+
+```bash
+sudo curl http://commondatastorage.googleapis.com/git-repo-downloads/repo > /usr/bin/repo
+sudo chmod a+x /usr/bin/repo
+```
+
 ### Fetch the source
 
 Download meta layers from NXP
@@ -19,7 +71,29 @@ Clone this repo
 
 ```bash
 $ cd sources
-$ git clone https://github.com/ahnniu/meta-maaxboard
+$ git clone http://192.168.2.149/imx8m/meta-maaxboard.git
+```
+
+### Do patch
+
+NXP do some hook / patch according different machine / distro when init a new build. We need do this first.
+
+If you're going to build MaaXBoard
+
+```bash
+$ cd imx-yocto-bsp
+$ mkdir imx8mqevk
+$ DISTRO=fsl-imx-wayland MACHINE=imx8mqevk source fsl-setup-release.sh -b imx8mqevk
+$ rm -rf imx8mqevk
+```
+
+Or if you're going to build MaaXBoard Mini
+
+```bash
+$ cd imx-yocto-bsp
+$ mkdir imx8mmevk
+$ DISTRO=fsl-imx-wayland MACHINE=imx8mmevk source fsl-setup-release.sh -b imx8mmevk
+$ rm -rf imx8mmevk
 ```
 
 ###  Build configure
@@ -45,6 +119,12 @@ We provide a sample under /meta-maaxboard/conf:
 - bblayers.conf.sample
 
 > NOTE: variable 'BSPDIR' in bblayer.conf should be defined, the value should be the repo init directory. It is imx-yocto-bsp directory in above example
+
+If you're going to build MaaXBoard Mini, you should change the Machine(in local.conf) to:
+
+```ini
+MACHINE ??= 'maaxboard-mini-ddr4-2g-sdcard'
+```
 
 ### Build
 
@@ -76,6 +156,9 @@ The default login is user 'root' with the password 'avnet'
     - meta-maaxboard/conf/distro/fsl-imx-wayland-lite.conf
 - Image: "lite-image"
     - meta-maaxboard/images/lite-image.bb
+- Machine:
+    - MaaXBoard: maaxboard-ddr4-2g-sdcard
+    - MaaXBoard Mini: maaxboard-mini-ddr4-2g-sdcard
 
 ## Customization
 
