@@ -12,6 +12,9 @@ KERNEL_DEVICETREE  = "freescale/maaxboard-mini.dtb"
 KERNEL_DEVICETREE += "freescale/maaxboard-mini-lvds.dtb"
 KERNEL_DEVICETREE += "freescale/maaxboard-mini-device.dtb"
 
+IMAGE_BOOTFILES_DEPENDS += "uenv:do_deploy"
+IMAGE_BOOTFILES += "uEnv.txt"
+
 UBOOT_CONFIG ??= "sd"
 UBOOT_CONFIG[sd] = "maaxboard_mini_defconfig,sdcard"
 

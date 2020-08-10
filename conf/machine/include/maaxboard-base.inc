@@ -13,6 +13,9 @@ KERNEL_DEVICETREE += "freescale/maaxboard-usb0-device.dtb"
 KERNEL_DEVICETREE += "freescale/maaxboard-dcss-lvds.dtb"
 KERNEL_DEVICETREE += "freescale/maaxboard-dcss-hdmi.dtb"
 
+IMAGE_BOOTFILES_DEPENDS += "uenv:do_deploy"
+IMAGE_BOOTFILES += "uEnv.txt"
+
 UBOOT_CONFIG ??= "sd"
 UBOOT_CONFIG[sd] = "maaxboard_defconfig,sdcard"
 
@@ -54,5 +57,3 @@ PREFERRED_VERSION_linux-imx = "4.14.78"
 PREFERRED_VERSION_linux-imx-headers = "4.14.78"
 
 PREFERRED_PROVIDER_virtual/imxvpu = "imx-vpu-hantro"
-
-PREFERRED_VERSION_imx-alsa-plugins = "1.0.26"

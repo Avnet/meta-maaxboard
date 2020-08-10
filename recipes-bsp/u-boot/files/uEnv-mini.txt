@@ -1,0 +1,17 @@
+# MaaXBoard Mini U-Boot Env
+
+
+console=ttymxc0
+
+
+# Default DTB is "maaxboard-mini.dtb" with MIPI-DSI screen support
+# You could switch to different DTB by uncomment the corresponding line
+
+#fdt_file="maaxboard-mini.dtb"
+#fdt_file="maaxboard-mini-lvds.dtb"
+#fdt_file="maaxboard-mini-device.dtb"
+
+
+# You could specify the Ethernet MAC Address, or it will be a random address
+
+# ethaddr=ca:3a:e1:44:62:2c
