@@ -165,3 +165,136 @@ The default login is user 'root' with the password 'avnet'
 - You could add more packages in the image recipe: meta-maaxboard/images/lite-image.bb
 - Distro features: meta-maaxboard/conf/distro/fsl-imx-wayland-lite.conf
 - Machine features: meta-maaxboard/conf/machine/maaxboard-ddr4-2g-sdcard.conf
+
+
+## Setup a Debian Repository
+
+Here we want to show you how to setup a Debian Repository. In this way, you could use `apt-get install` to install packages that you built in Yocto.
+
+### Host Setup
+
+This is the host machine that you build the Yocto images. If you want to setup a Debian repository, you should also install a web server here.
+
+```bash
+$ sudo apt install nginx
+```
+
+#### Build Packages
+
+Before using `apt-get install` a package, you should first build it. Let's take nano for example.
+
+```bash
+$ cd /path/to/bsp_dir/
+$ source sources/poky/oe-init-build-env maaxboard/build
+
+$ bitbake nano
+```
+
+#### Generate Packages index files
+
+After build the packages, you should generate the package index files for apt-get to search.
+
+First, change to the deb directory:
+
+```bash
+$ cd /home/build/maaxboard/maaxboard-yocto/maaxboard/build/tmp/deploy/deb
+$ ls
+aarch64  aarch64-mx8m  all   maaxboard_ddr4_2g_sdcard
+```
+Add a script called dpkg-scan.sh
+
+```bash
+$ nano dpkg-scan.sh
+```
+
+Add
+
+```bash
+#!/bin/bash
+
+ls -d */  | sed 's/\///' | cat | while IFS=' ' read -r item
+do
+echo "[$item] - Scan Packages and generate Packages.gz"
+dpkg-scanpackages ${item} | gzip > ${item}/Packages.gz
+done
+```
+
+```bash
+$ sudo chmod +x ./dpkg-scan.sh
+```
+
+Exec ./dpkg-scan.sh everytime you build a new package:
+
+```bash
+./dpkg-scan.sh
+```
+
+#### Config web server
+
+```bash
+sudo nano /etc/nginx/sites-available/deb
+```
+
+Add
+
+```
+server {
+    listen 80 default_server;
+    server_name yocto_deb_packages;
+    root /home/build/maaxboard/maaxboard-yocto/maaxboard/build/tmp/deploy/deb/;
+
+    location / {
+        autoindex on;
+    }
+}
+```
+
+Enable website
+
+```bash
+# Disable the nginx default site
+$ sudo rm /etc/nginx/sites-enabled/default
+$ sudo ln -s /etc/nginx/sites-available/deb /etc/nginx/sites-enabled/deb
+```
+
+#### Start / Stop nginx
+
+```bash
+$ sudo systemctl restart nginx
+```
+
+In your client web browser, check the website:
+
+```
+http://192.168.2.58/
+```
+
+### MaaXBoard Config
+
+#### Add Sources List
+
+```bash
+$ sudo nano /etc/apt/sources.list
+```
+
+Add
+
+```
+deb http://192.168.2.58/ aarch64/
+deb http://192.168.2.58/ aarch64-mx8m/
+deb http://192.168.2.58/ maaxboard_ddr4_2g_sdcard/
+deb http://192.168.2.58/ all/
+```
+
+#### apt-get update
+
+```bash
+$ sudo rm -rf /var/lib/apt/lists/*
+$ sudo apt-get update
+```
+
+#### Install packages
+
+```bash
+sudo apt-get install nano
+```
