@@ -11,4 +11,3 @@ ExecStop=/usr/sbin/dhcpcd -x
 
 [Install]
 WantedBy=multi-user.target
-Alias=dhcpcd6.service

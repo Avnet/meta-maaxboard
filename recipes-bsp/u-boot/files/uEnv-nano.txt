@@ -1,0 +1,15 @@
+# MaaXBoard Nano U-Boot Env
+
+
+#console=ttymxc1
+
+
+# Default DTB is "maaxboard-nano-mipi.dtb" with MIPI-DSI screen support
+# You could switch to different DTB by uncomment the corresponding line
+
+#fdt_file="maaxboard-nano-mipi.dtb"
+
+
+# You could specify the Ethernet MAC Address, or it will be a random address
+
+# ethaddr=ca:3a:e1:44:62:2d

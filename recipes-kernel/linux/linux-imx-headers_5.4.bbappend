@@ -1,0 +1,1 @@
+require recipes-kernel/linux/linux-maaxboard-src-${PV}.inc
