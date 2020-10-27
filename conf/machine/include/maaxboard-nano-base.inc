@@ -6,12 +6,13 @@ MACHINEOVERRIDES =. "maaxboardbase:maaxboardnano:"
 require conf/machine/include/imx-base.inc
 require conf/machine/include/tune-cortexa53.inc
 
-MACHINE_FEATURES += " wifi bluetooth optee nxp8987 jailhouse"
+MACHINE_FEATURES += " wifi bluetooth nxp8987"
 
 KERNEL_DEVICETREE  = "freescale/maaxboard-nano-mipi.dtb"
 
-IMAGE_BOOTFILES_DEPENDS += "uenv:do_deploy"
-IMAGE_BOOTFILES += "uEnv.txt"
+WKS_FILE_DEPENDS_append = " uenv"
+IMAGE_BOOT_FILES += "uEnv.txt"
+
 
 UBOOT_CONFIG ??= "sd"
 UBOOT_CONFIG[sd] = "maaxboard_nano_defconfig,sdcard"
@@ -44,8 +45,9 @@ BOOT_SPACE = "65536"
 # Refer to linux-imx/drivers/tty/serial/imx.c
 SERIAL_CONSOLES = "115200;ttymxc1"
 
+LOADADDR = ""
 UBOOT_SUFFIX = "bin"
-UBOOT_MAKE_TARGET = "all"
+UBOOT_MAKE_TARGET = ""
 
 PREFERRED_PROVIDER_virtual/bootloader = "u-boot-imx"
 PREFERRED_PROVIDER_u-boot = "u-boot-imx"
