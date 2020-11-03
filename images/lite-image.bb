@@ -39,6 +39,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     dnsmasq \
     hostapd \
     evtest \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'weston-init', '', d)} \
 "
 
 inherit extrausers
