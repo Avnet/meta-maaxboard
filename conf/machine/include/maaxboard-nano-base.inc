@@ -58,3 +58,5 @@ PREFERRED_PROVIDER_virtual/kernel = "linux-imx"
 PREFERRED_VERSION_linux-imx = "5.4"
 PREFERRED_VERSION_linux-imx-headers = "5.4"
 
+# /etc/hostname
+hostname_pn-base-files = "maaxboard-nano"
