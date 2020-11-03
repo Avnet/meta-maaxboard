@@ -10,3 +10,9 @@ do_copy_defconfig_maaxboardbase () {
     cp ${S}/arch/arm64/configs/${KERNEL_DEF_CONFIG} ${B}/.config
     cp ${S}/arch/arm64/configs/${KERNEL_DEF_CONFIG} ${B}/../defconfig
 }
+
+# Auto load Wi-Fi(nxp8987) driver moal
+# /etc/modprobe.d/moal.conf
+KERNEL_MODULE_AUTOLOAD += "moal"
+KERNEL_MODULE_PROBECONF += "moal"
+module_conf_moal = "options moal mod_para=nxp/wifi_mod_para_sd8987.conf"
