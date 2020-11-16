@@ -40,6 +40,11 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     hostapd \
     evtest \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'weston-init', '', d)} \
+    mtd-utils \
+    nss \
+    nspr \
+    libxkbcommon \
+    pulseaudio-server \
 "
 
 inherit extrausers

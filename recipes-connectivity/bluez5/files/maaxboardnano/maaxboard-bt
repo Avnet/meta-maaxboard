@@ -1,0 +1,17 @@
+#!/bin/sh
+
+hciattach /dev/ttymxc0 any 115200 flow
+hciconfig hci0 up
+echo "hci0: attached with baud: 115200"
+
+hcitool -i hci0 cmd 0x3f 0x0009 0xc0 0xc6 0x2d 0x00
+echo "hci0: baud -> 3000000"
+
+killall hciattach
+echo "hci0: disattached"
+
+hciattach /dev/ttymxc0 any -s 3000000 3000000 flow
+echo "hci0: attached with baud: 3000000"
+
+hciconfig hci0 up
+echo "hci0: up"

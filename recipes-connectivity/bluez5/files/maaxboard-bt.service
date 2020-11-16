@@ -1,0 +1,10 @@
+[Unit]
+Description=MaaXBoard Bluetooth Enable service
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/etc/bluetooth/maaxboard-bt
+
+[Install]
+WantedBy=multi-user.target
