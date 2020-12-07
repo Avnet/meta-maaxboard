@@ -71,7 +71,7 @@ Clone this repo
 
 ```bash
 $ cd sources
-$ git clone http://192.168.2.149/imx8m/meta-maaxboard.git
+$ git clone https://github.com/Avnet/meta-maaxboard.git
 ```
 
 ### Do patch
