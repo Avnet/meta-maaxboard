@@ -6,7 +6,6 @@
 
 #fdt_file="maaxboard-dcss-hdmi.dtb"
 #fdt_file="maaxboard-dcss-mipi.dtb"
-#fdt_file="maaxboard-dcss-lvds.dtb"
 #fdt_file="maaxboard-usb0-device.dtb"
 
 

@@ -48,6 +48,8 @@ $ sudo apt-get update && sudo apt-get install -y \
         u-boot-tools \
         cpio \
         sudo \
+        rsync \
+        linux-headers-generic \
         locales
 ```
 
@@ -86,7 +88,7 @@ If you're going to build MaaXBoard Nano
 ```bash
 $ cd imx-yocto-bsp
 $ mkdir imx8mnevk
-$ DISTRO=fsl-imx-wayland MACHINE=imx8mnevk source fsl-setup-release.sh -b imx8mnevk
+$ DISTRO=fsl-imx-wayland MACHINE=imx8mnevk source imx-setup-release.sh -b imx8mnevk
 $ rm -rf imx8mnevk
 ```
 

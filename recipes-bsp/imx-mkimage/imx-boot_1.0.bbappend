@@ -1,4 +1,5 @@
-IMX_EXTRA_FIRMWARE_maaxboardnano = "firmware-imx-8m"
+IMX_EXTRA_FIRMWARE = "firmware-imx-8m"
+DDR_FW_VERSION = "_201810"
 
 get_plat_by_soc() {
     local soc=$1
@@ -83,7 +84,7 @@ copy_uboot_dtb() {
 # }
 
 
-do_compile_maaxboardnano() {
+do_compile_maaxboardbase() {
     local dtb_target_name=
 
     compile_${SOC_FAMILY}
@@ -98,7 +99,7 @@ do_compile_maaxboardnano() {
         bbnote "generate ${dtb_target_name} for ${target} from ${UBOOT_DTB_NAME}"
         copy_uboot_dtb ${dtb_target_name}
         bbnote "building ${SOC_TARGET} - ${REV_OPTION} ${target}"
-        make SOC=${SOC_TARGET} ${REV_OPTION} ${target}
+        make SOC=${SOC_TARGET} DDR_FW_VERSION=${DDR_FW_VERSION} ${REV_OPTION} ${target}
         if [ -e "${BOOT_STAGING}/flash.bin" ]; then
             cp ${BOOT_STAGING}/flash.bin ${S}/${BOOT_CONFIG_MACHINE}-${target}
         fi

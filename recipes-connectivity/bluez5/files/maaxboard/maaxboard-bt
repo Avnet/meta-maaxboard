@@ -1,0 +1,6 @@
+#!/bin/sh
+
+hciattach /dev/ttymxc3 bcm43xx 3000000
+echo "hci0: attached with baud: 3000000"
+hciconfig hci0 up
+echo "hci0: up"
