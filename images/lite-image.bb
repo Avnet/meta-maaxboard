@@ -45,6 +45,8 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     nspr \
     libxkbcommon \
     pulseaudio-server \
+    libevent \
+    xz \
 "
 
 inherit extrausers

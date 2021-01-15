@@ -4,10 +4,10 @@
 console=ttymxc0
 
 
-# Default DTB is "maaxboard-mini.dtb" with MIPI-DSI screen support
+# Default DTB is "maaxboard-mini-mipi.dtb" with MIPI-DSI screen support
 # You could switch to different DTB by uncomment the corresponding line
 
-#fdt_file="maaxboard-mini.dtb"
+#fdt_file="maaxboard-mini-mipi.dtb"
 #fdt_file="maaxboard-mini-lvds.dtb"
 #fdt_file="maaxboard-mini-device.dtb"
 

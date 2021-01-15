@@ -6,3 +6,4 @@ SRC_URI_maaxboardbase = "${UBOOT_SRC};branch=${SRCBRANCH} \
 "
 SRCREV_maaxboardnano = "2ee9ac4010c4c085f99f4ea97c1dfead83f32299"
 SRCREV_maaxboard = "8e694f7d407b0984490f4361620c772172759e28"
+SRCREV_maaxboardmini = "18bbcf32381423d32067e9f0be62ce988c787257"
