@@ -3,7 +3,7 @@ require recipes-kernel/linux/linux-maaxboard-src-${PV}.inc
 KERNEL_DEF_CONFIG ??= "imx_v8_defconfig"
 KERNEL_DEF_CONFIG_maaxboardnano = "maaxboard_nano_defconfig"
 KERNEL_DEF_CONFIG_maaxboard = "maaxboard_defconfig"
-KERNEL_DEF_CONFIG_maaxboardmini = "maaxboard_defconfig"
+KERNEL_DEF_CONFIG_maaxboardmini = "maaxboard_mini_defconfig"
 
 do_copy_defconfig_maaxboardbase () {
     install -d ${B}
