@@ -115,8 +115,8 @@ You should update 2 conf file in the build directory(maaxboard/build/conf/):
 
 We provide a sample under /meta-maaxboard/conf:
 
-- local.conf.sample
-- bblayers.conf.sample
+- local.conf.eiq.sample
+- bblayers.conf.eiq.sample
 
 > NOTE: variable 'BSPDIR' in bblayer.conf should be defined, the value should be the repo init directory. It is imx-yocto-bsp directory in above example
 
@@ -132,7 +132,7 @@ MACHINE ??= 'maaxboard-mini-ddr4-2g-sdcard'
 $ cd /path/to/bsp_dir/
 $ source sources/poky/oe-init-build-env maaxboard/build
 
-$ bitbake lite-image
+$ bitbake lite-image-qt5
 ```
 
 ### Flash sdcard
@@ -298,3 +298,69 @@ $ sudo apt-get update
 ```bash
 sudo apt-get install nano
 ```
+
+### example
+[NXP EIG doc][nxp]  
+
+or  
+
+```python
+import time
+import cv2
+
+def detect(img, cascade):
+    rects = cascade.detectMultiScale(img, scaleFactor=1.3, minNeighbors=4, minSize=(30, 30),
+                                     flags=cv2.CASCADE_SCALE_IMAGE)
+    if len(rects) == 0:
+        return []
+    rects[:,2:] += rects[:,:2]
+    return rects
+
+def draw_rects(img, rects, color):
+    for x1, y1, x2, y2 in rects:
+        cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
+
+if __name__ == '__main__':
+    video_src = 1
+    cascade_fn = "/usr/share/opencv4/lbpcascades//bpcascade_frontalface_improved.xml"
+    cascade = cv2.CascadeClassifier(cascade_fn)
+
+    cam = cv2.VideoCapture(video_src)
+
+    index = 0
+    time_sum = 0.0
+    old_sum = 0.0
+    while True:
+        index += 1
+        ret, img = cam.read()
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        gray = cv2.equalizeHist(gray)
+
+        t = time.time()
+        rects = detect(gray, cascade)
+        dt = time.time() - t
+        time_sum += dt
+
+        vis = img.copy()
+        if len( rects ) > 0:
+            draw_rects( vis, rects, (0, 255, 0) )
+        else:
+            print("no face found")
+
+        if index%100 == 0:
+            old_sum = time_sum
+            time_sum = 0.0
+
+        if old_sum > 0.0001:
+            cv2.putText( vis, '100 pics, average time: {} s'.format( round( old_sum/100.0, 4 ) ),
+                             (20, 20), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2 )
+        cv2.imshow( 'facedetect', vis )
+
+        key_ret = cv2.waitKey( 30)
+        if (key_ret == 0): 
+            break
+    cam.release()
+    cv2.destroyAllWindows()
+```
+
+[nxp]:https://www.nxp.com.cn/docs/en/nxp/user-guides/UM11226.pdf
