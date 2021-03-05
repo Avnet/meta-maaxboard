@@ -1,6 +1,16 @@
 # meta-maaxboard
 
-A meta-layer for Embest MaaXBoard.
+A meta-layer for Embest MaaXBoard. This is eIQ(NXP eIQ Machine Learning) branch. It could build a image including the eIQ softwares:
+
+- OpenCV 4.0.1
+- Arm Compute Library 19.02
+- Arm NN 19.02
+- ONNX runtime 0.3.0
+- TensorFlow 1.12
+- TensorFlow Lite 1.12
+
+Below will show you how to setup Yocto Development Env and how to build the eIQ image.
+
 
 ## How to
 
@@ -167,142 +177,21 @@ The default login is user 'root' with the password 'avnet'
 - Machine features: meta-maaxboard/conf/machine/maaxboard-ddr4-2g-sdcard.conf
 
 
-## Setup a Debian Repository
+## EIQ Example
 
-Here we want to show you how to setup a Debian Repository. In this way, you could use `apt-get install` to install packages that you built in Yocto.
+Here shows how to run i.MX8M eIQ Machine Learning examples. More, please refer to the PDF document: 
 
-### Host Setup
+- [NXP eIQ™ Machine Learning Software Development Environment for i.MX Applications Processors][https://www.nxp.com.cn/docs/en/nxp/user-guides/UM11226.pdf]
 
-This is the host machine that you build the Yocto images. If you want to setup a Debian repository, you should also install a web server here.
 
-```bash
-$ sudo apt install nginx
-```
+### OpenCV Face Detect Example
 
-#### Build Packages
-
-Before using `apt-get install` a package, you should first build it. Let's take nano for example.
+Save the below .py file to MaaXBoard filesystem and run it.
 
 ```bash
-$ cd /path/to/bsp_dir/
-$ source sources/poky/oe-init-build-env maaxboard/build
-
-$ bitbake nano
+$ python face_detect.py
 ```
 
-#### Generate Packages index files
-
-After build the packages, you should generate the package index files for apt-get to search.
-
-First, change to the deb directory:
-
-```bash
-$ cd /home/build/maaxboard/maaxboard-yocto/maaxboard/build/tmp/deploy/deb
-$ ls
-aarch64  aarch64-mx8m  all   maaxboard_ddr4_2g_sdcard
-```
-Add a script called dpkg-scan.sh
-
-```bash
-$ nano dpkg-scan.sh
-```
-
-Add
-
-```bash
-#!/bin/bash
-
-ls -d */  | sed 's/\///' | cat | while IFS=' ' read -r item
-do
-echo "[$item] - Scan Packages and generate Packages.gz"
-dpkg-scanpackages ${item} | gzip > ${item}/Packages.gz
-done
-```
-
-```bash
-$ sudo chmod +x ./dpkg-scan.sh
-```
-
-Exec ./dpkg-scan.sh everytime you build a new package:
-
-```bash
-./dpkg-scan.sh
-```
-
-#### Config web server
-
-```bash
-sudo nano /etc/nginx/sites-available/deb
-```
-
-Add
-
-```
-server {
-    listen 80 default_server;
-    server_name yocto_deb_packages;
-    root /home/build/maaxboard/maaxboard-yocto/maaxboard/build/tmp/deploy/deb/;
-
-    location / {
-        autoindex on;
-    }
-}
-```
-
-Enable website
-
-```bash
-# Disable the nginx default site
-$ sudo rm /etc/nginx/sites-enabled/default
-$ sudo ln -s /etc/nginx/sites-available/deb /etc/nginx/sites-enabled/deb
-```
-
-#### Start / Stop nginx
-
-```bash
-$ sudo systemctl restart nginx
-```
-
-In your client web browser, check the website:
-
-```
-http://192.168.2.58/
-```
-
-### MaaXBoard Config
-
-#### Add Sources List
-
-```bash
-$ sudo nano /etc/apt/sources.list
-```
-
-Add
-
-```
-deb http://192.168.2.58/ aarch64/
-deb http://192.168.2.58/ aarch64-mx8m/
-deb http://192.168.2.58/ maaxboard_ddr4_2g_sdcard/
-deb http://192.168.2.58/ all/
-```
-
-#### apt-get update
-
-```bash
-$ sudo rm -rf /var/lib/apt/lists/*
-$ sudo apt-get update
-```
-
-#### Install packages
-
-```bash
-sudo apt-get install nano
-```
-
-### example
-[NXP EIG doc][nxp]  
-
-or  
 
 ```python
 import time
