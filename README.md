@@ -84,6 +84,12 @@ $ cd sources
 $ git clone https://github.com/Avnet/meta-maaxboard.git
 ```
 
+Clone imx machinelearning repo
+```bash
+$ cd sources
+$ git clone -b sumo https://source.codeaurora.org/external/imx/meta-imx-machinelearning.git
+```
+
 ### Do patch
 
 NXP do some hook / patch according different machine / distro when init a new build. We need do this first.
