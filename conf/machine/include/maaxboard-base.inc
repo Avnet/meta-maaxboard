@@ -10,9 +10,11 @@ MACHINE_FEATURES += " pci wifi bluetooth bcm43455"
 
 MACHINE_SOCARCH_FILTER_append_mx8mq = " virtual/libopenvg virtual/libgles1 virtual/libgles2 virtual/egl virtual/mesa virtual/libgl virtual/libg2d"
 
-KERNEL_DEVICETREE = "freescale/maaxboard-dcss-mipi.dtb"
+KERNEL_DEVICETREE = "freescale/maaxboard-dcss-hdmi.dtb"
+KERNEL_DEVICETREE += "freescale/maaxboard-dcss-mipi.dtb"
+KERNEL_DEVICETREE += "freescale/maaxboard-lcdif-mipi.dtb"
+KERNEL_DEVICETREE += "freescale/maaxboard-dual-display.dtb"
 KERNEL_DEVICETREE += "freescale/maaxboard-usb0-device.dtb"
-KERNEL_DEVICETREE += "freescale/maaxboard-dcss-hdmi.dtb"
 
 WKS_FILE_DEPENDS_append = " uenv"
 IMAGE_BOOT_FILES += "uEnv.txt"
