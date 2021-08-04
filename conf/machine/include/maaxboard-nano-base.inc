@@ -8,17 +8,17 @@ require conf/machine/include/tune-cortexa53.inc
 
 MACHINE_FEATURES += " wifi bluetooth nxp8987"
 
-KERNEL_DEVICETREE  = "freescale/maaxboard-nano-mipi.dtb"
+KERNEL_DEVICETREE  = "freescale/maaxboard-nano-base.dtb"
 
 WKS_FILE_DEPENDS_append = " uenv"
 IMAGE_BOOT_FILES += "uEnv.txt"
-
+IMAGE_BOOT_FILES += " overlays/*;overlays/"
 
 UBOOT_CONFIG ??= "sd"
 UBOOT_CONFIG[sd] = "maaxboard_nano_defconfig,sdcard"
 
 # Set u-boot DTB
-UBOOT_DTB_NAME = "maaxboard-nano-mipi.dtb"
+UBOOT_DTB_NAME = "maaxboard-nano.dtb"
 
 # Set imx-mkimage boot target
 IMXBOOT_TARGETS = "flash_ddr4_evk"
@@ -51,12 +51,12 @@ UBOOT_MAKE_TARGET = ""
 
 PREFERRED_PROVIDER_virtual/bootloader = "u-boot-imx"
 PREFERRED_PROVIDER_u-boot = "u-boot-imx"
-PREFERRED_VERSION_u-boot-imx = "2020.04"
+PREFERRED_VERSION_u-boot-imx = "2021.04"
 
 # meta-fsl-bsp-release/imx/meta-bsp/conf/machine/include/imx-base.inc
 PREFERRED_PROVIDER_virtual/kernel = "linux-imx"
-PREFERRED_VERSION_linux-imx = "5.4"
-PREFERRED_VERSION_linux-imx-headers = "5.4"
+PREFERRED_VERSION_linux-imx = "5.10%"
+PREFERRED_VERSION_linux-imx-headers = "5.10%"
 
 # /etc/hostname
 hostname_pn-base-files = "maaxboard-nano"

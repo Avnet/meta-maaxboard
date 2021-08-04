@@ -1,15 +1,10 @@
-# MaaXBoard Nano U-Boot Env
+# Refer to readme.txt for more information on setting up U-Boot Env 
 
+fdt_file=maaxboard-nano-base.dtb
+enable_overlay_mipi=1
+enable_overlay_audio=1
+enable_overlay_mic=1
+enable_overlay_gpio=1
+#fdt_extra_overlays=1.dtbo 2.dtbo 3.dtbo
+console=ttymxc1,115200 console=tty1
 
-#console=ttymxc1
-
-
-# Default DTB is "maaxboard-nano-mipi.dtb" with MIPI-DSI screen support
-# You could switch to different DTB by uncomment the corresponding line
-
-#fdt_file="maaxboard-nano-mipi.dtb"
-
-
-# You could specify the Ethernet MAC Address, or it will be a random address
-
-# ethaddr=ca:3a:e1:44:62:2d
