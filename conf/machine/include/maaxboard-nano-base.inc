@@ -12,6 +12,7 @@ KERNEL_DEVICETREE  = "freescale/maaxboard-nano-base.dtb"
 
 WKS_FILE_DEPENDS_append = " uenv"
 IMAGE_BOOT_FILES += "uEnv.txt"
+IMAGE_BOOT_FILES += "readme.txt"
 IMAGE_BOOT_FILES += " overlays/*;overlays/"
 
 UBOOT_CONFIG ??= "sd"
