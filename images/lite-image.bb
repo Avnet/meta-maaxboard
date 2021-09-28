@@ -9,6 +9,13 @@ IMAGE_FEATURES += " \
     hwcodecs \
     package-management \
 "
+ERPC_COMPS ?= ""
+ERPC_COMPS_append_mx7ulp = "packagegroup-imx-erpc"
+
+HANTRO_PKGS = ""
+HANTRO_PKGS_mx8mm = "imx-vpu-hantro-daemon"
+HANTRO_PKGS_mx8mp = "imx-vpu-hantro-daemon"
+HANTRO_PKGS_mx8mq = "imx-vpu-hantro-daemon"
 
 CORE_IMAGE_EXTRA_INSTALL += " \
     packagegroup-core-full-cmdline \
@@ -16,39 +23,16 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     packagegroup-fsl-tools-audio \
     packagegroup-fsl-tools-gpu \
     packagegroup-fsl-tools-gpu-external \
+    packagegroup-fsl-tools-testapps \
+    packagegroup-fsl-tools-benchmark \
+    packagegroup-imx-isp \
+    packagegroup-imx-security \
     packagegroup-fsl-gstreamer1.0 \
     packagegroup-fsl-gstreamer1.0-full \
-    x264 \
-    opencv \
-    python3-opencv \
-    apt \
-    sudo \
-    bash \
-    nano \
-    dhcpcd \
-    git \
-    e2fsprogs-resize2fs \
-    parted \
-    man-db \
-    linux-imx-headers \
-    gcc \
-    gcc-symlinks \
-    binutils \
-    automake \
-    autoconf \
-    dnsmasq \
-    hostapd \
-    evtest \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'weston-init', '', d)} \
-    mtd-utils \
-    nss \
-    nspr \
-    libxkbcommon \
-    pulseaudio-server \
-    libevent \
-    xz \
+    ${HANTRO_PKGS} \
+    wifi-service \
 "
-
 inherit extrausers
 EXTRA_USERS_PARAMS = "\
     usermod -P avnet root; \

@@ -1,4 +1,4 @@
-MACHINE ??= 'maaxboard-nano-ddr4-1g-sdcard'
+MACHINE ??= 'maaxboard-nano'
 DISTRO ?= 'fsl-imx-wayland-lite'
 PACKAGE_CLASSES ?= 'package_deb'
 # EXTRA_IMAGE_FEATURES ?= "debug-tweaks"
@@ -16,7 +16,7 @@ BB_DISKMON_DIRS ??= "\
 PACKAGECONFIG_append_pn-qemu-system-native = " sdl"
 CONF_VERSION = "1"
 
-DL_DIR ?= "${HOME}/oe-sources/"
+DL_DIR ?= "${HOME}/oe-sources-hardknott/"
 ACCEPT_FSL_EULA = "1"
 
 
@@ -26,4 +26,5 @@ EXTRA_IMAGE_FEATURES += "package-management"
 LICENSE_FLAGS_WHITELIST += "commercial "
 PACKAGECONFIG_pn-gstreamer1.0-plugins-ugly += "x264"
 
-MAAXBOARD_GIT_HOST_MIRROR = "git://git@github.com/Avnet"
+MAAXBOARD_GIT_HOST_MIRROR ?= "git://git@192.168.2.100:imx8m"
+#MAAXBOARD_GIT_HOST_MIRROR = "git://git@github.com/Avnet"
