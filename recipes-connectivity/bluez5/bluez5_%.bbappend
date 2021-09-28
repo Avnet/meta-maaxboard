@@ -19,7 +19,6 @@ do_install_append() {
         install -m 0644 ${WORKDIR}/maaxboard-bt.service ${D}${systemd_unitdir}/system
         install -m 0644 ${WORKDIR}/bluetooth.service ${D}${systemd_unitdir}/system
 
-        ln -sf ${systemd_unitdir}/system/maaxboard-bt.service \
-            ${D}${sysconfdir}/systemd/system/multi-user.target.wants/maaxboard-bt.service
+        # ln -sf ${systemd_unitdir}/system/maaxboard-bt.service ${D}${sysconfdir}/systemd/system/multi-user.target.wants/maaxboard-bt.service
     fi
 }

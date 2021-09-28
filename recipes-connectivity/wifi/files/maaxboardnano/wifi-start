@@ -1,0 +1,20 @@
+#!/bin/bash
+
+UNAME_LIN=$(uname -r)
+MODULE_EXTRA=/lib/modules/${UNAME_LIN}/extra
+
+if [ -d "${MODULE_EXTRA}" ]; then
+
+cd  $MODULE_EXTRA
+
+insmod mlan.ko
+insmod moal.ko 	cfg80211_wext=0xf \
+	wfd_name=p2p \
+	max_vir_bss=1 \
+	cal_data_cfg=none \
+	drv_mode=7 \
+	ps_mode=2 \
+	auto_ds=2 \
+	fw_name=nxp/sduart8987_combo.bin
+
+fi

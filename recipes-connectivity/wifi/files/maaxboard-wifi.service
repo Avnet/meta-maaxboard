@@ -1,0 +1,10 @@
+[Unit]
+Description=WIFI service
+
+[Service]
+Type=simple
+ExecStart=/etc/wifi/wifi-start 
+#Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
