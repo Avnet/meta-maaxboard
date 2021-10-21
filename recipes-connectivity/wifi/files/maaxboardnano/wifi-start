@@ -17,4 +17,5 @@ insmod moal.ko 	cfg80211_wext=0xf \
 	auto_ds=2 \
 	fw_name=nxp/sduart8987_combo.bin
 
+ifconfig mlan0 up
 fi
