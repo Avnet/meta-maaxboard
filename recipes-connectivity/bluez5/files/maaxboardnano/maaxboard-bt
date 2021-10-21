@@ -1,5 +1,10 @@
 #!/bin/sh
 
+ifconfig mlan0
+if [[ $? -ne 0 ]];then
+	sleep 6
+fi
+
 hciattach /dev/ttymxc0 any 115200 flow
 hciconfig hci0 up
 echo "hci0: attached with baud: 115200"

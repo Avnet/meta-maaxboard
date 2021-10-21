@@ -1,6 +1,7 @@
 [Unit]
 Description=MaaXBoard Bluetooth Enable service
-After=network.target
+Requires=maaxboard-wifi.service
+After=network.target maaxboard-wifi.service
 
 [Service]
 Type=forking
