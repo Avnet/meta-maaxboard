@@ -93,6 +93,12 @@ function maaxboard_conf_set(){
     if [ $MACHINE == "maaxboard-nano" ];then
         cp $CWD/sources/meta-maaxboard/conf/local.conf.sample.nano $CWD/${build_dir}/conf/local.conf
         cp $CWD/sources/meta-maaxboard/conf/bblayers.conf.sample.nano $CWD/${build_dir}/conf/bblayers.conf
+    elif [ $MACHINE == "maaxboard" ];then
+        cp $CWD/sources/meta-maaxboard/conf/local.conf.sample $CWD/${build_dir}/conf/local.conf
+        cp $CWD/sources/meta-maaxboard/conf/bblayers.conf.sample $CWD/${build_dir}/conf/bblayers.conf
+    elif [ $MACHINE == "maaxboard-mini" ];then
+        cp $CWD/sources/meta-maaxboard/conf/local.conf.sample.mini $CWD/${build_dir}/conf/local.conf
+        cp $CWD/sources/meta-maaxboard/conf/bblayers.conf.sample.mini $CWD/${build_dir}/conf/bblayers.conf
     fi
 }
 
