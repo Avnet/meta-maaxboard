@@ -1,0 +1,37 @@
+diff --git a/cmake/OpenCVFindLibsGUI.cmake b/cmake/OpenCVFindLibsGUI.cmake
+index e3593d4dc9..e725a916e9 100644
+--- a/cmake/OpenCVFindLibsGUI.cmake
++++ b/cmake/OpenCVFindLibsGUI.cmake
+@@ -15,7 +15,12 @@ endif()
+ ocv_clear_vars(HAVE_QT HAVE_QT5)
+ if(WITH_QT)
+   if(NOT WITH_QT EQUAL 4)
+-    find_package(Qt5 COMPONENTS Core Gui Widgets Test Concurrent REQUIRED NO_MODULE)
++#    find_package(Qt5 COMPONENTS Core Gui Widgets Test Concurrent REQUIRED NO_MODULE)
++    find_package(Qt5Core)
++    find_package(Qt5Gui)
++    find_package(Qt5Widgets)
++    find_package(Qt5Test)
++    find_package(Qt5Concurrent)
+     if(Qt5_FOUND)
+       set(HAVE_QT5 ON)
+       set(HAVE_QT  ON)
+@@ -26,12 +31,12 @@ if(WITH_QT)
+     endif()
+   endif()
+ 
+-  if(NOT HAVE_QT)
+-    find_package(Qt4 REQUIRED QtCore QtGui QtTest)
+-    if(QT4_FOUND)
+-      set(HAVE_QT TRUE)
+-    endif()
+-  endif()
++#  if(NOT HAVE_QT)
++#    find_package(Qt4 REQUIRED QtCore QtGui QtTest)
++#    if(QT4_FOUND)
++#      set(HAVE_QT TRUE)
++#    endif()
++#  endif()
+ endif()
+ 
+ # --- GTK ---

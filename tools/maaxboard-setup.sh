@@ -133,7 +133,6 @@ function run(){
 
     Common targets are:
         lite-image
-        lite-image-qt
 EOF
     
     hook_in_layer meta-imx/meta-bsp
