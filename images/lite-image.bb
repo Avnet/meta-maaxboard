@@ -31,8 +31,10 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     packagegroup-fsl-gstreamer1.0-full \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'weston-init', '', d)} \
     ${HANTRO_PKGS} \
-    wifi-service \
 "
+
+CORE_IMAGE_EXTRA_INSTALL_maaxboardnano += "wifi-service"
+
 inherit extrausers
 EXTRA_USERS_PARAMS = "\
     usermod -P avnet root; \
