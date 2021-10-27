@@ -26,4 +26,4 @@ EXTRA_IMAGE_FEATURES += "package-management"
 LICENSE_FLAGS_WHITELIST += "commercial "
 PACKAGECONFIG_pn-gstreamer1.0-plugins-ugly += "x264"
 
-MAAXBOARD_GIT_HOST_MIRROR = "git://git@github.com/Avnet"
+MAAXBOARD_GIT_HOST_MIRROR = "git://github.com/Avnet"
