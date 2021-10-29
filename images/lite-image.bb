@@ -33,7 +33,27 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     ${HANTRO_PKGS} \
 "
 
-CORE_IMAGE_EXTRA_INSTALL_maaxboardnano += "wifi-service"
+CORE_IMAGE_EXTRA_INSTALL_append = " \
+    sudo \
+    nano \
+    git \
+    e2fsprogs \
+    linux-imx-headers \
+    gcc \
+    gcc-symlinks \
+    binutils \
+    automake \
+    autoconf \
+    hostapd \
+    evtest \
+    mtd-utils \
+    i2c-tools \
+    spitools \
+    pulseaudio-server \
+    xz \
+"
+
+CORE_IMAGE_EXTRA_INSTALL_append_maaxboardnano = "wifi-service"
 
 inherit extrausers
 EXTRA_USERS_PARAMS = "\
