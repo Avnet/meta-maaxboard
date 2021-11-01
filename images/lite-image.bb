@@ -33,6 +33,8 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     ${HANTRO_PKGS} \
 "
 
+CORE_IMAGE_EXTRA_INSTALL_append = " packagegroup-qt5-imx "
+
 CORE_IMAGE_EXTRA_INSTALL_append = " \
     sudo \
     nano \
