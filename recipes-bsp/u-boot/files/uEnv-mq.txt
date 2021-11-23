@@ -1,16 +1,7 @@
 # MaaXBoard U-Boot Env
 
-
-# Default DTB is "maaxboard-dcss-hdmi.dtb" with HDMI screen support
-# You could switch to different DTB by uncomment the corresponding line
-
-#fdt_file=maaxboard-dcss-hdmi.dtb
-#fdt_file=maaxboard-dcss-mipi.dtb
-#fdt_file=maaxboard-lcdif-mipi.dtb
-#fdt_file=maaxboard-dual-display.dtb
-#fdt_file=maaxboard-usb0-device.dtb
-
-
-# You could specify the Ethernet MAC Address, or it will be a random address
-
-#ethaddr=ca:3a:e1:44:61:2b
+fdt_file=maaxboard-base.dtb
+enable_overlay_disp=hdmi
+enable_overlay_gpio=1
+#fdt_extra_overlays=1.dtbo 2.dtbo 3.dtbo
+console=ttymxc0,115200 console=tty1

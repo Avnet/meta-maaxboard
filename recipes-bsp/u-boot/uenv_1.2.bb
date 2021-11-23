@@ -11,6 +11,7 @@ SRC_URI = " "
 
 SRC_URI_maaxboard = " \
             file://uEnv-mq.txt \
+            file://readme.txt \
 "
 
 SRC_URI_maaxboardmini = " \

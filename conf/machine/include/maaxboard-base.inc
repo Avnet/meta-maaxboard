@@ -10,14 +10,12 @@ MACHINE_FEATURES += " pci wifi bluetooth bcm43455"
 
 MACHINE_SOCARCH_FILTER_append_mx8mq = " virtual/libopenvg virtual/libgles1 virtual/libgles2 virtual/egl virtual/mesa virtual/libgl virtual/libg2d"
 
-KERNEL_DEVICETREE = "freescale/maaxboard-dcss-hdmi.dtb"
-KERNEL_DEVICETREE += "freescale/maaxboard-dcss-mipi.dtb"
-KERNEL_DEVICETREE += "freescale/maaxboard-lcdif-mipi.dtb"
-KERNEL_DEVICETREE += "freescale/maaxboard-dual-display.dtb"
-KERNEL_DEVICETREE += "freescale/maaxboard-usb0-device.dtb"
+KERNEL_DEVICETREE = "freescale/maaxboard-base.dtb"
 
 WKS_FILE_DEPENDS_append = " uenv"
 IMAGE_BOOT_FILES += "uEnv.txt"
+IMAGE_BOOT_FILES += "readme.txt"
+IMAGE_BOOT_FILES += " overlays/*;overlays/"
 
 UBOOT_CONFIG ??= "sd"
 UBOOT_CONFIG[sd] = "maaxboard_defconfig,sdcard"
@@ -54,7 +52,7 @@ UBOOT_MAKE_TARGET = ""
 
 PREFERRED_PROVIDER_virtual/bootloader = "u-boot-imx"
 PREFERRED_PROVIDER_u-boot = "u-boot-imx"
-PREFERRED_VERSION_u-boot-imx = "2020.04"
+PREFERRED_VERSION_u-boot-imx = "2021.04"
 
 # meta-fsl-bsp-release/imx/meta-bsp/conf/machine/include/imx-base.inc
 PREFERRED_PROVIDER_virtual/kernel = "linux-imx"
