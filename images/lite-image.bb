@@ -40,6 +40,9 @@ CORE_IMAGE_EXTRA_INSTALL += " \
 CORE_IMAGE_EXTRA_INSTALL_append = " packagegroup-qt5-imx "
 
 CORE_IMAGE_EXTRA_INSTALL_append = " \
+    gnupg \
+    parted \
+    v4l-utils \
     sudo \
     nano \
     git \
