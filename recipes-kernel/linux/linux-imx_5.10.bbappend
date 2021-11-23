@@ -22,7 +22,7 @@ do_copy_defconfig_maaxboardbase () {
 #KERNEL_MODULE_PROBECONF_maaxboardnano += "moal"
 #module_conf_moal_maaxboardnano = "options moal mod_para=nxp/wifi_mod_para_sd8987.conf"
 
-KERNEL_DEVICETREE2  = " \
+KERNEL_DEVICETREE2_maaxboardnano  = " \
     freescale/overlays/maaxboard-nano-audio.dtbo \
     freescale/overlays/maaxboard-nano-ext-spi.dtbo \
     freescale/overlays/maaxboard-nano-ext-sai3.dtbo \
@@ -34,6 +34,22 @@ KERNEL_DEVICETREE2  = " \
     freescale/overlays/maaxboard-nano-ext-pwm.dtbo \
     freescale/overlays/maaxboard-nano-ov5640.dtbo \
 "
+KERNEL_DEVICETREE2_maaxboard  = " \
+    freescale/overlays/maaxboard-as0260.dtbo \
+    freescale/overlays/maaxboard-dual-display.dtbo \
+    freescale/overlays/maaxboard-ext-gpio.dtbo \
+    freescale/overlays/maaxboard-ext-i2c.dtbo \
+    freescale/overlays/maaxboard-ext-pwm.dtbo \
+    freescale/overlays/maaxboard-ext-sai2.dtbo \
+    freescale/overlays/maaxboard-ext-spi.dtbo \
+    freescale/overlays/maaxboard-ext-uart2.dtbo \
+    freescale/overlays/maaxboard-ext-wm8960.dtbo \
+    freescale/overlays/maaxboard-hdmi.dtbo \
+    freescale/overlays/maaxboard-mipi.dtbo \
+    freescale/overlays/maaxboard-ov5640.dtbo \
+    freescale/overlays/maaxboard-usb0-device.dtbo \
+"
+
 do_compile_append() {
     if [ -n "${KERNEL_DTC_FLAGS}" ]; then
         export DTC_FLAGS="${KERNEL_DTC_FLAGS}"
@@ -45,8 +61,7 @@ do_compile_append() {
     done
 }
 
-
-do_deploy_append_maaxboardnano(){
+do_deploy_append(){
     install -d ${DEPLOYDIR}/overlays
     cp ${WORKDIR}/build/arch/arm64/boot/dts/freescale/overlays/* ${DEPLOYDIR}/overlays
 }
