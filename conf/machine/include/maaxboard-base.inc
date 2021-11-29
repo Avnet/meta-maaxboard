@@ -30,9 +30,14 @@ IMXBOOT_TARGETS = "flash_ddr4_val"
 SPL_BINARY = "spl/u-boot-spl.bin"
 
 # Set DDR FIRMWARE
-# Refer to meta-fsl-bsp-release/imx/meta-bsp/recipes-bsp/imx-mkimage/imx-boot_0.2.bb
-# meta-fsl-bsp-release/imx/meta-bsp/recipes-bsp/firmware-imx/firmware-imx_8.4.bb
-DDR_FIRMWARE_NAME = "ddr4_imem_1d_201810.bin ddr4_dmem_1d_201810.bin ddr4_imem_2d_201810.bin ddr4_dmem_2d_201810.bin"
+# Refer to meta-imx/meta-bsp/recipes-bsp/imx-mkimage/imx-boot_1.0.bb
+# meta-imx/meta-bsp/recipes-bsp/firmware-imx/firmware-imx_8.12.bb
+DDR_FIRMWARE_NAME = " \
+    ddr4_imem_1d.bin \
+    ddr4_dmem_1d.bin \
+    ddr4_imem_2d.bin \
+    ddr4_dmem_2d.bin \
+"
 
 # More refer to meta-fsl-bsp-release/imx/meta-bsp/classes/image_types_fsl.bbclass
 IMAGE_BOOTLOADER = "imx-boot"
@@ -58,13 +63,6 @@ PREFERRED_VERSION_u-boot-imx = "2021.04"
 PREFERRED_PROVIDER_virtual/kernel = "linux-imx"
 PREFERRED_VERSION_linux-imx = "5.4"
 PREFERRED_VERSION_linux-imx-headers = "5.4"
-
-# Use gstreamer 1.14 from meta-freescale
-PREFERRED_VERSION_gstreamer1.0 ?= "1.14.imx"
-PREFERRED_VERSION_gstreamer1.0-plugins-base ?= "1.14.imx"
-PREFERRED_VERSION_gstreamer1.0-plugins-good ?= "1.14.imx"
-PREFERRED_VERSION_gstreamer1.0-plugins-bad ?= "1.14.imx"
-PREFERRED_VERSION_gstreamer1.0-libav ?= "1.14.0"
 
 # /etc/hostname
 hostname_pn-base-files = "maaxboard"

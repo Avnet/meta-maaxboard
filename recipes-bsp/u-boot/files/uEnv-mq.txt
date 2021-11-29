@@ -1,4 +1,4 @@
-# MaaXBoard U-Boot Env
+# Refer to readme.txt for more information on setting up U-Boot Env
 
 fdt_file=maaxboard-base.dtb
 enable_overlay_disp=hdmi
