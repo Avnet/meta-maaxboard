@@ -1,6 +1,6 @@
 # FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
-UBOOT_SRC_maaxboardbase = "${MAAXBOARD_GIT_HOST_MIRROR}/uboot-imx.git;protocol=ssh"
+UBOOT_SRC_maaxboardbase = "${MAAXBOARD_GIT_HOST_MIRROR}/uboot-imx.git;protocol=https"
 SRCBRANCH_maaxboardbase = "maaxboard_v2020.04_5.4.24_2.1.0"
 SRC_URI_maaxboardbase = "${UBOOT_SRC};branch=${SRCBRANCH} \
 "
