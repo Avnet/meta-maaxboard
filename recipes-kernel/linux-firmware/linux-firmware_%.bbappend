@@ -1,5 +1,8 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
+DTS_BOARD_NAME ?= ""
+DTS_BOARD_NAME_maaxboard="avnet,maaxboard"
+
 # Firmware for AzureWave AW-CM390SM Modules
 SRC_URI += " \
             file://AW_CM390SM.tar.bz2;unpack=true;subdir=maaxboard-firmware \
@@ -11,6 +14,8 @@ az_install_firmware() {
     install -m 0644 ${WORKDIR}/maaxboard-firmware/AW_CM390SM/brcm/brcmfmac43455-sdio.bin ${D}${nonarch_base_libdir}/firmware/brcm
     install -m 0644 ${WORKDIR}/maaxboard-firmware/AW_CM390SM/brcm/brcmfmac43455-sdio.clm_blob ${D}${nonarch_base_libdir}/firmware/brcm
     install -m 0644 ${WORKDIR}/maaxboard-firmware/AW_CM390SM/brcm/brcmfmac43455-sdio.txt ${D}${nonarch_base_libdir}/firmware/brcm
+    cd ${D}${nonarch_base_libdir}/firmware/brcm
+    ln -s brcmfmac43455-sdio.txt brcmfmac43455-sdio.${DTS_BOARD_NAME}.txt
 }
 
 az_install_firmware_aw(){
