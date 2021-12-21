@@ -27,11 +27,7 @@ IMXBOOT_TARGETS = "flash_ddr4_evk"
 SPL_BINARY = "spl/u-boot-spl.bin"
 
 # Set DDR FIRMWARE
-# Refer to meta-fsl-bsp-release/imx/meta-bsp/recipes-bsp/imx-mkimage/imx-boot_1.0.bb
-# meta-fsl-bsp-release/imx/meta-bsp/recipes-bsp/firmware-imx/firmware-imx-8m_8.8.bb
 DDR_FIRMWARE_NAME = "ddr4_imem_1d_201810.bin ddr4_dmem_1d_201810.bin ddr4_imem_2d_201810.bin ddr4_dmem_2d_201810.bin"
-# DDR_FW_VERSION = "201810"
-
 
 # More refer to meta-fsl-bsp-release/imx/meta-bsp/classes/image_types_fsl.bbclass
 IMAGE_BOOTLOADER = "imx-boot"
