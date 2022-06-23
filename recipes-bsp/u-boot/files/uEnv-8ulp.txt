@@ -1,0 +1,10 @@
+# Refer to readme.txt for more information on setting up U-Boot Env 
+
+fdt_file=maaxboard-8ulp.dtb
+enable_overlay_mipi=1
+enable_overlay_audio=1
+enable_overlay_mic=1
+enable_overlay_gpio=1
+#fdt_extra_overlays=1.dtbo 2.dtbo 3.dtbo
+console=ttymxc1,115200 console=tty1
+

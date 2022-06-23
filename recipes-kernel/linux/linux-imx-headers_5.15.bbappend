@@ -1,0 +1,1 @@
+require recipes-kernel/linux/linux-maaxboard-src-5.15.inc
