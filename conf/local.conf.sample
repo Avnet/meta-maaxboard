@@ -16,6 +16,8 @@ BB_DISKMON_DIRS ??= "\
 PACKAGECONFIG_append_pn-qemu-system-native = " sdl"
 CONF_VERSION = "1"
 
+MACHINE_FEATURES_remove_maaxboard    = " nxp8987"
+
 #DL_DIR ?= "${HOME}/oe-sources/"
 ACCEPT_FSL_EULA = "1"
 
