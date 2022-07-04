@@ -10,6 +10,7 @@ S = "${WORKDIR}"
 SRC_URI = " "
 SRC_URI:maaxboard8ulp = " \
             file://uEnv-8ulp.txt \
+            file://readme.txt \
 "
 
 FILES:${PN} = "/boot"
@@ -17,6 +18,7 @@ FILES:${PN} = "/boot"
 do_install () {
     install -d ${D}/boot
     install -m 0644 ${S}/uEnv-*.txt ${D}/boot/uEnv.txt
+    install -m 0644 ${S}/readme.txt ${D}/boot/readme.txt
 }
 
 inherit deploy
@@ -24,6 +26,7 @@ addtask deploy after do_install
 
 do_deploy () {
     install -m 0644 ${D}/boot/uEnv.txt ${DEPLOYDIR}
+    install -m 0644 ${D}/boot/readme.txt ${DEPLOYDIR}
 }
 
 COMPATIBLE_MACHINE = "(maaxboardbase)"
