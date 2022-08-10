@@ -1,11 +1,16 @@
 # Copyright 2022 AVNET
 
+FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
+##FILESEXTRAPATHS:prepend = "${THISDIR}/files:"
+SRC_URI += "file://maaxboard_8ulp_m33_image.tar.gz "
+SRCREV[md5sum] = "a80a6998c0dfdf58ba5d925e7cb6cafc"
+
 IMX_M4_DEMOS      = ""
 M4_DEFAULT_IMAGE ?= "m4_image.bin"
 
 # Setting for i.MX 8ULP
 IMX_M4_DEMOS:mx8ulp = "imx-m33-demos:do_deploy"
-M4_DEFAULT_IMAGE:mx8ulp = "imx8ulp_m33_TCM_rpmsg_lite_str_echo_rtos.bin"
+M4_DEFAULT_IMAGE:mx8ulp = "maaxboard_8ulp_m33_image.bin"
 ATF_MACHINE_NAME:mx8ulp = "bl31-imx8ulp.bin"
 IMX_EXTRA_FIRMWARE:mx8ulp = "firmware-upower firmware-sentinel"
 SECO_FIRMWARE_NAME:mx8ulp = "mx8ulpa0-ahab-container.img"
@@ -18,7 +23,8 @@ do_compile[depends] += "${IMX_M4_DEMOS}"
 do_compile:prepend() {
     case ${SOC_FAMILY} in
     mx8ulp)
-        cp ${DEPLOY_DIR_IMAGE}/${M4_DEFAULT_IMAGE}       ${BOOT_STAGING}/m33_image.bin
+		cp ${WORKDIR}/${M4_DEFAULT_IMAGE}       ${DEPLOY_DIR_IMAGE}/${M4_DEFAULT_IMAGE}
+		cp ${DEPLOY_DIR_IMAGE}/${M4_DEFAULT_IMAGE}       ${BOOT_STAGING}/m33_image.bin
         ;;
     esac
 }

@@ -39,7 +39,7 @@ ATF_PLATFORM = "imx8ulp"
 UBOOT_DTB_NAME = "${UBOOT_DEVICETREE_DTBNAME}"
 
 # Set imx-mkimage boot target
-IMXBOOT_TARGETS = "flash_singleboot_m33 flash_singleboot flash_dualboot_m33 flash_dualboot"
+IMXBOOT_TARGETS = "flash_singleboot_m33"
 
 IMX_BOOT_SOC_TARGET = "iMX8ULP"
 IMX_BOOT_SEEK = "32"
