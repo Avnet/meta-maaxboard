@@ -7,14 +7,21 @@ inherit systemd
 SYSTEMD_AUTO_ENABLE = "enable"
 SYSTEMD_SERVICE:${PN} = "wpa-conf.service"
 
+SRC_URI += " file://20-mlan0.network "
 SRC_URI += " file://wpa-conf.service "
+SRC_URI += " file://wpa-conf.timer "
+SRC_URI += " file://wpa_supplicant@.service "
+
+FILES:${PN} += "${sysconfdir}/systemd/network/20-mlan0.network"
 FILES:${PN} += "${systemd_unitdir}/system/wpa-conf.service"
+FILES:${PN} += "${systemd_unitdir}/system/wpa-conf.timer"
+FILES:${PN} += "${systemd_unitdir}/system/wpa_supplicant@.service"
 
 do_install() { 
     install -d ${D}/${systemd_unitdir}/system 
+    install -d ${D}${sysconfdir}/systemd/network
+    install -m 0644 ${WORKDIR}/20-mlan0.network ${D}${sysconfdir}/systemd/network
     install -m 0644 ${WORKDIR}/wpa-conf.service ${D}/${systemd_unitdir}/system
-}
-
-do_install:append_maaxboardnano() { 
-    sed -i "s/wlan/mlan/g" ${D}/${systemd_unitdir}/system/wpa-conf.service
+    install -m 0644 ${WORKDIR}/wpa-conf.timer ${D}/${systemd_unitdir}/system
+    install -m 0644 ${WORKDIR}/wpa_supplicant@.service ${D}/${systemd_unitdir}/system
 }
