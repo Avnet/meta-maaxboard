@@ -57,6 +57,7 @@ CORE_IMAGE_EXTRA_INSTALL:append = " \
     hostapd \
     spitools \
     alsa-state \
+    expand_rootfs \
     wpa-conf \
     pulseaudio-server \
     xz \
