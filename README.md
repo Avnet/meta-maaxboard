@@ -3,7 +3,7 @@
 A meta-layer for MaaXBoard series boards
 > 
 
-Yocto hardknott 3.3 support:        MaaXBoard Nano
+Yocto hardknott 3.3 support:        MaaXBoard / MaaXBoard Nano
 
 Yocto zeus 3.0 support:             MaaXBoard / MaaXBoard Mini / MaaXBoard Nano
 
@@ -57,7 +57,17 @@ $ cd ~/imx-yocto-bsp/sources/
 $ git clone https://github.com/Avnet/meta-maaxboard.git -b hardknott
 ```
 
-### Build
+### Build for MaaXBoard
+
+```bash
+$ cd ~/imx-yocto-bsp
+$ MACHINE=maaxboard source sources/meta-maaxboard/tools/maaxboard-setup.sh -b maaxboard/build
+$ bitbake lite-image
+```
+
+For more information, please refer to MaaXBoard-Linux-Yocto-Lite-Development_Guide
+
+### Build for MaaXBoard-Nano
 
 ```bash
 $ cd ~/imx-yocto-bsp
