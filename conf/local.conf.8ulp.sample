@@ -28,5 +28,5 @@ PACKAGECONFIG:pn-gstreamer1.0-plugins-ugly += "x264"
 
 # uncomment these lines, you can set up your group repository where the code is stored
 MAAXBOARD_GIT_HOST_MIRROR = "git://github.com/Avnet"
-#MAAXBOARD_GIT_PROTOCOL = "protocol=http"
+MAAXBOARD_GIT_PROTOCOL = "protocol=http"
 #MAAXBOARD_GIT_USER = "user=your_name:your_password"
