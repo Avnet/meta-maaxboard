@@ -126,7 +126,8 @@ run(){
     You can now run 'bitbake <target>'
 
     Common targets are:
-        lite-image
+        avnet-image-full
+
 EOF
     
     hook_in_layer meta-imx/meta-bsp

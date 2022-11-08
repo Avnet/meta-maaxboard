@@ -49,7 +49,7 @@ Clone this repo and checkout to honister branch
 
 ```bash
 $ cd ~/imx-yocto-bsp/sources/
-$ git clone -b honister_maaxboard-8ulp https://github.com/Avnet/meta-maaxboard.git meta-maaxboard-8ulp
+$ git clone https://github.com/Avnet/meta-maaxboard.git -b honister_maaxboard-8ulp meta-maaxboard-8ulp
 ```
 
 ### Build
@@ -59,7 +59,7 @@ Create a new build folder and set the configuration for the first time, run the 
 ```bash
 $ cd ~/imx-yocto-bsp
 $ MACHINE=maaxboard-8ulp source sources/meta-maaxboard-8ulp/tools/maaxboard-setup.sh -b maaxboard-8ulp/build
-$ bitbake lite-image
+$ bitbake avnet-image-full
 ```
 
 If you want to build in an existing build folder, use the following command:
