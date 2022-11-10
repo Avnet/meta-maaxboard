@@ -4,7 +4,8 @@ UBOOT_SRC:maaxboardbase = "${MAAXBOARD_GIT_HOST_MIRROR}/uboot-imx.git;${MAAXBOAR
 UBOOT_BRANCH:maaxboardbase = "maaxboard_lf-5.15.5-1.0.0"
 SRC_URI:maaxboardbase = "${UBOOT_SRC};branch=${UBOOT_BRANCH};${MAAXBOARD_GIT_USER}"
 
-SRCREV:maaxboard8ulp = "${AUTOREV}"
+SRCREV:maaxboard8ulp = "c4bf00a52c62566a792b90444474b09d29db6145"
+#SRCREV:maaxboard8ulp = "${AUTOREV}"
 
 do_deploy:append:maaxboardbase() {
     # Deploy u-boot-nodtb.bin and maaxboard*-XX.dtb for mkimage to generate boot binary
