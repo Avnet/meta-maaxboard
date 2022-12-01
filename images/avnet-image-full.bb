@@ -45,6 +45,7 @@ EXTRA_GCC_TOOL:mx8 = " \
     gcc-symlinks \
     binutils \
     automake \
+    cmake \
     autoconf \
 "
 
@@ -52,7 +53,7 @@ CORE_IMAGE_EXTRA_INSTALL:append = " \
     ${EXTRA_GCC_TOOL} \
     gnupg \
     parted \
-	v4l-utils \
+    v4l-utils \
     git \
     hostapd \
     spitools \

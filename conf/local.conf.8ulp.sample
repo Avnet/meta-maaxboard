@@ -1,7 +1,7 @@
 MACHINE ??= 'maaxboard-8ulp'
 DISTRO ?= 'fsl-imx-wayland-lite'
 PACKAGE_CLASSES ?= 'package_rpm'
-EXTRA_IMAGE_FEATURES ?= "debug-tweaks"
+EXTRA_IMAGE_FEATURES ?= "debug-tweaks tools-sdk tools-debug"
 USER_CLASSES ?= "buildstats"
 PATCHRESOLVE = "noop"
 BB_DISKMON_DIRS ??= "\
