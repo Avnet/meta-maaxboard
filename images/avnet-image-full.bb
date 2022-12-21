@@ -65,6 +65,7 @@ CORE_IMAGE_EXTRA_INSTALL:append = " \
     lrzsz \
     yavta \
     libgpiod libgpiod-tools \
+    powertop \
 "
 
 inherit extrausers
