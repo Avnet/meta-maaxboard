@@ -60,6 +60,7 @@ CORE_IMAGE_EXTRA_INSTALL:append = " \
     alsa-state \
     expand-rootfs \
     wpa-conf \
+    weston-timer \
     pulseaudio-server \
     xz \
     lrzsz \
