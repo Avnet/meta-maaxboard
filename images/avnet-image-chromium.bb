@@ -30,6 +30,8 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     packagegroup-fsl-gstreamer1.0 \
     packagegroup-fsl-gstreamer1.0-full \
     packagegroup-fsl-opencv-imx \
+    packagegroup-core-ssh-openssh \
+    openssh-sftp openssh-sftp-server \
     firmwared \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'weston-init', '', d)} \
     ${DOCKER} \
@@ -69,7 +71,19 @@ CORE_IMAGE_EXTRA_INSTALL:append = " \
     yavta \
     libgpiod libgpiod-tools \
     powertop \
+    dos2unix \
+    rsync \
+    python \
+    python-pip \
+    python3 \
+    python3-pip \
 "
+
+# Modify default environment
+modify_env() {
+    echo "alias ls='ls --color=auto'" >> ${IMAGE_ROOTFS}/etc/profile
+}
+ROOTFS_POSTPROCESS_COMMAND += "modify_env; "
 
 inherit extrausers
 # Create the password hash with following command on host:
