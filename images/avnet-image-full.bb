@@ -29,6 +29,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     packagegroup-imx-security \
     packagegroup-fsl-gstreamer1.0 \
     packagegroup-fsl-gstreamer1.0-full \
+    packagegroup-fsl-opencv-imx \
     firmwared \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'weston-init', '', d)} \
     ${DOCKER} \
