@@ -33,6 +33,8 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     packagegroup-imx-security \
     packagegroup-fsl-gstreamer1.0 \
     packagegroup-fsl-gstreamer1.0-full \
+    packagegroup-core-ssh-openssh \
+    openssh-sftp openssh-sftp-server \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'weston-init', '', d)} \
     ${HANTRO_PKGS} \
 "
@@ -60,9 +62,17 @@ CORE_IMAGE_EXTRA_INSTALL_append = " \
     spitools \
     pulseaudio-server \
     xz \
+    dos2unix \
+    rsync \
 "
 
 CORE_IMAGE_EXTRA_INSTALL_append_maaxboardnano = "wifi-service"
+
+# Modify default environment
+modify_env() {
+    echo "alias ls='ls --color=auto'" >> ${IMAGE_ROOTFS}/etc/profile
+}
+ROOTFS_POSTPROCESS_COMMAND += "modify_env; "
 
 inherit extrausers
 EXTRA_USERS_PARAMS = "\
