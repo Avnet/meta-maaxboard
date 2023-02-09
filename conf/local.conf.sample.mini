@@ -15,6 +15,7 @@ BB_DISKMON_DIRS ??= "\
     ABORT,/tmp,10M,1K"
 PACKAGECONFIG_append_pn-qemu-system-native = " sdl"
 CONF_VERSION = "1"
+QT_MODULE_BRANCH_PARAM_append = ";nobranch=1"
 
 #DL_DIR ?= "${HOME}/oe-sources-hardknott/"
 ACCEPT_FSL_EULA = "1"
