@@ -50,7 +50,7 @@ $ repo init -u https://source.codeaurora.org/external/imx/imx-manifest -b imx-li
 $ repo sync
 ```
 
-Clone this repo and checkout to zeus branch
+Clone this repo and checkout to hardknott branch
 
 ```bash
 $ cd ~/imx-yocto-bsp/sources/
