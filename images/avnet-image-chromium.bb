@@ -14,24 +14,47 @@ IMAGE_FEATURES += " \
     package-management \
 "
 
+DOCKER ?= ""
+DOCKER = "docker"
+
 CORE_IMAGE_EXTRA_INSTALL += " \
     packagegroup-core-full-cmdline \
     packagegroup-tools-bluetooth \
     packagegroup-fsl-tools-audio \
+    packagegroup-fsl-tools-gpu \
+    packagegroup-fsl-tools-gpu-external \
+    packagegroup-fsl-tools-testapps \
+    packagegroup-fsl-tools-benchmark \
     packagegroup-imx-isp \
     packagegroup-imx-security \
     packagegroup-fsl-gstreamer1.0 \
     packagegroup-fsl-gstreamer1.0-full \
+    packagegroup-fsl-opencv-imx \
     packagegroup-core-ssh-openssh \
     openssh-sftp openssh-sftp-server \
     firmwared \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'weston-init', '', d)} \
+    ${DOCKER} \
+    chromium-ozone-wayland \
 "
 
+inherit populate_sdk_qt6_base
+
 CONFLICT_DISTRO_FEATURES = "directfb"
-CORE_IMAGE_EXTRA_INSTALL:append = " tzdata "
+CORE_IMAGE_EXTRA_INSTALL:append = " packagegroup-qt6-imx tzdata "
+
+EXTRA_GCC_TOOL ?= ""
+EXTRA_GCC_TOOL = " \
+    gcc \
+    gcc-symlinks \
+    binutils \
+    automake \
+    cmake \
+    autoconf \
+"
 
 CORE_IMAGE_EXTRA_INSTALL:append = " \
+    ${EXTRA_GCC_TOOL} \
     gnupg \
     parted \
     v4l-utils \
