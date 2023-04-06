@@ -4,34 +4,34 @@
 fdt_file=maaxboard.dtb
 
 # Camera can support ov5640 and as0260
-dtoverlay_camera=ov5640
+#dtoverlay_camera=ov5640
 
 # Display can support mipi, hdmi and dual
-dtoverlay_display=mipi
+#dtoverlay_display=mipi
 
 # Enable USB0 work as device mode, default as host
-dtoverlay_usb0=device
+#dtoverlay_usb0=device
 
 # Set 40-pin extended GPIO pin default work as GPIO
 dtoverlay_gpio=yes
 
 # Enable i2c2/i2c3 on 40-pin extended GPIO pin
-dtoverlay_i2c=2 3
+#dtoverlay_i2c=2 3
 
 # Enable pwm2/pwm4 on 40-pin extended GPIO pin
-dtoverlay_pwm=2 4
+#dtoverlay_pwm=2 4
 
 # Enable spi1 on 40-pin extended GPIO pin
-dtoverlay_spi=1
+#dtoverlay_spi=1
 
 # Enable uart2 on 40-pin extended GPIO pin
-dtoverlay_uart=2
+#dtoverlay_uart=2
 
 # Enable wm8960 on 40-pin extended GPIO pin
-dtoverlay_wm8960=yes
+#dtoverlay_wm8960=yes
 
 # Extra other device tree overlay
-#fdt_extra_overlays=1.dtbo 2.dtbo 3.dtbo
+#dtoverlay_extra=1.dtbo 2.dtbo 3.dtbo
 
 # U-boot bootargs for console
 console=ttymxc0,115200 console=tty1

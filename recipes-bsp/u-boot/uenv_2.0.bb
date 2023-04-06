@@ -14,7 +14,7 @@ SRC_URI:maaxboard8ulp = " \
 "
 
 SRC_URI:maaxboard = " \
-			file://readme.txt \
+			file://readme-maaxboard.txt \
             file://uEnv-maaxboard.txt \
 "
 
@@ -23,7 +23,7 @@ FILES:${PN} = "/boot"
 do_install:maaxboard () {
     install -d ${D}/boot
     install -m 0644 ${S}/uEnv-maaxboard.txt ${D}/boot/uEnv.txt
-    install -m 0644 ${S}/readme.txt ${D}/boot/readme.txt
+    install -m 0644 ${S}/readme-maaxboard.txt ${D}/boot/readme.txt
 }
 
 inherit deploy
