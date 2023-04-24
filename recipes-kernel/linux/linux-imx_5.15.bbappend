@@ -1,35 +1,45 @@
+# NOTE:
+# ${MACHINE} defined in meta-maaxboard/conf/local.conf.sample.xxx
+# It should be maaxboard,maaxboard-8ulp,maaxboard-mini,maaxboard-nano
+
 require recipes-kernel/linux/linux-maaxboard-src-5.15.inc
 
 KERNEL_DEF_CONFIG ??= "imx_v8_defconfig"
-KERNEL_DEF_CONFIG:maaxboard = "maaxboard_defconfig"
+KERNEL_DEF_CONFIG = "${MACHINE}_defconfig"
 
 do_copy_defconfig:maaxboardbase () {
     install -d ${B}
-    # copy latest KERNEL_DEF_CONFIG to use for mx8
     mkdir -p ${B}
-	cp ${S}/arch/arm64/configs/${KERNEL_DEF_CONFIG} ${B}/.config
+    cp ${S}/arch/arm64/configs/${KERNEL_DEF_CONFIG} ${B}/.config
 }
 
 KERNEL_DTC_FLAGS = "-@"
 
 KERNEL_DEVICETREE2 ?= ""
 KERNEL_DEVICETREE2:maaxboard  = " \
-    freescale/maaxboard/camera-as0260.dtbo \
-    freescale/maaxboard/camera-ov5640.dtbo \
-    freescale/maaxboard/display-dual.dtbo \
-    freescale/maaxboard/display-hdmi.dtbo \
-    freescale/maaxboard/display-mipi.dtbo \
-    freescale/maaxboard/ext-gpio.dtbo \
-    freescale/maaxboard/ext-i2c2.dtbo \
-    freescale/maaxboard/ext-i2c3.dtbo \
-    freescale/maaxboard/ext-pwm2.dtbo \
-    freescale/maaxboard/ext-pwm4.dtbo \
-    freescale/maaxboard/ext-spi1.dtbo \
-    freescale/maaxboard/ext-uart2.dtbo \
-    freescale/maaxboard/ext-wm8960.dtbo \
-    freescale/maaxboard/usb0-device.dtbo \
+    freescale/${MACHINE}/camera-as0260.dtbo \
+    freescale/${MACHINE}/camera-ov5640.dtbo \
+    freescale/${MACHINE}/display-dual.dtbo \
+    freescale/${MACHINE}/display-hdmi.dtbo \
+    freescale/${MACHINE}/display-mipi.dtbo \
+    freescale/${MACHINE}/ext-gpio.dtbo \
+    freescale/${MACHINE}/ext-i2c2.dtbo \
+    freescale/${MACHINE}/ext-i2c3.dtbo \
+    freescale/${MACHINE}/ext-pwm2.dtbo \
+    freescale/${MACHINE}/ext-pwm4.dtbo \
+    freescale/${MACHINE}/ext-spi1.dtbo \
+    freescale/${MACHINE}/ext-uart2.dtbo \
+    freescale/${MACHINE}/ext-wm8960.dtbo \
+    freescale/${MACHINE}/usb0-device.dtbo \
 "
-
+KERNEL_DEVICETREE2:maaxboard8ulp = " \
+    freescale/${MACHINE}/camera-ov5640.dtbo \
+    freescale/${MACHINE}/display-mipi.dtbo \
+    freescale/${MACHINE}/ext-gpio.dtbo \
+    freescale/${MACHINE}/ext-i2c4.dtbo \
+    freescale/${MACHINE}/ext-spi5.dtbo \
+    freescale/${MACHINE}/ext-uart4.dtbo \
+"
 do_compile:append() {
     if [ -n "${KERNEL_DTC_FLAGS}" ]; then
         export DTC_FLAGS="${KERNEL_DTC_FLAGS}"
@@ -41,7 +51,7 @@ do_compile:append() {
     done
 }
 
-do_deploy:append:maaxboard(){
+do_deploy:append(){
     install -d ${DEPLOYDIR}/overlays
-    cp ${WORKDIR}/build/arch/arm64/boot/dts/freescale/maaxboard/* ${DEPLOYDIR}/overlays
+    cp ${WORKDIR}/build/arch/arm64/boot/dts/freescale/${MACHINE}/*.dtbo ${DEPLOYDIR}/overlays
 }
