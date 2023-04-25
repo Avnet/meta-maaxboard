@@ -5,12 +5,16 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/meta/files/common-licenses/GPL-2.0-only;m
 inherit systemd
 
 SYSTEMD_AUTO_ENABLE = "enable"
-SYSTEMD_SERVICE:${PN} = "sshswitch.service"
+SYSTEMD_SERVICE:${PN} = "sshswitch.timer"
 
 SRC_URI += " file://sshswitch.service "
+SRC_URI += " file://sshswitch.timer "
+
 FILES:${PN} += "${systemd_unitdir}/system/sshswitch.service"
+FILES:${PN} += "${systemd_unitdir}/system/sshswitch.timer"
 
 do_install() { 
     install -d ${D}/${systemd_unitdir}/system 
     install -m 0644 ${WORKDIR}/sshswitch.service ${D}/${systemd_unitdir}/system
+    install -m 0644 ${WORKDIR}/sshswitch.timer ${D}/${systemd_unitdir}/system
 }

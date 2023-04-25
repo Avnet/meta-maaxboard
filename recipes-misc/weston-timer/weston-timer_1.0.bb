@@ -8,7 +8,6 @@ SYSTEMD_AUTO_ENABLE = "enable"
 SYSTEMD_SERVICE:${PN} = "weston.timer"
 
 SRC_URI += " file://weston.timer "
-
 FILES:${PN} += "${systemd_unitdir}/system/weston.timer"
 
 do_install() { 

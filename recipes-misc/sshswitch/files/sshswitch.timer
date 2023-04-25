@@ -1,0 +1,8 @@
+[Unit]
+Description=Timer for the sshswitch service
+
+[Timer]
+OnBootSec=20
+
+[Install]
+WantedBy=timers.target

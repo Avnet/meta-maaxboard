@@ -8,7 +8,7 @@ SRC_URI += "\
          file://asound.conf \
 "
 
-do_install:append_maaxboard8ulp () {
+do_install:append:maaxboard8ulp () {
     install -m 0644 ${WORKDIR}/asound.state ${D}${localstatedir}/lib/alsa
     install -m 0644 ${WORKDIR}/asound.conf ${D}${sysconfdir}
 }
