@@ -12,22 +12,22 @@ IMAGE_ROOTFS_SIZE ?= "512"
 EXTRA_IMAGE_FEATURES:remove = "tools-sdk tools-debug"
 
 CORE_IMAGE_EXTRA_INSTALL:append = " \
-	tzdata \
-	openssh \
-	evtest \
-	alsa-utils \
+    tzdata \
+    openssh \
+    evtest \
+    alsa-utils \
     v4l-utils \
-	inetutils \
+    inetutils \
     hostapd \
-	wpa-supplicant \
-	wireless-tools \
+    wireless-tools \
     spitools \
     alsa-state \
     lrzsz \
     yavta \
     libgpiod libgpiod-tools \
-	packagegroup-fsl-gstreamer1.0 \
-	packagegroup-fsl-gstreamer1.0-full \
+    packagegroup-base-wifi \
+    packagegroup-fsl-gstreamer1.0 \
+    packagegroup-fsl-gstreamer1.0-full \
 "
 
 # Modify default environment

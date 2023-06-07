@@ -18,6 +18,7 @@ DOCKER ?= ""
 DOCKER = "docker"
 
 CORE_IMAGE_EXTRA_INSTALL += " \
+    packagegroup-base-wifi \
     packagegroup-core-full-cmdline \
     packagegroup-tools-bluetooth \
     packagegroup-fsl-tools-audio \
@@ -57,8 +58,10 @@ CORE_IMAGE_EXTRA_INSTALL:append = " \
     gnupg \
     parted \
     v4l-utils \
-    git \
+    inetutils \
     hostapd \
+    wireless-tools \
+    git \
     spitools \
     alsa-state \
     expand-rootfs \
