@@ -70,6 +70,9 @@ copy_uboot_dtb() {
         maaxboard)
             target_dtb_name=imx8mq-ddr4-val.dtb
             ;;
+        maaxboard-mini)
+            target_dtb_name=imx8mm-ddr4-evk.dtb
+            ;;
     esac
 
     bbnote "Copy $(basename ${DEPLOY_DIR_IMAGE}/${BOOT_TOOLS}/${UBOOT_DTB_NAME}) to $(basename ${BOOT_STAGING}/${target_dtb_name})"

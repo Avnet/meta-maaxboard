@@ -32,6 +32,21 @@ KERNEL_DEVICETREE2:maaxboard  = " \
     freescale/${MACHINE}/ext-wm8960.dtbo \
     freescale/${MACHINE}/usb0-device.dtbo \
 "
+
+KERNEL_DEVICETREE2:maaxboard-mini  = " \
+    freescale/${MACHINE}/camera-ov5640.dtbo \
+    freescale/${MACHINE}/display-mipi.dtbo \
+    freescale/${MACHINE}/ext-gpio.dtbo \
+    freescale/${MACHINE}/ext-i2c2.dtbo \
+    freescale/${MACHINE}/ext-i2c3.dtbo \
+    freescale/${MACHINE}/ext-pwm1.dtbo \
+    freescale/${MACHINE}/ext-pwm2.dtbo \
+    freescale/${MACHINE}/ext-pwm3.dtbo \
+    freescale/${MACHINE}/ext-spi1.dtbo \
+    freescale/${MACHINE}/ext-uart2.dtbo \
+    freescale/${MACHINE}/ext-wm8960.dtbo \
+    freescale/${MACHINE}/usb0-device.dtbo \
+"
 KERNEL_DEVICETREE2:maaxboard8ulp = " \
     freescale/${MACHINE}/camera-ov5640.dtbo \
     freescale/${MACHINE}/display-mipi.dtbo \
