@@ -1,0 +1,28 @@
+# Refer to readme.txt for more information on setting up U-Boot Env
+
+# Device tree base file
+fdt_file=maaxboard-8ulp.dtb
+
+# Camera can support ov5640
+#dtoverlay_camera=ov5640
+
+# Display can support mipi
+#dtoverlay_display=mipi
+
+# Set 40-pin extended GPIO pin default work as GPIO
+dtoverlay_gpio=yes
+
+# Enable lpi2c4 on 40-pin extended GPIO pin
+#dtoverlay_i2c=4
+
+# Enable lpspi5 on 40-pin extended GPIO pin
+#dtoverlay_spi=5
+
+# Enable lpuart4 on 40-pin extended GPIO pin
+#dtoverlay_uart=4
+
+# Extra other device tree overlay
+#dtoverlay_extra=1.dtbo 2.dtbo 3.dtbo
+
+# U-boot bootargs for console
+console=ttyLP1,115200 console=tty1

@@ -1,0 +1,32 @@
+MACHINE ??= 'maaxboard-mini'
+DISTRO ?= 'fsl-imx-wayland-lite'
+PACKAGE_CLASSES ?= 'package_deb'
+EXTRA_IMAGE_FEATURES ?= "debug-tweaks tools-sdk tools-debug"
+USER_CLASSES ?= "buildstats "
+PATCHRESOLVE = "noop"
+BB_DISKMON_DIRS ??= "\
+    STOPTASKS,${TMPDIR},1G,100K \
+    STOPTASKS,${DL_DIR},1G,100K \
+    STOPTASKS,${SSTATE_DIR},1G,100K \
+    STOPTASKS,/tmp,100M,100K \
+    ABORT,${TMPDIR},100M,1K \
+    ABORT,${DL_DIR},100M,1K \
+    ABORT,${SSTATE_DIR},100M,1K \
+    ABORT,/tmp,10M,1K"
+PACKAGECONFIG:append:pn-qemu-system-native = " sdl"
+CONF_VERSION = "2"
+
+#DL_DIR ?= "${HOME}/oe-sources-langdale/"
+ACCEPT_FSL_EULA = "1"
+
+# Switch to Debian packaging and include package-management in the image
+PACKAGE_CLASSES = "package_deb"
+EXTRA_IMAGE_FEATURES += "package-management"
+
+LICENSE_FLAGS_ACCEPTED += "commercial "
+PACKAGECONFIG:pn-gstreamer1.0-plugins-ugly += "x264"
+
+# uncomment these lines, you can set up your group repository where the code is stored
+MAAXBOARD_GIT_HOST_MIRROR = "git://github.com/Avnet"
+MAAXBOARD_GIT_PROTOCOL = "protocol=http"
+#MAAXBOARD_GIT_USER = "user=your_name:your_password"
