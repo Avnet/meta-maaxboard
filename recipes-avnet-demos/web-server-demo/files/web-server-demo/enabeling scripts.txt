@@ -1,0 +1,3 @@
+cd ~/web-server-demo
+chmod +x enable-scripts.sh
+./enable-scripts.sh

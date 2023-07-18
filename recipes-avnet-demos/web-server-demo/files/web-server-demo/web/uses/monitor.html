@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  	<meta charset="UTF-8">
+  	<title>Thermostat Example</title>
+	<link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Unica+One&amp;display=swap'><link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+	
+	<div class="navbar">
+		<a href="./thermostat.html">HEAT METERING</a>
+		<a href="./solar.html">RENEWABLE ENERGY</a>
+		<a href="./monitor.html" class="current">MEDICAL DEVICES</a>
+		<a href="../index.html">BACK TO DEMO</a>
+	</div>
+	
+	<div style="width:100%"> <canvas id="myChart"></canvas> </div>
+
+    <script src="Chart.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        var data_received = 0;
+        var maxDataPoints = 20;
+        var dataPlot;
+
+        function removeData() {
+            dataPlot.data.labels.shift();
+            dataPlot.data.datasets[0].data.shift();
+            dataPlot.data.datasets[1].data.shift();
+            dataPlot.data.datasets[2].data.shift();
+
+        }
+        function addData(label, data1, data2, data3) {
+            if (dataPlot.data.labels.length > maxDataPoints) removeData();
+            dataPlot.data.labels.push(label);
+            dataPlot.data.datasets[0].data.push(data1);
+            dataPlot.data.datasets[1].data.push(data2);
+            dataPlot.data.datasets[2].data.push(data3);
+            dataPlot.update();
+        }
+
+        function parse_vars(data) {
+            var object1 = JSON.parse(data);
+            if (object1.cmdType == 'sys') {
+                let data = object1.systemInfo;
+                let today = new Date();
+                let t = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+                addData(t, data[0], data[1], data[2]);
+                console.log(data);
+            }
+        }
+
+        function init() {
+            dataPlot = new Chart(document.getElementById('myChart'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        label: "CPU",
+                        borderColor: "#3e95cd",
+                        fill: false
+                    },
+                    {
+                        data: [],
+                        label: "MEMORY",
+                        borderColor: "#008000",
+                        fill: false
+                    },
+                    {
+                        data: [],
+                        label: "DISK",
+                        borderColor: "#ad074f",
+                        fill: false
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    legend: {
+                      labels: {
+                        fontColor: "white",
+                        fontSize: 16
+                        }
+                    },                    
+                    scales: {
+                        yAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'USAGE (%)',
+                                fontColor: "white",
+                                fontSize: 16
+                            },
+                            ticks: {
+                                fontColor: "white",
+                                fontSize: 16,
+                                beginAtZero: true,
+                                steps: 10,
+                                stepValue: 5,
+                                min: 0,
+                                max: 100
+                            },
+                            gridLines: {
+                                color: 'rgb(70, 70, 70)',
+                                display: true,
+                            },
+                        }],
+                        xAxes: [{
+                            ticks: {
+                                fontColor: "white",
+                                fontSize: 16,
+                                stepSize: 1,
+                                beginAtZero: true
+                            },
+                            gridLines: {
+                                color: 'rgb(70, 70, 70)',
+                                display: true,
+                            },
+                        }]                        
+                    }
+                }
+            });
+            setInterval(function () { make_request('sys.cgi'); }, 1000);
+        }
+        window.onload = init;        
+    </script>
+</body>
+</html>
