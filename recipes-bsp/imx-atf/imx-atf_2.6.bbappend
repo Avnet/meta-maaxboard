@@ -4,4 +4,4 @@ SRCBRANCH = "maaxboard_lf-6.1.1-1.0.0"
 SRC_URI = "${ATF_SRC};branch=${SRCBRANCH}"
 SRCREV = "${AUTOREV}"
 
-ATF_BOOT_UART_BASE = "0x30860000"
+ATF_BOOT_UART_BASE:maaxboardmini = "0x30860000"
