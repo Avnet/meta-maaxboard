@@ -1,0 +1,31 @@
+# Refer to readme.txt for more information on setting up U-Boot Env
+
+# Device tree base file
+fdt_file=maaxboard-nano.dtb
+
+# Camera can support ov5640
+#dtoverlay_camera=ov5640
+
+# Display can support mipi only
+#dtoverlay_display=mipi
+
+# Set 40-pin extended GPIO pin default work as GPIO
+dtoverlay_gpio=yes
+
+# Enable i2c2/i2c3 on 40-pin extended GPIO pin
+#dtoverlay_i2c=2 3
+
+# Enable pwm2/pwm3 on 40-pin extended GPIO pin
+#dtoverlay_pwm=2 3
+
+# Enable spi1 on 40-pin extended GPIO pin
+#dtoverlay_spi=1
+
+# Enable uart4 on 40-pin extended GPIO pin
+#dtoverlay_uart=4
+
+# Enable wm8960 on 40-pin extended GPIO pin
+#dtoverlay_wm8960=yes
+
+# U-boot bootargs for console
+console=ttymxc1,115200 console=tty1

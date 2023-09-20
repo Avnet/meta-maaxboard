@@ -1,0 +1,281 @@
+* {
+	border: 0;
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+:root {
+	--bg: #fff;
+	font-size: calc(16px + (24 - 16) * (100vw - 320px) / (1280 - 320));
+}
+
+body::-webkit-scrollbar{
+    display: none;
+}
+
+body {
+	background-color: #171717;
+	display: grid;
+	place-items: center;
+	font: 1em/1.5 sans-serif;
+	height: 100vh;
+}
+.temp {
+	--angle: 0;
+	--hue: 240;
+	background-image:
+		radial-gradient(
+			100% 100% at 50% 50%,
+			hsl(var(--hue),90%,17%) 3.55em,
+			hsla(var(--hue),90%,17%,0) 3.6em
+		),
+		radial-gradient(
+			100% 100% at 50% 50%,
+			hsl(var(--hue),90%,10%),
+			hsl(var(--hue),90%,23%) 4.65em,
+			hsl(var(--hue),90%,55%) 4.85em 4.9em,
+			#17181c 5.1em 6.85em,
+			#17181c00 6.9em
+		),
+		radial-gradient(100% 100% at 50% 0,#f1f2f4,#8f95a3);
+	border-radius: 50%;
+	box-shadow: 0 -0.25em 1.5em 0.5em #0004;
+	display: flex;
+	flex-direction: column;
+	line-height: 1;
+	position: relative;
+	padding: 1em;
+	text-align: center;
+	width: 15em;
+	height: 15em;
+	margin-top: 500px;
+}
+.temp:after, .temp__dial, .temp__comet, .temp__fizz {
+	position: absolute;
+}
+.temp:after, .temp__comet, .temp__dial {
+	border-radius: inherit;
+}
+.temp:after, .temp__dial {
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+.temp:after {
+	background: 
+		radial-gradient(100% 100% at 67% 17%,#fff3,#fff0 6em);
+	content: "";
+	display: block;
+	z-index: 2;
+}
+.temp__logo {
+	font-family: "Baloo Paaji 2", sans-serif;
+	color: #abafba;
+	letter-spacing: -0.1em;
+	margin-bottom: 3.75em;
+	text-transform: lowercase;
+	transform: scaleY(1.1);
+}
+.temp__comet {
+	background:
+		radial-gradient(
+			100% 100% at 50% 50%,
+			hsl(var(--hue),90%,10%),
+			hsl(var(--hue),90%,20%) 3.25em,
+			hsl(var(--hue),90%,17%) 3.3em 3.35em,
+			hsla(var(--hue),90%,17%,0) 3.4em
+		),
+		conic-gradient(#fff0,#fff calc(1deg * var(--angle)),#fff0 calc(1deg * var(--angle)));
+	top: calc(50% - 3.5em);
+	left: calc(50% - 3.5em);
+	width: 7em;
+	height: 7em;
+}
+.temp__fizz {
+	display: block;
+	top: calc(50% - 3.3em);
+	left: calc(50% - 3.3em);
+	width: 6.6em;
+	height: 6.6em;
+}
+.temp__label, .temp__value {
+	color: #fff;
+	font-family: "Unica One", monospace;
+	position: relative;
+	z-index: 1;
+}
+.temp__label {
+	font-size: 0.6em;
+	letter-spacing: 0.5em;
+	text-transform: uppercase;
+	transform: translateX(0.25em) scaleY(0.9);
+}
+.temp__value {
+	font-size: 3.5em;
+}
+.temp__dial {
+	cursor: grab;
+	z-index: 3;
+}
+.temp__dial:active {
+	cursor: grabbing;
+}
+/* Dark theme */
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #2e3138;
+	}
+}
+
+
+table.house-background { 
+	background-image: url(house.png); 
+	width: 933px;
+	height: 533px;
+}
+
+
+
+
+
+
+
+
+.navbar {
+	overflow: hidden;
+	background-color: black;
+	position: fixed;
+	text-align: center;
+	top: 0;
+	width: 100%;
+	z-index:50;
+}
+
+.navbar a {
+	/*float: left;*/
+	/*display: block;*/
+	display: inline-block;
+	color: white;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+	font-size: 1.1rem;
+	width: 22%;
+}
+
+.navbar a:hover {
+	background: #41c363;
+	color: black;
+}
+
+.navbar a.current {
+	background: black;
+	outline: solid 1px white;
+	color: white;
+	outline-offset: -1px;
+}
+
+
+
+
+
+.image-container {
+	position: absolute;
+	text-align: center;
+	color: white;
+	top: 550px;
+  }
+
+  .text_power_gen {
+	position: absolute;
+	top: 75px;
+	right: 16px;
+	font-size: 26px;
+  }  
+
+  .text_power_gen_title {
+	position: absolute;
+	top: 105px;
+	right: 16px;
+	color: #8f95a3;
+	font-size: 20px;
+  }  
+
+  .text_power_use {
+	position: absolute;
+	top: 240px;
+	right: 16px;
+	font-size: 26px;
+  }  
+
+  .text_power_use_title {
+	position: absolute;
+	top: 280px;
+	right: 16px;
+	color: #8f95a3;
+	font-size: 20px;
+  }  
+
+  .text_power_export {
+	position: absolute;
+	top: 75px;
+	left: 16px;
+	font-size: 26px;
+  }  
+
+  .text_power_export_title {
+	position: absolute;
+	top: 105px;
+	left: 16px;
+	color: #8f95a3;
+	font-size: 20px;
+  }  
+
+  .text_power_store {
+	position: absolute;
+	top: 170px;
+	left: 16px;
+	font-size: 26px;
+  }  
+
+  .text_power_store_title {
+	position: absolute;
+	top: 200px;
+	left: 16px;
+	color: #8f95a3;
+	font-size: 20px;
+  }  
+
+  .intro{
+	position: absolute;
+	max-width: 90%; 
+	top: 160px;
+	margin-bottom: 20px;
+	text-align: left;
+	font-size: larger;
+	color: #fff;
+	width: 90%;
+  }
+
+h2 {
+	color: #41c363;
+	text-align: center;
+	position: absolute;
+	text-align: center;			
+	top: 110px;
+}
+
+.footer
+{
+	position: fixed;
+	padding: 0px 10px 0px 10px;
+	bottom: 0;
+	width: 100%;
+	height: 35px;
+	color:white;
+	background: #41c363;
+	text-align: center;
+	font-size: 1.12em;
+	font-weight: bold;
+}

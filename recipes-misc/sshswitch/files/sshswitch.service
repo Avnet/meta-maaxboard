@@ -1,0 +1,11 @@
+[Unit]
+Description=Turn on SSH if /run/media/boot-mmcblk0p1/ssh is present
+ConditionPathExists=/run/media/boot-mmcblk0p1/ssh
+After=weston.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c "/bin/sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config && rm -f /run/media/boot-mmcblk0p1/ssh"
+
+[Install]
+WantedBy=multi-user.target
