@@ -12,6 +12,8 @@ IMAGE_ROOTFS_SIZE ?= "512"
 EXTRA_IMAGE_FEATURES:remove = "tools-sdk tools-debug"
 
 CORE_IMAGE_EXTRA_INSTALL:append = " \
+    kernel-modules \
+    kernel-devicetree \
     tzdata \
     openssh \
     evtest \
