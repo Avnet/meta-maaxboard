@@ -55,9 +55,13 @@ class TC66C(object):
 			
 			The data comes in a 192 byte package AES encrypted
 		"""
-		if not self._SIF.isOpen():
-			self._SIF.open()
-		self.SendCmd('getva')
+		try:
+			if not self._SIF.isOpen():
+				self._SIF.open()
+			self.SendCmd('getva')
+		except:
+			print('TC66C not found')
+			return None
 
 		buf= self._SIF.read(192)
 		try:

@@ -18,7 +18,7 @@ class BoardBrightness(object):
         if self.enableHardware:
             if value < 10 and value > 0:
                 brightnessValue = value
-                os.system("echo "+str(brightnessValue)+" > /sys/devices/platform/backlight/backlight/backlight/brightness")
+                os.system("echo "+str(brightnessValue)+" > /sys/devices/platform/pwm-backlight/backlight/pwm-backlight/brightness")
 
     def Brightness_get(self):
         global brightnessValue

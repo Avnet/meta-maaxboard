@@ -51,6 +51,7 @@ import singleton
 import subprocess
 import signal
 import time
+from collections import namedtuple
 
 try:
 	import uasyncio as asyncio
@@ -210,7 +211,7 @@ def demoCgi(request):
 		response = demo_cookie
 	return response
 
-@app.route('/uses/led.cgi', methods=['GET', 'POST'])
+@app.route('/led.cgi', methods=['GET', 'POST'])
 def ledCgi(request):
 	global ledStates
 	if request.method == 'GET':
@@ -358,6 +359,13 @@ def power(request):
 		if EnableUSBPowerMonitor == True:
 			try:
 				pd = TC66.Poll()
+				if pd == None: 
+					FakePollData = namedtuple('PollData',['Volt','Current','Power'])	
+					pd = FakePollData(
+						Volt	= 0.0,
+						Current	= 0.0,
+						Power	= 0.0)
+
 				s = '{:07.4f},{:07.5f},{:07.4f}'.format(
 					pd.Volt, 
 					pd.Current,

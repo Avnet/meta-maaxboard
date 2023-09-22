@@ -278,7 +278,11 @@
 
             setInterval(function () { make_request('brightness.cgi'); }, 1500);
 
+            setInterval(function () { make_request('led.cgi'); }, 1500);
+
             make_request('led.cgi');
+
+            make_request('brightness.cgi');
         }
         window.onload = init;        
     </script>
