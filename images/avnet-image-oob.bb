@@ -77,6 +77,9 @@ CORE_IMAGE_EXTRA_INSTALL:append = " \
     dos2unix \
     rsync \
     curl \
+    freerdp \
+    nodejs \
+    nodejs-npm \
     python3 \
     python3-pip \
     python3-opencv \

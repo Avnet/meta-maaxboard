@@ -53,6 +53,9 @@ CORE_IMAGE_EXTRA_INSTALL:append = " \
     powertop \
     dos2unix \
     rsync \
+    freerdp \
+    nodejs \
+    nodejs-npm \
     python3 \
     python3-pip \
 "
