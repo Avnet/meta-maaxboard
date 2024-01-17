@@ -15,6 +15,7 @@ usage(){
     echo "               - maaxboard-mini"
     echo "               - maaxboard-nano"
     echo "               - maaxboard-8ulp"
+    echo "               - maaxboard-osm93"
     echo "  * [-b build-dir]: Build directory, if unspecified script uses 'build' as output directory"
     echo "  * [-h]: help"
     echo "Examples: "
@@ -22,6 +23,7 @@ usage(){
     echo "$ MACHINE=maaxboard-mini source sources/meta-maaxboard/tools/maaxboard-setup.sh -b maaxboard-mini/build"
     echo "$ MACHINE=maaxboard-nano source sources/meta-maaxboard/tools/maaxboard-setup.sh -b maaxboard-nano/build"
     echo "$ MACHINE=maaxboard-8ulp source sources/meta-maaxboard/tools/maaxboard-setup.sh -b maaxboard-8ulp/build"
+    echo "$ MACHINE=maaxboard-osm93 source sources/meta-maaxboard/tools/maaxboard-setup.sh -b maaxboard-osm93/build"
     echo
 }
 
@@ -108,6 +110,9 @@ maaxboard_conf_set(){
     elif [ $MACHINE == "maaxboard-8ulp" ];then
         cp $CWD/sources/meta-maaxboard/conf/local.conf.sample.8ulp $CWD/${build_dir}/conf/local.conf
         cp $CWD/sources/meta-maaxboard/conf/bblayers.conf.sample.8ulp $CWD/${build_dir}/conf/bblayers.conf
+    elif [ $MACHINE == "maaxboard-osm93" ];then
+        cp $CWD/sources/meta-maaxboard/conf/local.conf.sample.osm93 $CWD/${build_dir}/conf/local.conf
+        cp $CWD/sources/meta-maaxboard/conf/bblayers.conf.sample.osm93 $CWD/${build_dir}/conf/bblayers.conf
     fi
 }
 

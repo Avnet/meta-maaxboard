@@ -69,7 +69,13 @@ KERNEL_DEVICETREE2:maaxboard8ulp = " \
     freescale/${MACHINE}/ext-spi5.dtbo \
     freescale/${MACHINE}/ext-uart4.dtbo \
 "
-
+KERNEL_DEVICETREE2:maaxboardosm93 = " \
+    freescale/${MACHINE}/camera-ov5640.dtbo \
+    freescale/${MACHINE}/ext-gpio.dtbo \
+    freescale/${MACHINE}/ext-i2c3.dtbo \
+    freescale/${MACHINE}/ext-spi3.dtbo \
+    freescale/${MACHINE}/ext-wm8960.dtbo \
+"
 do_compile:append() {
     if [ -n "${KERNEL_DTC_FLAGS}" ]; then
         export DTC_FLAGS="${KERNEL_DTC_FLAGS}"

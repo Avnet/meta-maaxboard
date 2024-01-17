@@ -4,11 +4,15 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 # maaxboard_8ulp_m33_image.bin is build from https://github.com/Avnet/mcore_sdk_8ulp
-SRC_URI += " file://maaxboard_8ulp_m33_image.bin "
+SRC_URI += " \
+			file://maaxboard_8ulp_m33_image.bin \
+			file://maaxboard_osm93_m33_image.bin \
+"
 
 IMX_M4_DEMOS      = ""
 IMX_M4_DEMOS:mx8-nxp-bsp  = "imx-m4-demos:do_deploy"
 IMX_M4_DEMOS:mx8m-nxp-bsp = ""
+IMX_M4_DEMOS:mx93-generic-bsp  = "imx-m4-demos:do_deploy"
 
 # Setting for i.MX 8ULP
 IMX_M4_DEMOS:mx8ulp-nxp-bsp = "imx-m33-demos:do_deploy"
@@ -18,6 +22,10 @@ IMX_EXTRA_FIRMWARE:mx8ulp-nxp-bsp = "firmware-upower firmware-sentinel"
 SOC_TARGET:mx8ulp-nxp-bsp = "iMX8ULP"
 SOC_FAMILY:mx8ulp-nxp-bsp = "mx8ulp"
 
+# Setting for i.MX93
+IMX_M4_DEMOS:mx93-generic-bsp = "imx-m33-demos:do_deploy"
+M4_DEFAULT_IMAGE:mx93-generic-bsp = "maaxboard_osm93_m33_image.bin"
+
 IS_DXL                = "false"
 
 do_compile[depends] += "${IMX_M4_DEMOS}"
@@ -25,6 +33,10 @@ do_compile[depends] += "${IMX_M4_DEMOS}"
 do_compile:prepend() {
     case ${SOC_FAMILY} in
     mx8ulp)
+        install -m 0755 ${WORKDIR}/${M4_DEFAULT_IMAGE}       ${DEPLOY_DIR_IMAGE}/${M4_DEFAULT_IMAGE}
+        install -m 0755 ${WORKDIR}/${M4_DEFAULT_IMAGE}       ${BOOT_STAGING}/m33_image.bin
+        ;;
+    mx93)
         install -m 0755 ${WORKDIR}/${M4_DEFAULT_IMAGE}       ${DEPLOY_DIR_IMAGE}/${M4_DEFAULT_IMAGE}
         install -m 0755 ${WORKDIR}/${M4_DEFAULT_IMAGE}       ${BOOT_STAGING}/m33_image.bin
         ;;
@@ -77,6 +89,9 @@ copy_uboot_dtb() {
             ;;
         maaxboard-nano)
             target_dtb_name=imx8mn-ddr4-evk.dtb
+            ;;
+        maaxboard-osm93)
+            target_dtb_name=imx93-11x11-evk.dtb
             ;;
     esac
 
