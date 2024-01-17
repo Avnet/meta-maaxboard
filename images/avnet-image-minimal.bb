@@ -26,6 +26,9 @@ CORE_IMAGE_EXTRA_INSTALL:append = " \
     alsa-state \
     lrzsz \
     yavta \
+    fb-test \
+    fbgrab \
+    i2c-tools \
     libgpiod libgpiod-tools \
     packagegroup-base-wifi \
     packagegroup-fsl-gstreamer1.0 \

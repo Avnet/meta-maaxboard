@@ -71,6 +71,9 @@ CORE_IMAGE_EXTRA_INSTALL:append = " \
     xz \
     lrzsz \
     yavta \
+    fb-test \
+    fbgrab \
+    i2c-tools \
     libgpiod libgpiod-tools \
     powertop \
     dos2unix \
