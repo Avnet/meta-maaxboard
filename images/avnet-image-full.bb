@@ -31,6 +31,7 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     packagegroup-fsl-gstreamer1.0 \
     packagegroup-fsl-gstreamer1.0-full \
     packagegroup-fsl-opencv-imx \
+    packagegroup-imx-ml \
     packagegroup-core-ssh-openssh \
     openssh-sftp openssh-sftp-server \
     firmwared \
@@ -60,6 +61,8 @@ CORE_IMAGE_EXTRA_INSTALL:append = " \
     v4l-utils \
     inetutils \
     hostapd \
+    cryptodev-module \
+    openssl-bin \
     wireless-tools \
     git \
     spitools \
