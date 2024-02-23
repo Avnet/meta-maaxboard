@@ -71,6 +71,8 @@ KERNEL_DEVICETREE2:maaxboard8ulp = " \
 "
 KERNEL_DEVICETREE2:maaxboardosm93 = " \
     freescale/${MACHINE}/camera-ov5640.dtbo \
+    freescale/${MACHINE}/display-mipi.dtbo \
+    freescale/${MACHINE}/display-mipi-ph720128t003.dtbo \
     freescale/${MACHINE}/ext-gpio.dtbo \
     freescale/${MACHINE}/ext-i2c3.dtbo \
     freescale/${MACHINE}/ext-spi3.dtbo \

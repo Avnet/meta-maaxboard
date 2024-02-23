@@ -7,10 +7,7 @@ fdt_file=maaxboard-osm93.dtb
 #dtoverlay_camera=ov5640
 
 # Display can support mipi
-# Use the following options for a new screen and an old screen
-# New LCD screen: mipi
-# Old LCD screen: mipi-ph720128t003
-dtoverlay_display=mipi
+#dtoverlay_display=mipi
 
 # Set 40-pin extended GPIO pin default work as GPIO
 dtoverlay_gpio=yes
