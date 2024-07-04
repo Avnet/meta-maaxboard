@@ -12,11 +12,11 @@ fdt_file=maaxboard-osm93.dtb
 # Set 40-pin extended GPIO pin default work as GPIO
 dtoverlay_gpio=yes
 
-# Enable lpi2c3 on 40-pin extended GPIO pin
-#dtoverlay_i2c=3
+# Enable lpi2c2 on 40-pin extended GPIO pin
+#dtoverlay_i2c=2
 
-# Enable lpspi3 on 40-pin extended GPIO pin
-#dtoverlay_spi=3
+# Enable lpspi1 on 40-pin extended GPIO pin
+#dtoverlay_spi=1
 
 # Enable wm8960 on 6-pin(J3) extended I2S
 #dtoverlay_wm8960=yes

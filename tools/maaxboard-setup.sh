@@ -150,10 +150,10 @@ run(){
 
 EOF
     
-    hook_in_layer meta-imx/meta-bsp
-    hook_in_layer meta-imx/meta-sdk
-    hook_in_layer meta-imx/meta-ml
-    hook_in_layer meta-imx/meta-v2x
+    hook_in_layer meta-imx/meta-imx-bsp
+    hook_in_layer meta-imx/meta-imx-sdk
+    hook_in_layer meta-imx/meta-imx-ml
+    hook_in_layer meta-imx/meta-imx-v2x
     hook_in_layer meta-nxp-demo-experience
 }
 

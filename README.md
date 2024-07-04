@@ -4,6 +4,7 @@
 
 A meta-layer for MaaXBoard series boards
 
+- Yocto nanbield(4.2)   support :    MaaXBoard-Osm93
 - Yocto Mickledore(4.2) support :    MaaXBoard-8ULP
 - Yocto Langdale(4.1)   support :    MaaXBoard/MaaXBoard-Mini/MaaXBoard-Nano/MaaXBoard-8ULP
 - Yocto Kirkstone(4.0)  support :    MaaXBoard/MaaXBoard-Mini/MaaXBoard-Nano/MaaXBoard-8ULP

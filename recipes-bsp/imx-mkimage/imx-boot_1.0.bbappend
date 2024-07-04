@@ -23,8 +23,8 @@ SOC_TARGET:mx8ulp-nxp-bsp = "iMX8ULP"
 SOC_FAMILY:mx8ulp-nxp-bsp = "mx8ulp"
 
 # Setting for i.MX93
-IMX_M4_DEMOS:mx93-generic-bsp = "imx-m33-demos:do_deploy"
-M4_DEFAULT_IMAGE:mx93-generic-bsp = "maaxboard_osm93_m33_image.bin"
+IMX_M4_DEMOS:mx93-nxp-bsp = "imx-m33-demos:do_deploy"
+M4_DEFAULT_IMAGE:mx93-nxp-bsp = "maaxboard_osm93_m33_image.bin"
 
 IS_DXL                = "false"
 

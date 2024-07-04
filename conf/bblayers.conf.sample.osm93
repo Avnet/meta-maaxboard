@@ -19,10 +19,10 @@ BBLAYERS = " \
 BBLAYERS += " ${BSPDIR}/sources/meta-maaxboard "
 
 # i.MX Yocto Project Release layers
-BBLAYERS += "${BSPDIR}/sources/meta-imx/meta-bsp"
-BBLAYERS += "${BSPDIR}/sources/meta-imx/meta-sdk"
-BBLAYERS += "${BSPDIR}/sources/meta-imx/meta-ml"
-BBLAYERS += "${BSPDIR}/sources/meta-imx/meta-v2x"
+BBLAYERS += "${BSPDIR}/sources/meta-imx/meta-imx-bsp"
+BBLAYERS += "${BSPDIR}/sources/meta-imx/meta-imx-sdk"
+BBLAYERS += "${BSPDIR}/sources/meta-imx/meta-imx-ml"
+BBLAYERS += "${BSPDIR}/sources/meta-imx/meta-imx-v2x"
 BBLAYERS += "${BSPDIR}/sources/meta-nxp-demo-experience"
 
 BBLAYERS += "${BSPDIR}/sources/meta-arm/meta-arm"

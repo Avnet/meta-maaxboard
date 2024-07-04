@@ -16,12 +16,13 @@ Refer to the following description for different boards.
 | dtoverlay_camera  | ov5640           | camera-ov5640.dtbo            |
 +-------------------+------------------+-------------------------------+
 | dtoverlay_display | mipi             | display-mipi.dtbo             |
+|                   | mipi-ph720128t003| display-mipi-ph720128t003.dtbo|      
 +-------------------+------------------+-------------------------------+
-| dtoverlay_gpio    | ''1' or yes'     | ext-gpio.dtbo                 |
+| dtoverlay_gpio    | '1' or yes'     | ext-gpio.dtbo                 |
 +-------------------+------------------+-------------------------------+
-| dtoverlay_i2c     | '3'              | ext-i2c3.dtbo                 |
+| dtoverlay_i2c     | '2'              | ext-i2c2.dtbo                 |
 +-------------------+------------------+-------------------------------+
-| dtoverlay_spi     | '3'              | ext-spi3.dtbo                 |
+| dtoverlay_spi     | '1'              | ext-spi1.dtbo                 |
 +-------------------+------------------+-------------------------------+
 | dtoverlay_wm8960  | '1' or 'yes'     | ext-wm8960.dtbo               |
 +-------------------+------------------+-------------------------------+
