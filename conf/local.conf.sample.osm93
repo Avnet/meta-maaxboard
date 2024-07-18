@@ -1,5 +1,5 @@
 MACHINE ??= 'maaxboard-osm93'
-DISTRO ?= 'fsl-imx-wayland'
+DISTRO ?= 'fsl-imx-xwayland'
 PACKAGE_CLASSES ?= 'package_deb'
 EXTRA_IMAGE_FEATURES ?= "debug-tweaks tools-sdk tools-debug"
 USER_CLASSES ?= "buildstats "

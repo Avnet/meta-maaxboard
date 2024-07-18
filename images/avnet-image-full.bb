@@ -12,6 +12,8 @@ IMAGE_FEATURES += " \
     ssh-server-openssh \
     hwcodecs \
     package-management \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'weston', \
+       bb.utils.contains('DISTRO_FEATURES', 'x11', 'x11-base x11-sato', '', d), d)} \
 "
 
 DOCKER ?= ""
@@ -32,17 +34,17 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     packagegroup-fsl-gstreamer1.0-full \
     packagegroup-fsl-opencv-imx \
     packagegroup-imx-ml \
+    packagegroup-qt6-imx \
     packagegroup-core-ssh-openssh \
     openssh-sftp openssh-sftp-server \
     firmwared \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'weston-init', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'x11 wayland', 'weston-xwayland xterm', '', d)} \
     ${DOCKER} \
 "
 
 inherit populate_sdk_qt6_base
 
 CONFLICT_DISTRO_FEATURES = "directfb"
-CORE_IMAGE_EXTRA_INSTALL:append = " packagegroup-qt6-imx tzdata "
 
 EXTRA_GCC_TOOL ?= ""
 EXTRA_GCC_TOOL = " \
@@ -56,6 +58,7 @@ EXTRA_GCC_TOOL = " \
 
 CORE_IMAGE_EXTRA_INSTALL:append = " \
     ${EXTRA_GCC_TOOL} \
+    tzdata vim tree \
     gnupg \
     parted \
     v4l-utils \
@@ -87,6 +90,23 @@ CORE_IMAGE_EXTRA_INSTALL:append = " \
     python3 \
     python3-pip \
 "
+
+CORE_IMAGE_EXTRA_INSTALL:append:mx93-nxp-bsp = " nxp-demo-experience "
+
+install_demo_93() {
+    if ! grep -q "icon_demo_launcher.png" ${IMAGE_ROOTFS}${sysconfdir}/xdg/weston/weston.ini
+    then
+       echo "\n[launcher]\nicon=/home/root/.nxp-demo-experience/icon/icon_demo_launcher.png\npath=QMLSCENE_DEVICE=softwarecontext /usr/bin/gopoint\n\n[launcher]\nicon=/usr/share/weston/terminal.png\npath=/usr/bin/weston-terminal\n" >> ${IMAGE_ROOTFS}${sysconfdir}/xdg/weston/weston.ini
+    fi
+
+    if ! grep -q "HOME=/home/root/" ${IMAGE_ROOTFS}${sysconfdir}/default/weston
+    then
+        echo "\nHOME=/home/root/\nQT_QPA_PLATFORM=wayland" >> ${IMAGE_ROOTFS}${sysconfdir}/default/weston
+    fi
+}
+
+ROOTFS_POSTPROCESS_COMMAND:append:mx93-nxp-bsp = "install_demo_93; "
+
 
 # Modify default environment
 modify_env() {
