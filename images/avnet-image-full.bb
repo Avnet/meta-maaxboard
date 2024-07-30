@@ -96,7 +96,7 @@ CORE_IMAGE_EXTRA_INSTALL:append:mx93-nxp-bsp = " nxp-demo-experience "
 install_demo_93() {
     if ! grep -q "icon_demo_launcher.png" ${IMAGE_ROOTFS}${sysconfdir}/xdg/weston/weston.ini
     then
-       echo "\n[launcher]\nicon=/home/root/.nxp-demo-experience/icon/icon_demo_launcher.png\npath=QMLSCENE_DEVICE=softwarecontext /usr/bin/gopoint\n\n[launcher]\nicon=/usr/share/weston/terminal.png\npath=/usr/bin/weston-terminal\n" >> ${IMAGE_ROOTFS}${sysconfdir}/xdg/weston/weston.ini
+       echo -e "\n[launcher]\nicon=/home/root/.nxp-demo-experience/icon/icon_demo_launcher.png\npath=QMLSCENE_DEVICE=softwarecontext /usr/bin/gopoint\n\n[launcher]\nicon=/usr/share/weston/terminal.png\npath=/usr/bin/weston-terminal\n" >> ${IMAGE_ROOTFS}${sysconfdir}/xdg/weston/weston.ini
     fi
 
     if ! grep -q "HOME=/home/root/" ${IMAGE_ROOTFS}${sysconfdir}/default/weston
