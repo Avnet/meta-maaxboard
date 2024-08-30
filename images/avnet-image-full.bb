@@ -23,6 +23,12 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     packagegroup-base-wifi \
     packagegroup-core-full-cmdline \
     packagegroup-tools-bluetooth \
+    pulseaudio-module-bluetooth-discover \
+    pulseaudio-module-bluetooth-policy \
+    pulseaudio-module-bluez5-discover \
+    pulseaudio-module-bluez5-device \
+    pulseaudio-module-switch-on-connect \
+    pulseaudio-module-loopback \
     packagegroup-fsl-tools-audio \
     packagegroup-fsl-tools-gpu \
     packagegroup-fsl-tools-gpu-external \
