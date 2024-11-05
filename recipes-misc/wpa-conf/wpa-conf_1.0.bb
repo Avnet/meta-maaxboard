@@ -9,6 +9,7 @@ SYSTEMD_SERVICE:${PN} = "wpa-conf.timer"
 
 WLAN_DEV ?= "wlan0"
 WLAN_DEV:maaxboard8ulp = "mlan0"
+WLAN_DEV:maaxboardosm93 = "mlan0"
 
 SRC_URI += " file://20-wlan0.network "
 SRC_URI += " file://wpa-conf.service "
