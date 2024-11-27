@@ -40,7 +40,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     packagegroup-fsl-gstreamer1.0-full \
     packagegroup-fsl-opencv-imx \
     packagegroup-imx-ml \
-    linux-firmware \
     firmware-nxp-wifi \
     packagegroup-qt6-imx \
     packagegroup-core-ssh-openssh \
