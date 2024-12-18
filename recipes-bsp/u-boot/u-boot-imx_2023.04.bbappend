@@ -5,6 +5,10 @@ UBOOT_SRC:maaxboardbase = "${MAAXBOARD_GIT_HOST_MIRROR}/uboot-imx.git;${MAAXBOAR
 UBOOT_BRANCH:maaxboardbase = "maaxboard_lf-6.6.3-1.0.0"
 SRC_URI:maaxboardbase = "${UBOOT_SRC};branch=${UBOOT_BRANCH};${MAAXBOARD_GIT_USER}"
 
+FILESEXTRAPATHS:prepend:maaxboardosm93 := "${THISDIR}/files:"
+SRC_URI:append:maaxboardosm93 = " file://maaxboardosm93_1GB_memory_uboot.patch "
+
+
 SRCREV:maaxboardbase = "${AUTOREV}"
 
 do_deploy:append:maaxboardbase() {

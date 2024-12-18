@@ -1,0 +1,17 @@
+diff --git a/arch/arm64/boot/dts/freescale/maaxboard-osm93.dts b/arch/arm64/boot/dts/freescale/maaxboard-osm93.dts
+index f35661ade014..9be0498cdd7e 100644
+--- a/arch/arm64/boot/dts/freescale/maaxboard-osm93.dts
++++ b/arch/arm64/boot/dts/freescale/maaxboard-osm93.dts
+@@ -38,10 +38,10 @@ linux,cma {
+ 			linux,cma-default;
+ 		};
+ 
+-		ethosu_mem: ethosu_region@C0000000 {
++		ethosu_mem: ethosu_region@A8000000 {
+ 			compatible = "shared-dma-pool";
+ 			reusable;
+-			reg = <0x0 0xC0000000 0x0 0x10000000>;
++			reg = <0x0 0xA8000000 0x0 0x10000000>;
+ 		};
+ 
+ 		vdev0vring0: vdev0vring0@a4000000 {

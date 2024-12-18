@@ -1,0 +1,43 @@
+diff --git a/board/avnet/maaxboard_osm93/maaxboard_osm93.c b/board/avnet/maaxboard_osm93/maaxboard_osm93.c
+index 9424c45405..518c9caa52 100644
+--- a/board/avnet/maaxboard_osm93/maaxboard_osm93.c
++++ b/board/avnet/maaxboard_osm93/maaxboard_osm93.c
+@@ -344,12 +344,13 @@ int board_init(void)
+ 	{
+ 		printf("Error: %s, fastboot_led_init error!\n", __func__);
+ 	}
+-
++#if 0
+ 	binfo = bi_read();
+ 	if (binfo == NULL) {
+ 		printf("Error: failed to initialize boardinfo!\n");
+ 		return -ENOENT;
+ 	}
++#endif
+ 
+ 	return 0;
+ }
+diff --git a/board/avnet/maaxboard_osm93/spl.c b/board/avnet/maaxboard_osm93/spl.c
+index f0dae87f1d..9dea685f86 100644
+--- a/board/avnet/maaxboard_osm93/spl.c
++++ b/board/avnet/maaxboard_osm93/spl.c
+@@ -331,7 +331,7 @@ void board_init_f(ulong dummy)
+ 
+ 	/* Setup TRDC for DDR access */
+ 	trdc_init();
+-
++#if 0
+ 	binfo = bi_read();
+ 	if (binfo == NULL) {
+ 		printf("Warning: failed to initialize boardinfo!\n");
+@@ -384,8 +384,9 @@ void board_init_f(ulong dummy)
+ 
+ 	bi_inc_boot_count(binfo);
+ 	bi_print(binfo);
+-
++#endif
+ 	/* DDR initialization */
++	rev = &(variants[3].revisions[0]);
+ 	ret = spl_dram_init(&rev->dram_cfg);
+ 	if (ret != 0) {
+ 		printf("Error: failed to initialize DRAM, reset system!\n");
