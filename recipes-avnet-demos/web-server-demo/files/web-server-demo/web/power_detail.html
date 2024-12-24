@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>MaaXBoard 8ULP Demo</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="webconfig.css">
+</head>
+
+<body>
+    <div id="page_main">
+        <div id="page_header" class="header_banner">
+            <div class="header_container row">
+                <div class="logo col-4">
+                    <a href="index.html" title="AVNET"><img src="AVNET_logo.png" alt="Avnet" width="100%"
+                            height="auto"></a>
+                </div>
+                <div class="header_text col-8">
+                    MaaXBoard 8ULP
+                </div>
+            </div>
+        </div>
+        <div id="nav_container" class="row">
+            <header class="header col-12">
+                <nav class="navbar">
+                    <ul class="nav-menu">
+                        <li class="nav-item">
+                            <a href="index.html" class="nav-link">HOME</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="power.html" class="nav-link">POWER</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="power_detail.html" class="current nav-link">POWER USE</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="ethernet.html" class="nav-link">ETHERNET</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="sensorPoll.html" class="nav-link">SENSOR</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="system.html" class="nav-link">SYSTEM</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="camera.html" class="nav-link">CAMERA</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="uses/thermostat.html" class="nav-link">USE CASES</a>
+                        </li>
+                    </ul>
+                    <div class="hamburger">
+                        <span class="bar"></span>
+                        <span class="bar"></span>
+                        <span class="bar"></span>
+                    </div>
+                </nav>
+            </header>
+        </div>
+
+        <div class="page_body">
+            <div class="row">
+                <div class="col-12">
+                    <h2>Power Usage Detail</h2>
+                    <p>A more detailed view of the power consumption of the various components of the demo hardware.</p>
+                </div>
+            </div>
+            
+            <table border=0 style="font-size: xx-large; font-family: sans-serif; color: white;">
+
+                <tr>
+                    <th align="left" style="width:25%; font-size: xx-large; color: #1299d8;">
+                        Component
+                    </th>
+                    <th align="left" style="width:25%; font-size: xx-large; color: #1299d8;">
+                        Power (mW)
+                    </th>
+                </tr>
+                
+                <tr>
+                    <td >
+                        Processor + Memory
+                    </td>
+                    <td>
+                        <p id="BoardPower">0</p>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <td >
+                        Wi-Fi/BT
+                    </td>
+                    <td>
+                        <p id="WiFi_BT">0 *</p>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td >
+                        Ethernet PHY
+                    </td>
+                    <td>
+                        <p id="EthernetPower">20 *</p>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <td >
+                        MIPI-CSI Camera
+                    </td>
+                    <td>
+                        <p id="CameraPower">190 *</p>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <td >
+                        MIPI-DSI Display 
+                    </td>
+                    <td>
+                        <p id="BacklightPower">0</p>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td >
+                        TOTAL
+                    </td>
+                    <td>
+                        <p id="TotalPower">0</p>
+                    </td>
+                </tr>
+                
+            </table>
+            <p style="font-size:small;">*  Estimated values</p>
+            <br>
+            <br>
+
+        </div>
+    </div>
+    <br>
+    <br>
+
+    <div class="footer row">
+        AVNET
+    </div>
+    <script src="webconfig.js" type="text/javascript"></script>
+    <script src="request.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        let pTotal = 0;
+        let pBacklight = 0;
+        let pboard = 0;
+        
+        function updateValues() {
+            const totalPower = document.getElementById("TotalPower");
+            const backlightPower = document.getElementById("BacklightPower");
+            const boardPower = document.getElementById("BoardPower");
+
+            if(pTotal>0.5)
+            {
+                pboard = pTotal-pBacklight - 190- 20;
+                totalPower.innerText= pTotal.toFixed(1);
+                backlightPower.innerText= pBacklight.toFixed(1);
+                boardPower.innerText= pboard.toFixed(1);
+            }
+        }
+
+        function parse_vars(data) {
+            var object1 = JSON.parse(data);
+            if (object1.cmdType == 'power') {
+                let data = object1.power;
+                pTotal = data[2]*1000;
+                updateValues()
+                console.log(data);
+            }
+            else if (object1.cmdType == 'setBrightness') {
+                let data = object1.brightnessValue;
+                const slideValue = document.getElementById("rangeValue");
+                pBacklight = (((data*1.35)/10)*1000) + 480;
+                updateValues()
+                console.log(data);
+            }
+
+        }
+
+        function init() {
+
+            setInterval(function () { make_request('power.cgi'); }, 1000);
+            setInterval(function () { make_request('brightness.cgi'); }, 1500);
+        }
+        window.onload = init;        
+    </script>
+
+</body>
+
+</html>
+<!-- 
+    QSPI NOR ATXP032-CCUE-T
+    PSRAM IS66WVO8M8DALL-200BLI
+    LPDDRX4 MT53E512M32D1ZW-046 IT:B
+    eMMC 5.1 EMMC16G-TB29-PZ90   100mA @ 1.8
+    USB bridge FT4232H
+    Expander PCA6416A
+    MIC MP34DT05
+    CODEC DA7212
+    100M Phy KSZ8081
+    USB HUB AP2182A
+    PMIC PC9460B
+
+uboot no hardware
+4.9v, 0.218A, 1.08w
+
+uboot ethrnet
+4.9v, 0.225A, 1.11w
+
+os no hardware
+4.9v, 0.207A, 1.03w
+
+os ethernet
+4.9v, 0.213A, 1.05w
+
+os camera
+4.9v, 0.248A, 1.22w
+
+os camera ethernet
+4.9v, 0.253A, 1.24w
+
+os camera ethernet LCD backlight = 0
+4.88v, 0.352A, 1.72w
+
+os camera ethernet LCD backlight = 3
+4.85v, 0.446A, 2.17w
+
+os camera ethernet LCD backlight = 5
+4.83v, 0.482A, 2.32w
+
+os camera ethernet LCD backlight = 7
+4.80v, 0.560A, 2.69w
+
+os camera ethernet LCD backlight = 9 
+4.77v, 0.644A, 3.07w
+
+
+
+echo 0 > /sys/devices/platform/backlight/backlight/backlight/brightness
+-->

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Thermostat Example</title>
+	<link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Unica+One&amp;display=swap'>
+	<link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+
+	<div class="navbar">
+		<a href="./thermostat.html" class="current">HEAT <br> METERING</a>
+		<a href="./solar.html">RENEWABLE <br> ENERGY</a>
+		<a href="../index.html">BACK <br> HOME</a>
+	</div>
+
+	<h2>Heat Metering and HVAC</h2>
+	<div class="intro">
+		<p>
+			Modern buildings do a smart regulation of their energy consumption: whether is electricity, ventilation, or
+			heat. Basically, a heat meter consists of a metrology MCU to measure the inflow and outflow temperatures 
+			and volumetric flow of fluid through the pipe. 
+			<br>
+			A thermostat regulates the temperature of a system, room or 
+			building. Modern systems also compute calculations, are programmable, learn from the habits of users and 
+			react to their surroundings.
+		</p>
+	</div>
+
+	<!-- partial:index.partial.html -->
+	<div class="temp">
+		<div class="temp__logo">office</div>
+		<div class="temp__comet"></div>
+		<canvas class="temp__fizz"></canvas>
+		<div class="temp__label">Temp</div>
+		<div class="temp__value">9</div>
+		<div class="temp__dial"></div>
+	</div>
+
+	<div class="footer">
+		AVNET
+	</div>
+
+	<!-- partial -->
+	<script src="gsap.min.js"></script>
+	<script src="Draggable.min.js"></script>
+	<script src="script.js"></script>
+	<script src="accdemo.js"></script>
+
+</body>
+
+</html>

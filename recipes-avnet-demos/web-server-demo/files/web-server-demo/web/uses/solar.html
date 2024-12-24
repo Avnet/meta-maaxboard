@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<title>Renewable Energy Example</title>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unica+One&amp;display=swap">
+	<link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+	<div class="navbar">
+		<a href="./thermostat.html">HEAT <br> METERING</a>
+		<a href="./solar.html" class="current">RENEWABLE <br> ENERGY</a>
+		<a href="../index.html">BACK <br> HOME</a>
+	</div>
+
+	<h2>Power Monitors and Energy Displays</h2>
+	<div class="intro">
+		<p>
+			Various power monitors are popular among residents who want to track and manage their energy consumption
+			and costs. These displays are typically user-interactive and allow the operator to access real-time up-to-date
+			information.
+			<br>
+			Therefore, the handheld display must have a processor for system management, wireless connectivity to
+			access consumption and cost data via multiple communication protocols, a real-time clock for time-stamping
+			data and issuing various system alarms, and load switches for effectively managing the power consumption 
+			within the display system.
+		</p>
+	</div>
+
+	<div class="image-container">
+		<img src="house.png">
+		<div class="text_power_gen_title"> produce </div>
+		<div class="text_power_gen" id="genPower"> 825 W</div>
+		<div class="text_power_use_title"> consume</div>
+		<div class="text_power_use" id="usedPower"> 300 W</div>
+		<div class="text_power_export_title"> export</div>
+		<div class="text_power_export" id="exportPower"> 350 W</div>
+		<div class="text_power_store_title"> store</div>
+		<div class="text_power_store" id="storePower"> 150 W</div>
+	</div>
+	
+	<div class="footer">
+		AVNET
+	</div>
+
+	<script src="accdemo.js"></script>
+	<script>
+		setInterval(myTimer, 2000);
+
+		function randomIntFromInterval(min, max) { // min and max included 
+			return Math.floor(Math.random() * (max - min + 1) + min)
+		}
+
+		console.log(rndInt)
+
+		function myTimer() {
+			const gen = randomIntFromInterval(825, 1300)
+			document.getElementById("genPower").innerHTML = gen + " W";
+
+			const use = randomIntFromInterval(325, 702)
+			document.getElementById("usedPower").innerHTML = use + " W";
+
+			const store = randomIntFromInterval(150, 180)
+			document.getElementById("storePower").innerHTML = store + " W";
+
+			const exprt = gen - use - store
+			document.getElementById("exportPower").innerHTML = exprt + " W";
+
+		}
+	</script>
+
+</body>
+
+</html>

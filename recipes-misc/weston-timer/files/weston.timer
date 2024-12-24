@@ -1,0 +1,8 @@
+[Unit]
+Description=Weston need start after system bootup
+
+[Timer]
+OnBootSec=1
+
+[Install]
+WantedBy=timers.target

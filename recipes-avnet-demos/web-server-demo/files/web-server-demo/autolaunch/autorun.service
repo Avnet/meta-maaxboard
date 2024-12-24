@@ -1,0 +1,14 @@
+[Unit]
+Description=Launching web-server-demo application
+After=multi-user.target local-fs.target weston.service
+
+[Service]
+User=root
+Restart=no
+Type=simple
+EnvironmentFile=/opt/root_env
+ExecStart=/opt/autorun.sh
+StandardOutput=console
+
+[Install]
+WantedBy=multi-user.target weston.service
