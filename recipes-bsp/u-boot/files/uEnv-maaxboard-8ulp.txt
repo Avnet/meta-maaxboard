@@ -8,7 +8,6 @@ fdt_file=maaxboard-8ulp.dtb
 
 # Display can support mipi(ph720128t005) or mipi-ph720128t003
 #dtoverlay_display=mipi
-#dtoverlay_display=mipi-ph720128t003
 
 # Set 40-pin extended GPIO pin default work as GPIO
 dtoverlay_gpio=yes

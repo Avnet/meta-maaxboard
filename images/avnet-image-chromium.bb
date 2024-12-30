@@ -21,6 +21,12 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     packagegroup-base-wifi \
     packagegroup-core-full-cmdline \
     packagegroup-tools-bluetooth \
+    pulseaudio-module-bluetooth-discover \
+    pulseaudio-module-bluetooth-policy \
+    pulseaudio-module-bluez5-discover \
+    pulseaudio-module-bluez5-device \
+    pulseaudio-module-switch-on-connect \
+    pulseaudio-module-loopback \
     packagegroup-fsl-tools-audio \
     packagegroup-fsl-tools-gpu \
     packagegroup-fsl-tools-gpu-external \
@@ -32,6 +38,8 @@ CORE_IMAGE_EXTRA_INSTALL += " \
     packagegroup-fsl-gstreamer1.0-full \
     packagegroup-fsl-opencv-imx \
     packagegroup-imx-ml \
+    firmware-nxp-wifi \
+    packagegroup-qt6-imx \
     packagegroup-core-ssh-openssh \
     openssh-sftp openssh-sftp-server \
     packagegroup-misc-utils \
@@ -44,7 +52,6 @@ CORE_IMAGE_EXTRA_INSTALL += " \
 inherit populate_sdk_qt6_base
 
 CONFLICT_DISTRO_FEATURES = "directfb"
-CORE_IMAGE_EXTRA_INSTALL:append = " packagegroup-qt6-imx tzdata "
 
 EXTRA_GCC_TOOL ?= ""
 EXTRA_GCC_TOOL = " \
@@ -58,6 +65,7 @@ EXTRA_GCC_TOOL = " \
 
 CORE_IMAGE_EXTRA_INSTALL:append = " \
     ${EXTRA_GCC_TOOL} \
+    tzdata vim tree \
     gnupg \
     parted \
     v4l-utils \
@@ -74,6 +82,9 @@ CORE_IMAGE_EXTRA_INSTALL:append = " \
     xz \
     lrzsz \
     yavta \
+    fb-test \
+    fbgrab \
+    i2c-tools \
     libgpiod libgpiod-tools \
     powertop \
     dos2unix \
