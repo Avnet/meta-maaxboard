@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/meta/files/common-licenses/GPL-2.0-only;m
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 FILES:${PN} = "/boot"
 
-S = "${WORKDIR}"
+S = "${UNPACKDIR}"
 
 SRC_URI = " "
 SRC_URI = " \

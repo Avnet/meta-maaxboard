@@ -12,5 +12,5 @@ FILES:${PN} += "${systemd_unitdir}/system/weston.timer"
 
 do_install() { 
     install -d ${D}/${systemd_unitdir}/system 
-    install -m 0644 ${WORKDIR}/weston.timer ${D}/${systemd_unitdir}/system
+    install -m 0644 ${UNPACKDIR}/weston.timer ${D}/${systemd_unitdir}/system
 }

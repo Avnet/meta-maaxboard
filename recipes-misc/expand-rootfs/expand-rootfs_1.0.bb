@@ -9,7 +9,7 @@ FILES:${PN} += "${sbindir}/expand_rootfs"
 
 do_install() { 
     install -d ${D}/${sbindir}/
-    install -m 0755 ${WORKDIR}/expand_rootfs ${D}/${sbindir}/
+    install -m 0755 ${UNPACKDIR}/expand_rootfs ${D}/${sbindir}/
 }
 
 RDEPENDS:expand-rootfs = "bash"

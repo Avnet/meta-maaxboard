@@ -1,6 +1,6 @@
 
 ATF_SRC = "${MAAXBOARD_GIT_HOST_MIRROR}/imx-atf.git;${MAAXBOARD_GIT_PROTOCOL}"
-SRCBRANCH = "maaxboard_lf-6.6.3-1.0.0"
+SRCBRANCH = "maaxboard_lf-6.12.3-1.0.0"
 SRC_URI = "${ATF_SRC};branch=${SRCBRANCH}"
 SRCREV = "${AUTOREV}"
 

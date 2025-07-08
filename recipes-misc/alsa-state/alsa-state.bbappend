@@ -11,18 +11,19 @@ SRC_URI += "\
          file://asound-osm93.state \
          file://asound-osm93.conf \
 "
+S = "${WORKDIR}/${BPN}-${PV}"
 
 do_install:append:maaxboard8ulp () {
-    install -m 0644 ${WORKDIR}/asound-8ulp.state ${D}${localstatedir}/lib/alsa/asound.state
-    install -m 0644 ${WORKDIR}/asound-8ulp.conf ${D}${sysconfdir}/asound.conf
+    install -m 0644 ${S}/asound-8ulp.state ${D}${localstatedir}/lib/alsa/asound.state
+    install -m 0644 ${S}/asound-8ulp.conf ${D}${sysconfdir}/asound.conf
 }
 
 do_install:append:maaxboardnano () {
-    install -m 0644 ${WORKDIR}/asound-nano.state ${D}${localstatedir}/lib/alsa/asound.state
-    install -m 0644 ${WORKDIR}/asound-nano.conf ${D}${sysconfdir}/asound.conf
+    install -m 0644 ${S}/asound-nano.state ${D}${localstatedir}/lib/alsa/asound.state
+    install -m 0644 ${S}/asound-nano.conf ${D}${sysconfdir}/asound.conf
 }
 
 do_install:append:maaxboardosm93 () {
-    install -m 0644 ${WORKDIR}/asound-osm93.state ${D}${localstatedir}/lib/alsa/asound.state
-    install -m 0644 ${WORKDIR}/asound-osm93.conf ${D}${sysconfdir}/asound.conf
+    install -m 0644 ${S}/asound-osm93.state ${D}${localstatedir}/lib/alsa/asound.state
+    install -m 0644 ${S}/asound-osm93.conf ${D}${sysconfdir}/asound.conf
 }

@@ -69,11 +69,12 @@ CORE_IMAGE_EXTRA_INSTALL:append = " \
     gnupg \
     parted \
     v4l-utils \
+    v4l-utils-dev \
+    media-ctl \
     inetutils \
     hostapd \
     cryptodev-module \
     openssl-bin \
-    wireless-tools \
     git \
     spitools \
     alsa-state \
@@ -98,7 +99,7 @@ CORE_IMAGE_EXTRA_INSTALL:append = " \
     python3-pip \
 "
 
-CORE_IMAGE_EXTRA_INSTALL:append:mx93-nxp-bsp = " nxp-demo-experience "
+#CORE_IMAGE_EXTRA_INSTALL:append:mx93-nxp-bsp = " nxp-demo-experience "
 
 install_demo_93() {
     if ! grep -q "icon_demo_launcher.png" ${IMAGE_ROOTFS}${sysconfdir}/xdg/weston/weston.ini
