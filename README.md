@@ -4,6 +4,7 @@
 
 A meta-layer for MaaXBoard series boards
 
+- Yocto styhead(5.1)    support :    MaaXBoard-Osm93
 - Yocto nanbield(4.2)   support :    MaaXBoard-Osm93
 - Yocto Mickledore(4.2) support :    MaaXBoard-8ULP
 - Yocto Langdale(4.1)   support :    MaaXBoard/MaaXBoard-Mini/MaaXBoard-Nano/MaaXBoard-8ULP
@@ -71,7 +72,7 @@ The following example shows how to download the i.MX Yocto Project Community BSP
 ```bash
 $ mkdir -p ~/imx-yocto-bsp
 $ cd ~/imx-yocto-bsp
-$ repo init -u https://github.com/nxp-imx/imx-manifest -b imx-linux-mickledore -m imx-6.1.22-2.0.0.xml
+$ repo init -u https://github.com/nxp-imx/imx-manifest -b imx-linux-styhead -m imx-6.12.3-1.0.0.xml
 $ repo sync
 ```
 
@@ -81,7 +82,7 @@ When this process is completed, the source code is checked out into the director
 
 ```bash
 $ cd sources/
-$ git clone https://github.com/Avnet/meta-maaxboard.git -b mickledore meta-maaxboard
+$ git clone https://github.com/Avnet/meta-maaxboard.git -b styhead meta-maaxboard
 ```
 
 
@@ -170,14 +171,14 @@ $ bitbake avnet-image-full -c populate_sdk
 
 
 
-When building finished, you can get the avnet-image-full based SDK at  *`tmp/deploy/sdk/fsl-imx-wayland-lite-glibc-x86_64-avnet-image-full-armv8a-maaxboard-toolchain-6.1-mickledore.sh`*. Later, if you want to to install the SDK, just run:
+When building finished, you can get the avnet-image-full based SDK at  *`tmp/deploy/sdk/fsl-imx-wayland-lite-glibc-x86_64-avnet-image-full-armv8a-maaxboard-toolchain-6.12-styhead.sh`*. Later, if you want to to install the SDK, just run:
 
 ```bash
-$ sudo bash tmp/deploy/sdk/fsl-imx-wayland-lite-glibc-x86_64-avnet-image-full-armv8a-maaxboard-toolchain-6.1-mickledore.sh
-NXP i.MX Release Distro SDK installer version 6.1-mickledore
-============================================================
-Enter target directory for SDK (default: /opt/fsl-imx-wayland-lite/6.1-mickledore):
-You are about to install the SDK to "/opt/fsl-imx-wayland-lite/6.1-mickledore". Proceed [Y/n]? y
+$ sudo bash tmp/deploy/sdk/fsl-imx-xwayland-glibc-x86_64-avnet-image-full-armv8a-maaxboard-osm93-toolchain-6.12-styhead.sh
+NXP i.MX Release Distro SDK installer version 6.12-styhead
+==========================================================
+Enter target directory for SDK (default: /opt/fsl-imx-xwayland/6.12-styhead):
+You are about to install the SDK to "/opt/fsl-imx-xwayland/6.12-styhead". Proceed [Y/n]? Y
 Extracting SDK.............................done
 Setting it up...done
 SDK has been successfully set up and is ready to be used.
@@ -188,6 +189,6 @@ SDK has been successfully set up and is ready to be used.
 Each time you wish to use the SDK in a new shell session, you need to source the environment setup script e.g.
 
 ```bash
-$ . /opt/fsl-imx-wayland-lite/6.1-mickledore/environment-setup-armv8a-poky-linux
+$ . /opt/fsl-imx-xwayland/6.12-styhead/environment-setup-armv8a-poky-linux
 ```
 
