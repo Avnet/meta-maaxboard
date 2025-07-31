@@ -97,7 +97,7 @@ CORE_IMAGE_EXTRA_INSTALL:append = " \
     python3-pip \
 "
 
-CORE_IMAGE_EXTRA_INSTALL:append:mx93-nxp-bsp = " nxp-demo-experience "
+#CORE_IMAGE_EXTRA_INSTALL:append:mx93-nxp-bsp = " nxp-demo-experience "
 
 install_demo_93() {
     if ! grep -q "icon_demo_launcher.png" ${IMAGE_ROOTFS}${sysconfdir}/xdg/weston/weston.ini

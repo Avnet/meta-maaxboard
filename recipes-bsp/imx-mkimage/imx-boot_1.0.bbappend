@@ -6,6 +6,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 # maaxboard_8ulp_m33_image.bin is build from https://github.com/Avnet/mcore_sdk_8ulp
 SRC_URI += " \
 			file://maaxboard_8ulp_m33_image.bin \
+            file://maaxboard_osm93_m33_image.bin \
 "
 
 IMX_M4_DEMOS      = ""
@@ -56,6 +57,32 @@ compile_mx8ulp() {
     unset UBOOT_NAME_EXTRA
 }
 
+compile_mx93() {
+    bbnote i.MX 93 boot binary build
+    UBOOT_NAME_EXTRA="u-boot-${MACHINE}.bin-${UBOOT_CONFIG}"
+    UBOOT_CONFIG_EXTRA="sd"
+    BOOT_CONFIG_MACHINE_EXTRA="imx-boot${BOOT_VARIANT}-${MACHINE}-${UBOOT_CONFIG_EXTRA}.bin"
+    for ddr_firmware in ${DDR_FIRMWARE_NAME}; do
+        bbnote "Copy ddr_firmware: ${ddr_firmware} from ${DEPLOY_DIR_IMAGE} -> ${BOOT_STAGING} "
+        cp ${DEPLOY_DIR_IMAGE}/${ddr_firmware}               ${BOOT_STAGING}
+    done
+
+    cp ${DEPLOY_DIR_IMAGE}/${SECO_FIRMWARE_NAME}             ${BOOT_STAGING}/
+    cp ${DEPLOY_DIR_IMAGE}/${ATF_MACHINE_NAME} ${BOOT_STAGING}/bl31.bin
+    cp ${DEPLOY_DIR_IMAGE}/${UBOOT_NAME_EXTRA}                     ${BOOT_STAGING}/u-boot.bin
+    if [ -e ${DEPLOY_DIR_IMAGE}/u-boot-spl.bin-${MACHINE}-${UBOOT_CONFIG_EXTRA} ] ; then
+        cp ${DEPLOY_DIR_IMAGE}/u-boot-spl.bin-${MACHINE}-${UBOOT_CONFIG_EXTRA} \
+                                                             ${BOOT_STAGING}/u-boot-spl.bin
+    fi
+    for target in ${IMXBOOT_TARGETS}; do
+        if [ -e "${BOOT_STAGING}/flash.bin" ]; then
+            cp ${BOOT_STAGING}/flash.bin ${S}/${BOOT_CONFIG_MACHINE_EXTRA}-${target}
+        fi
+    done
+    unset UBOOT_NAME_EXTRA
+    unset UBOOT_CONFIG_EXTRA
+}
+
 do_deploy:append() {
     case ${SOC_FAMILY} in
     mx8ulp)
@@ -96,8 +123,8 @@ copy_uboot_dtb() {
             ;;
     esac
 
-    bbnote "Copy $(basename ${DEPLOY_DIR_IMAGE}/${BOOT_TOOLS}/${UBOOT_DTB_NAME}) to $(basename ${BOOT_STAGING}/${target_dtb_name})"
-    cp ${DEPLOY_DIR_IMAGE}/${BOOT_TOOLS}/${UBOOT_DTB_NAME}   ${BOOT_STAGING}/${target_dtb_name}
+    bbnote "Copy $(basename ${DEPLOY_DIR_IMAGE}/${BOOT_TOOLS}/${MACHINE}.dtb) to $(basename ${BOOT_STAGING}/${target_dtb_name})"
+    cp ${DEPLOY_DIR_IMAGE}/${BOOT_TOOLS}/${MACHINE}.dtb   ${BOOT_STAGING}/${target_dtb_name}
 }
 
 do_compile:maaxboardbase() {
@@ -110,6 +137,7 @@ do_compile:maaxboardbase() {
     # mkimage for i.MX8
     BOOT_CONFIG_MACHINE_EXTRA="${BOOT_NAME}${BOOT_VARIANT}-${MACHINE}-${UBOOT_CONFIG}.bin"
     for target in ${IMXBOOT_TARGETS}; do
+
         compile_${SOC_FAMILY}
 
         copy_uboot_dtb
