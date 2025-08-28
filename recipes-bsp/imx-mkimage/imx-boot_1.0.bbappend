@@ -34,6 +34,7 @@ do_compile:prepend() {
     case ${SOC_FAMILY} in
     mx8ulp)
         install -m 0755 ${WORKDIR}/${M4_DEFAULT_IMAGE}       ${DEPLOY_DIR_IMAGE}/${M4_DEFAULT_IMAGE}
+        install -m 0755 ${WORKDIR}/${M4_DEFAULT_IMAGE}       ${DEPLOY_DIR_IMAGE}/mcore-demos/${M4_DEFAULT_IMAGE}
         install -m 0755 ${WORKDIR}/${M4_DEFAULT_IMAGE}       ${BOOT_STAGING}/m33_image.bin
         ;;
     mx93)
@@ -81,6 +82,7 @@ compile_mx93() {
     done
     unset UBOOT_NAME_EXTRA
     unset UBOOT_CONFIG_EXTRA
+    unset BOOT_CONFIG_MACHINE_EXTRA
 }
 
 do_deploy:append() {
@@ -135,7 +137,10 @@ do_compile:maaxboardbase() {
     fi
 
     # mkimage for i.MX8
-    BOOT_CONFIG_MACHINE_EXTRA="${BOOT_NAME}${BOOT_VARIANT}-${MACHINE}-${UBOOT_CONFIG}.bin"
+    UBOOT_CONFIG_EXTRA="sd"
+    #BOOT_CONFIG_MACHINE_EXTRA="${BOOT_NAME}${BOOT_VARIANT}-${MACHINE}-${UBOOT_CONFIG}.bin"
+    BOOT_CONFIG_MACHINE_EXTRA="imx-boot${BOOT_VARIANT}-${MACHINE}-${UBOOT_CONFIG_EXTRA}.bin"
+
     for target in ${IMXBOOT_TARGETS}; do
 
         compile_${SOC_FAMILY}
@@ -151,6 +156,7 @@ do_compile:maaxboardbase() {
             cp ${BOOT_STAGING}/flash.bin ${S}/${BOOT_CONFIG_MACHINE_EXTRA}-${target}
         fi
     done
+    unset UBOOT_CONFIG_EXTRA
     unset BOOT_CONFIG_MACHINE_EXTRA
 }
 
